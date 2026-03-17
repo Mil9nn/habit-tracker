@@ -1,5 +1,5 @@
-import WaterTracker from '@/components/WaterTracker'
+import CalorieTracker from '@/components/CalorieTracker'
 
 export default function Home() {
-  return <WaterTracker />
+  return <CalorieTracker />
 }

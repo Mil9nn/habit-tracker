@@ -1,11 +1,12 @@
 // What this API does:
-// - GET: Fetches water consumption summary for the authenticated user
-// Returns daily, weekly, and monthly statistics
+// - GET: Fetches calorie summary for the authenticated user (daily, weekly, monthly)
+// - Returns calories consumed, goal, progress, and recommendations
 
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getWaterLogModel, getWaterGoalModel } from '@/lib/models'
+import { getCalorieLogModel, getUserProfileModel } from '@/lib/models'
+import { calculateDailyCalorieNeeds, getCalorieGoalInfo } from '@/lib/calorieCalculator'
 
 export async function GET(req: Request) {
   const session = await getServerSession()
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const period = searchParams.get('period') || 'daily'
   const targetDate = searchParams.get('date')
-  
+
   await connectDB()
   
   let startDate: Date
@@ -53,40 +54,50 @@ export async function GET(req: Request) {
         startDate.setHours(0, 0, 0, 0)
     }
   }
+
+  const CalorieLog = getCalorieLogModel()
+  const UserProfile = getUserProfileModel()
   
-  const WaterLog = getWaterLogModel()
-  const WaterGoal = getWaterGoalModel()
+  const [logs, profile] = await Promise.all([
+    CalorieLog.find({
+      userId: session.user.email,
+      timestamp: { $gte: startDate, $lte: endDate }
+    }).sort({ timestamp: -1 }),
+    UserProfile.findOne({ userId: session.user.email })
+  ])
+
+  const totalCalories = logs.reduce((sum: number, log: any) => sum + log.calories, 0)
+  const goal = profile?.dailyCalorieGoal || 2000
+  const progress = Math.min((totalCalories / goal) * 100, 100)
   
-  const logs = await WaterLog.find({
-    userId: session.user.email,
-    date: { $gte: startDate, $lte: endDate }
-  }).sort({ date: -1 })
-  
-  const totalAmount = logs.reduce((sum: number, log: any) => sum + log.amountMl, 0)
-  
-  const goal = await WaterGoal.findOne({ userId: session.user.email })
-  const targetMl = goal?.targetMl || 2000
-  
-  const progress = Math.min((totalAmount / targetMl) * 100, 100)
-  
-  const dailyStats: { [key: string]: number } = {}
-  logs.forEach((log: any) => {
-    const dateKey = log.date.toISOString().split('T')[0]
-    if (!dailyStats[dateKey]) {
-      dailyStats[dateKey] = 0
-    }
-    dailyStats[dateKey] += log.amountMl
-  })
-  
+  // Calculate daily average
+  let averageDaily = totalCalories
+  if (period === 'weekly') averageDaily = totalCalories / 7
+  if (period === 'monthly') averageDaily = totalCalories / 30
+
+  // Get goal info and recommendations
+  let goalInfo = null
+  if (profile) {
+    const calculatedNeeds = calculateDailyCalorieNeeds({
+      age: profile.age,
+      gender: profile.gender,
+      weight: profile.weight,
+      height: profile.height,
+      activityLevel: profile.activityLevel
+    })
+    
+    goalInfo = getCalorieGoalInfo(goal, calculatedNeeds)
+  }
+
   return NextResponse.json({
     period,
     startDate,
     endDate,
-    totalAmount,
-    targetMl,
+    totalCalories,
+    goal,
     progress,
     entryCount: logs.length,
-    dailyStats,
-    averageDaily: period === 'daily' ? totalAmount : totalAmount / (period === 'weekly' ? 7 : 30)
+    averageDaily,
+    goalInfo
   })
 }

@@ -8,7 +8,7 @@ export interface IWaterLog extends Document {
   updatedAt: Date;
 }
 
-const WaterLogSchema: Schema = new Schema(
+export const WaterLogSchema: Schema = new Schema(
   {
     userId: { type: String, required: true },
     amountMl: { type: Number, required: true },
@@ -18,5 +18,3 @@ const WaterLogSchema: Schema = new Schema(
     timestamps: true,
   }
 );
-
-export const WaterLog = mongoose.model<IWaterLog>("WaterLog", WaterLogSchema);

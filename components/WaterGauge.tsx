@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Droplets } from 'lucide-react'
-import { mlToL } from '@/lib/utils'
+import { Flame } from 'lucide-react'
 
-interface WaterGaugeProps {
+interface CalorieGaugeProps {
   current: number
   target: number
   size?: number
@@ -12,13 +11,13 @@ interface WaterGaugeProps {
   className?: string
 }
 
-export default function WaterGauge({ 
+export default function CalorieGauge({ 
   current, 
   target, 
   size = 200, 
   strokeWidth = 12,
   className 
-}: WaterGaugeProps) {
+}: CalorieGaugeProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const percentage = Math.min((current / target) * 100, 100)
@@ -106,7 +105,7 @@ export default function WaterGauge({
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <div className="flex items-center gap-2 mb-1">
-          <Droplets 
+          <Flame 
             className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`}
             style={{ color: getColor() }}
           />
@@ -118,10 +117,10 @@ export default function WaterGauge({
           </span>
         </div>
         <div className={`${responsiveSize.textSize} text-gray-600 font-medium`}>
-          {current}ml / {mlToL(target)}
+          {current} / {target} kcal
         </div>
         <div className={`${responsiveSize.subtextSize} text-gray-500 mt-1`}>
-          {target - current > 0 ? `${target - current}ml to go` : 'Goal reached! 🎉'}
+          {target - current > 0 ? `${target - current} kcal remaining` : 'Goal reached! 🎉'}
         </div>
       </div>
     </div>

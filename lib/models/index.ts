@@ -1,37 +1,56 @@
 import mongoose from 'mongoose'
+import { WaterLogSchema } from './WaterLog'
+import { WaterGoalSchema } from './WaterGoals'
+import { UserProfileSchema } from './UserProfile'
+import { CalorieLogSchema } from './CalorieLog'
 
 // Cache models to prevent multiple compilation
 const models: any = {}
 
 export const getWaterLogModel = () => {
   if (!models.WaterLog) {
-    const WaterLogSchema = new mongoose.Schema(
-      {
-        userId: { type: String, required: true },
-        amountMl: { type: Number, required: true },
-        date: { type: Date, required: true },
-      },
-      {
-        timestamps: true,
-      }
-    )
-    models.WaterLog = mongoose.model('WaterLog', WaterLogSchema)
+    try {
+      models.WaterLog = mongoose.model('WaterLog', WaterLogSchema)
+    } catch (error) {
+      // Model already compiled, return existing model
+      return mongoose.model('WaterLog')
+    }
   }
   return models.WaterLog
 }
 
 export const getWaterGoalModel = () => {
   if (!models.WaterGoal) {
-    const WaterGoalSchema = new mongoose.Schema(
-      {
-        userId: { type: String, required: true, unique: true },
-        targetMl: { type: Number, required: true, default: 2000 },
-      },
-      {
-        timestamps: true,
-      }
-    )
-    models.WaterGoal = mongoose.model('WaterGoal', WaterGoalSchema)
+    try {
+      models.WaterGoal = mongoose.model('WaterGoal', WaterGoalSchema)
+    } catch (error) {
+      // Model already compiled, return existing model
+      return mongoose.model('WaterGoal')
+    }
   }
   return models.WaterGoal
+}
+
+export const getUserProfileModel = () => {
+  if (!models.UserProfile) {
+    try {
+      models.UserProfile = mongoose.model('UserProfile', UserProfileSchema)
+    } catch (error) {
+      // Model already compiled, return existing model
+      return mongoose.model('UserProfile')
+    }
+  }
+  return models.UserProfile
+}
+
+export const getCalorieLogModel = () => {
+  if (!models.CalorieLog) {
+    try {
+      models.CalorieLog = mongoose.model('CalorieLog', CalorieLogSchema)
+    } catch (error) {
+      // Model already compiled, return existing model
+      return mongoose.model('CalorieLog')
+    }
+  }
+  return models.CalorieLog
 }

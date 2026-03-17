@@ -7,7 +7,7 @@ export interface IWaterGoal extends Document {
   updatedAt: Date;
 }
 
-const WaterGoalSchema: Schema = new Schema(
+export const WaterGoalSchema: Schema = new Schema(
   {
     userId: { type: String, required: true, unique: true },
     targetMl: { type: Number, required: true, default: 2000 },
@@ -16,5 +16,3 @@ const WaterGoalSchema: Schema = new Schema(
     timestamps: true,
   }
 );
-
-export const WaterGoal = mongoose.model<IWaterGoal>("WaterGoal", WaterGoalSchema);
