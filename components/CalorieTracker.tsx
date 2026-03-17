@@ -135,11 +135,11 @@ export default function CalorieTracker() {
       const targetDate = selectedDate
       console.log('Fetching logs for date:', targetDate)
       console.log('Selected date state:', selectedDate)
-      
+
       // Create end date that includes the full day
       const endDate = new Date(targetDate)
       endDate.setHours(23, 59, 59, 999)
-      
+
       const [summaryRes, logsRes] = await Promise.all([
         fetch(`/api/calories/summary?period=daily&date=${targetDate}`),
         fetch(`/api/calories/log?startDate=${targetDate}&endDate=${endDate.toISOString()}`)
@@ -161,7 +161,7 @@ export default function CalorieTracker() {
         if (allLogsRes.ok) {
           const allLogsData = await allLogsRes.json()
           console.log('All logs for heatmap:', allLogsData)
-          
+
           // Process logs for heatmap
           const dailyTotals: { [key: string]: number } = {}
           allLogsData.forEach((log: CalorieLog) => {
@@ -207,7 +207,7 @@ export default function CalorieTracker() {
 
   const analyzeFoodWithAI = async () => {
     if (!aiFoodDescription.trim()) return
-    
+
     setIsAnalyzing(true)
     try {
       const response = await fetch('/api/ai/analyze-food', {
@@ -235,7 +235,7 @@ export default function CalorieTracker() {
 
     setIsAddingFoods(true)
     console.log('Adding analyzed foods:', aiAnalysis.foods)
-    
+
     try {
       // Add all foods in parallel for better performance
       const addPromises = aiAnalysis.foods.map((food: any) => {
@@ -254,7 +254,7 @@ export default function CalorieTracker() {
 
       const results = await Promise.all(addPromises)
       console.log('Add results:', results)
-      
+
       // Check if all additions were successful
       const allSuccessful = results.every(response => response.ok)
       if (allSuccessful) {
@@ -327,9 +327,9 @@ export default function CalorieTracker() {
                 className="flex items-center justify-center rounded-full p-2 hover:bg-yellow-50 transition-all duration-200"
               >
                 {session?.user?.image ? (
-                  <img 
-                    src={session.user.image} 
-                    alt={session.user.name || 'User'} 
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name || 'User'}
                     className="h-9 w-9 rounded-full object-cover ring-2 ring-yellow-200"
                   />
                 ) : (
@@ -371,18 +371,15 @@ export default function CalorieTracker() {
       <main className="mx-auto space-y-6">
 
         <div className="shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
             <h3 className="text-lg font-semibold mb-6 text-center">Today's Calorie Progress</h3>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="border rounded px-2 py-1 text-sm"
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+              max={new Date().toISOString().split('T')[0]}
+            />
           </div>
           <div className="flex flex-col sm:flex-row justify-center mb-4 space-y-4">
             <CalorieGauge
@@ -412,7 +409,7 @@ export default function CalorieTracker() {
                     {isAnalyzing ? 'Analyzing...' : 'Analyze'}
                   </Button>
                 </div>
-                
+
                 {aiAnalysis && (
                   <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200">
                     <div className="flex justify-between items-center mb-3">
@@ -421,7 +418,7 @@ export default function CalorieTracker() {
                         {aiAnalysis.method === 'ai' ? '🤖 AI Analysis' : '📊 Local Calculation'}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-2 mb-3">
                       {aiAnalysis.foods.map((food: any, index: number) => (
                         <div key={index} className="flex justify-between items-center bg-white rounded-lg p-2">
@@ -433,12 +430,12 @@ export default function CalorieTracker() {
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="flex justify-between items-center pt-3 border-t border-yellow-200">
                       <span className="font-bold text-gray-900">Total Calories</span>
                       <span className="text-xl font-bold text-yellow-600">{aiAnalysis.totalCalories} kcal</span>
                     </div>
-                    
+
                     <div className="flex gap-2 mt-3">
                       <Button
                         onClick={addAnalyzedFoods}
@@ -515,22 +512,29 @@ export default function CalorieTracker() {
           <div className="rounded-lg shadow-sm p-4 my-2">
             <h3 className="text-lg font-semibold mb-3">Daily Summary</h3>
             <div className="space-y-2">
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Today's Calories</span>
-                <span className="font-bold text-gray-900">
-                  {summary ? `${summary.totalCalories} kcal` : '0 kcal'}
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-yellow-50 border border-yellow-100 shadow-sm">
+                {/* Icon / indicator */}
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-400"></div>
+
+                {/* Label */}
+                <span className="text-sm text-gray-600">
+                  Today
+                </span>
+
+                {/* Value */}
+                <span className="text-sm font-semibold text-gray-900">
+                  {summary ? `${summary.totalCalories} kcal` : "0 kcal"}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Daily Average</span>
-                <span className="font-bold text-gray-900">
-                  {summary ? `${Math.round(summary.averageDaily)} kcal` : '0 kcal'}
+
+              {/* Daily Average */}
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 shadow-sm hover:shadow-md transition">
+                <span className="text-xs font-medium text-gray-500">
+                  Daily Average
                 </span>
-              </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Daily Goal</span>
-                <span className="font-bold text-gray-900">
-                  {summary?.goal || 2000} kcal
+
+                <span className="text-sm font-bold text-gray-900">
+                  {summary ? `${Math.round(summary.averageDaily)} kcal` : "0 kcal"}
                 </span>
               </div>
             </div>
@@ -547,13 +551,13 @@ export default function CalorieTracker() {
                 {logs.slice(0, 5).map((log) => (
                   <div key={log._id} className="flex justify-between items-center py-2 border-b">
                     <div className="flex-1">
-                      <span className="text-gray-800 font-medium">{log.foodName}</span>
-                      <span className="text-gray-500 text-sm ml-2">{log.mealType}</span>
+                      <span className="text-gray-600 text-sm">{log.quantity}x </span>
+                      <span className="text-gray-800 capitalize font-medium">{log.foodName}</span>
                       <span className="text-gray-400 text-xs ml-2">
                         {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <span className="font-medium text-gray-900">{log.calories} kcal</span>
+                    <span className="font-medium text-sm text-yellow-800">{log.calories} kcal</span>
                   </div>
                 ))}
                 {logs.length > 5 && (

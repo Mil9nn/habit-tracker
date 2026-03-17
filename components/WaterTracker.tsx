@@ -395,8 +395,6 @@ export default function CalorieTracker() {
             </form>
           </div>
 
-          <WaterHeatmap data={heatmapData} goal={summary?.goal || 2000} />
-
           <div className="rounded-lg shadow-sm border p-4">
             <h3 className="text-lg font-semibold mb-3">Daily Summary</h3>
             <div className="space-y-2">
@@ -451,6 +449,8 @@ export default function CalorieTracker() {
               )}
             </div>
           </div>
+
+          <WaterHeatmap data={heatmapData} goal={summary?.goal || 2000} />
         </div>
       </main>
     </div>
