@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
@@ -12,6 +12,8 @@ import { ChevronLeft, Edit } from 'lucide-react'
 import { useProfile, useProteinGoal, useCarbsGoal, useFatGoal, useProfileStore } from '@/store/useProfileStore'
 import Image from 'next/image'
 import ProfileForm from '@/components/ProfileForm'
+
+export const dynamic = 'force-dynamic'
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()

@@ -9,6 +9,8 @@ import { useProfile } from '@/store/useProfileStore'
 import { ChevronLeft } from 'lucide-react'
 import Image from 'next/image'
 
+export const dynamic = 'force-dynamic'
+
 export default function EditProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
