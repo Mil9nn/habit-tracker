@@ -4,12 +4,16 @@ import { useSession, signOut } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import ProfileForm from '@/components/ProfileForm'
 import { useProfile } from '@/store/useProfileStore'
 import { ChevronLeft } from 'lucide-react'
 import Image from 'next/image'
 
-export const dynamic = 'force-dynamic'
+const DynamicProfileForm = dynamic(() => import('@/components/ProfileForm'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse">Loading profile form...</div>
+})
 
 export default function EditProfilePage() {
   const { data: session, status } = useSession()
@@ -87,7 +91,7 @@ export default function EditProfilePage() {
 
         {/* Edit Profile Form */}
         <div className="max-w-2xl">
-          <ProfileForm onSave={handleProfileSaved} />
+          <DynamicProfileForm onSave={handleProfileSaved} />
         </div>
 
         {/* Sign Out Button */}

@@ -11,9 +11,12 @@ import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, Edit } from 'lucide-react'
 import { useProfile, useProteinGoal, useCarbsGoal, useFatGoal, useProfileStore } from '@/store/useProfileStore'
 import Image from 'next/image'
-import ProfileForm from '@/components/ProfileForm'
+import dynamic from 'next/dynamic'
 
-export const dynamic = 'force-dynamic'
+const ProfileForm = dynamic(() => import('@/components/ProfileForm'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse">Loading profile form...</div>
+})
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
