@@ -13,18 +13,17 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
   const [processedData, setProcessedData] = useState<any[]>([])
 
   useEffect(() => {
-    console.log('Raw data received:', data)
     // Process data for heatmap - convert calories to count levels based on goal
     const caloriesPerLevel = Math.ceil(goal / 5) // Divide goal into 5 levels
     const heatmapData = data.map(entry => {
       const level = Math.min(Math.floor(entry.count / caloriesPerLevel), 5)
-      console.log(`Date: ${entry.date}, Calories: ${entry.count}, Level: ${level} (goal: ${goal}kcal, ${caloriesPerLevel}kcal per level)`)
+      
       return {
         date: entry.date,
         count: level
       }
     })
-    console.log('Processed heatmap data:', heatmapData)
+    
     setProcessedData(heatmapData)
   }, [data, goal])
 

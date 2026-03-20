@@ -67,6 +67,9 @@ export async function GET(req: Request) {
   ])
 
   const totalCalories = logs.reduce((sum: number, log: any) => sum + log.calories, 0)
+  const totalProtein = logs.reduce((sum: number, log: any) => sum + (log.protein || 0), 0)    // ✅ Calculate macros
+  const totalCarbs = logs.reduce((sum: number, log: any) => sum + (log.carbs || 0), 0)        // ✅ Calculate macros
+  const totalFat = logs.reduce((sum: number, log: any) => sum + (log.fat || 0), 0)            // ✅ Calculate macros
   const goal = profile?.dailyCalorieGoal || 2000
   const progress = Math.min((totalCalories / goal) * 100, 100)
   
@@ -94,6 +97,9 @@ export async function GET(req: Request) {
     startDate,
     endDate,
     totalCalories,
+    totalProtein,    // ✅ Return macros
+    totalCarbs,      // ✅ Return macros
+    totalFat,        // ✅ Return macros
     goal,
     progress,
     entryCount: logs.length,

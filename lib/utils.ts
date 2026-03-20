@@ -8,3 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function mlToL(ml: number): string {
   return `${(ml / 1000).toFixed(1)} L`
 }
+
+export function formatToOneDecimal(value: number): string {
+  return value.toFixed(1)
+}

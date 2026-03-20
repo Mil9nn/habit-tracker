@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (!session?.user?.email)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { foodName, calories, mealType, quantity } = await req.json()
+  const { foodName, calories, mealType, quantity, protein, carbs, fat } = await req.json()
 
   if (!foodName || !calories || !mealType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -55,6 +55,9 @@ export async function POST(req: Request) {
     userId: session.user.email,
     foodName,
     calories,
+    protein: protein || 0,    // ✅ Save macros
+    carbs: carbs || 0,      // ✅ Save macros  
+    fat: fat || 0,          // ✅ Save macros
     mealType,
     quantity,
     timestamp: new Date(),
