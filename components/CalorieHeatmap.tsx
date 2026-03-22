@@ -30,11 +30,11 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
   const classForValue = (value: any) => {
     const count = value?.count || 0
     if (count === 0) return 'fill-gray-100'
-    if (count === 1) return 'fill-yellow-100'
-    if (count === 2) return 'fill-yellow-300'
-    if (count === 3) return 'fill-yellow-400'
-    if (count === 4) return 'fill-amber-400'
-    return 'fill-amber-600'
+    if (count === 1) return 'fill-blue-100'
+    if (count === 2) return 'fill-blue-300'
+    if (count === 3) return 'fill-blue-500'
+    if (count === 4) return 'fill-red-400'
+    return 'fill-red-600'
   }
 
   const getTooltipDataAttrs = (value: any) => {
@@ -75,11 +75,11 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
             <span>Less</span>
             <div className="flex gap-1">
               <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-sm bg-gray-100" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-yellow-100" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-yellow-300" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-yellow-400" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-amber-400" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-amber-600" />
+              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-blue-100" />
+              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-blue-300" />
+              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-blue-500" />
+              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-red-400" />
+              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-red-600" />
             </div>
             <span>More</span>
           </div>

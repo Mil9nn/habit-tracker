@@ -50,18 +50,12 @@ export default function ProfileDisplay({ dailyCalories }: Props) {
       <div className="border-b bg-white">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => router.back()} 
-              className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <ChevronLeft size={20} className="text-gray-600" />
-            </button>
             <h1 className="text-base font-medium">Profile</h1>
           </div>
 
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/')}>
-              <Home size={18} className="text-zinc-600" />
+              <Home size={18} className="text-red-600" />
             </button>
             <button onClick={() => router.push('/profile/edit')}>
               <Edit size={18} className="text-zinc-600" />

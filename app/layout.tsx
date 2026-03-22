@@ -4,8 +4,8 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Water Tracker",
-  description: "Track your daily water intake and stay hydrated",
+  title: "CaloMind",
+  description: "Track your daily nutrition with precision and clarity - Your intelligent calorie and macro tracking companion",
 };
 
 export default function RootLayout({

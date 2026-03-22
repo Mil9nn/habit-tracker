@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
@@ -18,7 +18,7 @@ const ProfileForm = dynamic(() => import('@/components/ProfileForm'), {
   loading: () => <div className="animate-pulse">Loading profile form...</div>
 })
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -146,5 +146,17 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="animate-pulse text-center text-indigo-600">Loading...</div>
+      </div>
+    }>
+      <ProfilePageContent />
+    </Suspense>
   )
 }

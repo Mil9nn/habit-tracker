@@ -163,14 +163,14 @@ export function AIFoodAnalysis({ onDataAdded, onToggleMode }: AIFoodAnalysisProp
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
           placeholder="e.g. 2 bananas, protein shake, 3 chapatis with cauliflower"
-          className="w-full h-30 rounded-xl ring ring-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none transition"
+          className="w-full h-30 rounded-xl ring ring-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 resize-none transition"
           rows={3}
         />
 
         <Button
           onClick={analyzeFoodWithAI}
           disabled={isAnalyzing || !aiFoodDescription.trim()}
-          className="w-full h-12 sm:w-fit bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:shadow-md hover:scale-105 active:scale-95 ease-in-out transition-all disabled:opacity-50"
+          className="w-full h-12 sm:w-fit bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:shadow-md hover:scale-105 active:scale-95 ease-in-out transition-all disabled:opacity-50"
         >
           {isAnalyzing ? "Adding..." : "Add Meal"}
         </Button>

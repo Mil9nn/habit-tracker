@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { CalorieLog } from './CalorieTracker'
 import { format } from 'date-fns'
-import { ChevronDown, ChevronUp, Edit2, Trash2, MoreVertical } from 'lucide-react'
+import { Edit2, Trash2, MoreVertical } from 'lucide-react'
 import { MealEditForm } from './MealEditForm'
 
 interface FoodLogProps {
@@ -13,21 +13,9 @@ interface FoodLogProps {
 }
 
 export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
-  const [expandedMeals, setExpandedMeals] = useState<Set<string>>(() => new Set())
   const [editingMeal, setEditingMeal] = useState<CalorieLog | null>(null)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
 
-  const toggleMealExpansion = (mealId: string) => {
-    setExpandedMeals(prev => {
-      const newExpanded = new Set(prev)
-      if (newExpanded.has(mealId)) {
-        newExpanded.delete(mealId)
-      } else {
-        newExpanded.add(mealId)
-      }
-      return newExpanded
-    })
-  }
 
   const deleteLog = async (logId: string) => {
     try {
@@ -60,9 +48,9 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
   return (
     <>
-      <div className="rounded-2xl mt-2 border border-zinc-200/60 bg-white/70 backdrop-blur-sm shadow-sm p-5 sm:p-6" onClick={() => setActiveMenu(null)}>
+      <div className="rounded-2xl mt-2 border border-zinc-200/60 bg-white/70 backdrop-blur-sm shadow-sm p-2 sm:p-6" onClick={() => setActiveMenu(null)}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between p-2">
           <h3 className="text-base sm:text-lg font-semibold tracking-tight text-zinc-900">
             {selectedDate === new Date().toISOString().split('T')[0]
               ? "Today's Log"
@@ -79,7 +67,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                 className="group flex items-center justify-between p-2 rounded-lg hover:bg-zinc-50 transition-colors"
               >
                 {/* Left */}
-                <div className="flex-1">
+                <div className="flex-1 bg-blue-50 p-2 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm text-zinc-800 font-medium">
@@ -93,25 +81,10 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                         })}
                       </p>
                     </div>
-
-                    {log.mealItems && log.mealItems.length > 1 && (
-                      <button
-                        onClick={() => toggleMealExpansion(log._id)}
-                        className="text-zinc-400 hover:text-zinc-600 transition-colors"
-                      >
-                        {expandedMeals.has(log._id) ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </button>
-                    )}
                   </div>
 
-
-
-                  {/* Expanded meal items */}
-                  {log.mealItems && log.mealItems.length > 1 && expandedMeals.has(log._id) && (
+                  {/* Meal items */}
+                  {log.mealItems && log.mealItems.length > 1 && (
                     <div className="mt-3 space-y-2">
                       {log.mealItems.map((item, index) => (
                         <div
@@ -131,7 +104,6 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                             <span className="text-xs font-semibold text-amber-500 whitespace-nowrap">
                               {item.calories} kcal
                             </span>
-
                           </div>
 
                           {/* Macros pills */}
@@ -159,71 +131,69 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
                   {/* TOTAL MACROS */}
                   {(log.protein || log.carbs || log.fat) && (
-                    <div className="flex items-center flex-wrap gap-6 mt-4">
+                    <div className="flex items-center flex-wrap gap-4 mt-4">
                       {log.protein && (
-                        <p className="font-semibold text-xs text-emerald-700">
+                        <p className="font-regular text-xs text-emerald-700">
                           <span className='block'>Protein:</span> {log.protein}g
                         </p>
                       )}
                       {log.carbs && (
-                        <p className="font-semibold text-xs text-sky-700">
+                        <p className="font-regular text-xs text-sky-700">
                           <span className='block'>Carbs:</span> {log.carbs}g
                         </p>
                       )}
                       {log.fat && (
-                        <p className="font-semibold text-xs  text-rose-700">
+                        <p className="font-regular text-xs  text-rose-700">
                           <span className='block'>Fat:</span> {log.fat}g
                         </p>
                       )}
 
-                      <span className="text-base font-semibold text-amber-500">
+                      <span className="text-base font-regular text-amber-500">
                         {log.calories}
                         <span className="text-xs text-zinc-400 ml-1">kcal</span>
                       </span>
+
+                      {/* 3 dots menu at bottom */}
+                      <div className="flex items-center gap-2 ml-auto">
+                        {/* Actions */}
+                        <div
+                          className="relative opacity-0 group-hover:opacity-100 transition"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button className="p-1 rounded-md hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition">
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {activeMenu === log._id && (
+                            <div className="absolute right-0 top-full mt-2 w-32 rounded-lg border border-zinc-200 bg-white shadow-md overflow-hidden">
+                              <button
+                                onClick={() => {
+                                  setEditingMeal(log)
+                                  setActiveMenu(null)
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                                Edit
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  deleteLog(log._id)
+                                  setActiveMenu(null)
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
-
-                  {/* RIGHT SIDE */}
-                  <div className="flex items-center gap-2">
-                    {/* Actions */}
-                    <div
-                      className="relative opacity-0 group-hover:opacity-100 transition"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button className="p-1 rounded-md hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition">
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-
-                      {activeMenu === log._id && (
-                        <div className="absolute right-0 top-full mt-2 w-32 rounded-lg border border-zinc-200 bg-white shadow-md overflow-hidden">
-                          <button
-                            onClick={() => {
-                              setEditingMeal(log)
-                              setActiveMenu(null)
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                            Edit
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              deleteLog(log._id)
-                              setActiveMenu(null)
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
-
-
               </div>
             ))}
 
