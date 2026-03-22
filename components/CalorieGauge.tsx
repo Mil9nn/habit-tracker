@@ -106,7 +106,7 @@ export default function CalorieGauge({
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <div className="flex items-center gap-2 mb-1">
           <Flame 
-            className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`}
+            className={`${isMobile ? 'size-5' : 'size-7'}`}
             style={{ color: getColor() }}
           />
           <span 

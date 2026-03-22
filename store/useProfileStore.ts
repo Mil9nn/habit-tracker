@@ -45,6 +45,8 @@ export type Gender = 'male' | 'female'
 export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active'
 
 export interface UserProfile {
+  name: string
+  email: string
   age: number
   gender: Gender
   weight: number // kg
@@ -55,6 +57,7 @@ export interface UserProfile {
   carbsGoal: number // grams
   fatGoal: number // grams
   bmr: number
+  createdAt?: string
 }
 
 export interface ProfileState {
@@ -76,6 +79,8 @@ export interface ProfileState {
 
 // Default profile values (empty state, no dummy data)
 const defaultProfile: UserProfile = {
+  name: '',
+  email: '',
   age: 0,
   gender: 'male',
   weight: 0, // kg
@@ -230,6 +235,11 @@ export const useProteinGoal = () => useProfileStore((state) => state.profile?.pr
 export const useCarbsGoal = () => useProfileStore((state) => state.profile?.carbsGoal || 0)
 export const useFatGoal = () => useProfileStore((state) => state.profile?.fatGoal || 0)
 export const useActivityLevel = () => useProfileStore((state) => state.profile?.activityLevel || 'moderately_active')
+export const useDailyCalories = () => {
+  // This would need to be calculated from API calls
+  // For now, return a placeholder or 0
+  return 0 // TODO: Implement proper daily calories fetching
+}
 export const useProfileActions = () => useProfileStore((state) => ({
   setProfile: state.setProfile,
   updateField: state.updateField,

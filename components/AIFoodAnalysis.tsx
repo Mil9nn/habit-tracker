@@ -21,9 +21,10 @@ interface FoodAnalysis {
 
 interface AIFoodAnalysisProps {
   onDataAdded?: () => void
+  onToggleMode?: () => void
 }
 
-export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
+export function AIFoodAnalysis({ onDataAdded, onToggleMode }: AIFoodAnalysisProps) {
   const [aiFoodDescription, setAiFoodDescription] = useState('')
   const [aiAnalysis, setAiAnalysis] = useState<FoodAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -45,12 +46,51 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
 
       if (response.ok) {
         const analysis = await response.json()
-        setAiAnalysis(analysis)
+        
+        // Create a single meal entry instead of individual food entries
+        setIsAddingFoods(true)
+        
+        const mealData = {
+          foodName: `${analysis.foods.map((f: any) => `${f.quantity}× ${f.name}`).join(', ')}`,
+          calories: analysis.totalCalories,
+          protein: analysis.totalProtein || 0,
+          carbs: analysis.totalCarbs || 0,
+          fat: analysis.totalFat || 0,
+          mealType: 'breakfast',
+          quantity: 1,
+          isMeal: true,
+          mealItems: analysis.foods.map((food: any) => ({
+            name: food.name,
+            quantity: food.quantity,
+            calories: food.calories,
+            protein: food.protein || 0,
+            carbs: food.carbs || 0,
+            fat: food.fat || 0
+          }))
+        }
+
+        const mealResponse = await fetch('/api/calories/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mealData)
+        })
+
+        if (mealResponse.ok) {
+          // Clear everything and refresh data
+          setAiAnalysis(null)
+          setAiFoodDescription('')
+          onDataAdded?.()
+        } else {
+          // If adding failed, still show the analysis so user can try manually
+          setAiAnalysis(analysis)
+          console.error('Failed to add meal')
+        }
       }
     } catch (error) {
       console.error('Error analyzing food:', error)
     } finally {
       setIsAnalyzing(false)
+      setIsAddingFoods(false)
     }
   }
 
@@ -60,33 +100,39 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
     setIsAddingFoods(true)
 
     try {
-      // Add all foods in parallel for better performance
-      const addPromises = aiAnalysis.foods.map((food) => {
-        return fetch('/api/calories/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            foodName: food.name,
-            calories: food.calories,
-            protein: food.protein || 0,
-            carbs: food.carbs || 0,
-            fat: food.fat || 0,
-            mealType: 'breakfast',
-            quantity: food.quantity || 1
-          })
-        })
+      // Create a single meal entry instead of individual food entries
+      const mealData = {
+        foodName: `${aiAnalysis.foods.map((f: any) => `${f.quantity}× ${f.name}`).join(', ')}`,
+        calories: aiAnalysis.totalCalories,
+        protein: aiAnalysis.totalProtein || 0,
+        carbs: aiAnalysis.totalCarbs || 0,
+        fat: aiAnalysis.totalFat || 0,
+        mealType: 'breakfast',
+        quantity: 1,
+        isMeal: true,
+        mealItems: aiAnalysis.foods.map((food: any) => ({
+          name: food.name,
+          quantity: food.quantity,
+          calories: food.calories,
+          protein: food.protein || 0,
+          carbs: food.carbs || 0,
+          fat: food.fat || 0
+        }))
+      }
+
+      const mealResponse = await fetch('/api/calories/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mealData)
       })
 
-      const results = await Promise.all(addPromises)
-      const allSuccessful = results.every(result => result.ok)
-
-      if (allSuccessful) {
+      if (mealResponse.ok) {
         // Clear AI analysis and refresh data
         setAiAnalysis(null)
         setAiFoodDescription('')
         onDataAdded?.() // Notify parent component
       } else {
-        console.error('Some foods failed to add')
+        console.error('Failed to add meal')
       }
     } catch (error) {
       console.error('Error adding analyzed foods:', error)
@@ -98,9 +144,18 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
   return (
     <div className="space-y-2">
       {/* Header */}
-      <h3 className="text-base sm:text-lg font-semibold tracking-tight text-zinc-900">
-        AI Food Analysis
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-base sm:text-lg font-semibold tracking-tight text-zinc-900">
+          Food Analysis
+        </h3>
+        <Button
+          onClick={onToggleMode}
+          variant="outline"
+          className="bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+        >
+          Manual Entry
+        </Button>
+      </div>
 
       {/* Input Section */}
       <div className="flex flex-col gap-3">
@@ -108,26 +163,26 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
           placeholder="e.g. 2 bananas, protein shake, 3 chapatis with cauliflower"
-          className="w-full rounded-xl ring ring-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none h-24 transition"
+          className="w-full h-30 rounded-xl ring ring-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none transition"
           rows={3}
         />
 
         <Button
           onClick={analyzeFoodWithAI}
           disabled={isAnalyzing || !aiFoodDescription.trim()}
-          className="w-full sm:w-fit bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+          className="w-full h-12 sm:w-fit bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:shadow-md hover:scale-105 active:scale-95 ease-in-out transition-all disabled:opacity-50"
         >
-          {isAnalyzing ? "Analyzing..." : "Analyze Meal"}
+          {isAnalyzing ? "Adding..." : "Add Meal"}
         </Button>
       </div>
 
-      {/* Results */}
+      {/* Results - Only show if adding failed */}
       {aiAnalysis && (
-        <div className="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 space-y-4">
+        <div className="rounded-xl border border-red-200 bg-red-50/70 p-4 space-y-4">
           {/* Top Bar */}
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-zinc-900">
-              Analysis Results
+            <h4 className="text-sm font-semibold text-red-900">
+              ⚠️ Adding Failed - Manual Review Required
             </h4>
           </div>
 
@@ -150,9 +205,9 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
                   </p>
                   {/* Macros per food */}
                   <div className="flex gap-3 mt-1 text-xs">
-                    <span className="text-blue-600 font-semibold">P: {food.protein || 0}g</span>
-                    <span className="text-green-600 font-semibold">C: {food.carbs || 0}g</span>
-                    <span className="text-orange-600 font-semibold">F: {food.fat || 0}g</span>
+                    <span className="text-blue-600 font-semibold">Protein: {food.protein || 0}g</span>
+                    <span className="text-green-600 font-semibold">Carbs: {food.carbs || 0}g</span>
+                    <span className="text-orange-600 font-semibold">Fat: {food.fat || 0}g</span>
                   </div>
                 </div>
 
@@ -184,14 +239,14 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
             </span>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+          {/* Actions - Only manual add option */}
+          <div className="flex gap-2 pt-1">
             <Button
               onClick={addAnalyzedFoods}
               disabled={isAddingFoods}
               className="flex-1 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow-md transition-all disabled:opacity-50"
             >
-              {isAddingFoods ? "Adding..." : "Add All Foods"}
+              {isAddingFoods ? "Adding..." : "Try Adding Again"}
             </Button>
 
             <Button
@@ -199,7 +254,7 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
                 setAiAnalysis(null);
                 setAiFoodDescription("");
               }}
-              className="flex-1 sm:flex-none bg-zinc-200 hover:bg-zinc-300 text-zinc-700 text-sm font-medium rounded-xl transition"
+              className="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 text-sm font-medium rounded-xl transition"
             >
               Cancel
             </Button>

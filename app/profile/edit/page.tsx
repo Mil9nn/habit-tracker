@@ -57,50 +57,20 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-white px-4 md:px-8 py-6 md:py-10">
-      {/* Container */}
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-2">
-            {/* Back Arrow */}
-            <button
-              onClick={() => router.push("/profile")}
-              className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center group"
-              title="Go back to profile"
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" />
-            </button>
-
-            <div className="w-full flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Image
-                  src={session?.user?.image || ''}
-                  alt="Profile Avatar"
-                  className="rounded-full border-2 border-[#06d6a0]/20 shadow-[0_8px_25px_rgba(0,0,0,0.08)] object-cover"
-                  width={40}
-                  height={40}
-                />
-                <div>
-                  <h1 className="text-sm font-semibold text-[#06d6a0]">{session?.user?.name || 'User'}</h1>
-                  <p className="text-sm text-[#06d6a0]/60">Edit Profile</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Edit Profile Form */}
-        <div className="max-w-2xl">
-          <DynamicProfileForm onSave={handleProfileSaved} />
-        </div>
-
-        {/* Sign Out Button */}
-        <button
-          onClick={handleSignOut}
-          className="w-full bg-white/70 backdrop-blur-xl hover:bg-white/80 text-[#ef476f] border border-white/40 rounded-xl p-4 transition-colors shadow-[0_8px_25px_rgba(0,0,0,0.08)]"
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        <button 
+          onClick={() => router.back()} 
+          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
         >
-          Sign Out
+          <ChevronLeft size={20} className="text-gray-600" />
         </button>
+        <h1 className="text-xl font-semibold text-gray-900">Edit Profile</h1>
+      </div>
+
+      {/* Profile Form */}
+      <div className="max-w-2xl">
+        <DynamicProfileForm onSuccess={handleProfileSaved} />
       </div>
     </div>
   )

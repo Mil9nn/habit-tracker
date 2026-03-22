@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import ProfileInput from '@/components/ProfileInput'
 import { useRouter } from 'next/navigation'
 import { useProfileStore, useProfile } from '@/store/useProfileStore'
 import { toast } from 'sonner'
+import { ArrowLeft } from 'lucide-react'
 
 // Zod schema for form validation
 const profileSchema = z.object({
@@ -23,23 +25,40 @@ type ProfileFormData = z.infer<typeof profileSchema>
 
 interface ProfileFormProps {
   onSave?: () => void
+  onSuccess?: () => void
 }
 
-export default function ProfileForm({ onSave }: ProfileFormProps) {
+export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
   const router = useRouter()
   const profile = useProfile()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const steps = ['age', 'gender', 'weight', 'height', 'activity']
 
-  // Check if user already has profile data and redirect them
+  // Auto-focus input when step changes
   useEffect(() => {
-    if (profile && profile.age && profile.weight && profile.height) {
-      // User already has complete profile data, redirect to home
-      router.push('/')
-    }
-  }, [profile, router])
+    setTimeout(() => {
+      if (step === 0) {
+        // Find the age input (first number input in step 0)
+        const ageInput = document.querySelector('input[placeholder="18"]') as HTMLInputElement
+        if (ageInput) ageInput.focus()
+      } else if (step === 2) {
+        // Find the weight input (input with "in kg" placeholder)
+        const weightInput = document.querySelector('input[placeholder="in kg"]') as HTMLInputElement
+        if (weightInput) weightInput.focus()
+      } else if (step === 3) {
+        // Find the height input (input with "in cm" placeholder)
+        const heightInput = document.querySelector('input[placeholder="in cm"]') as HTMLInputElement
+        if (heightInput) heightInput.focus()
+      } else if (step === 4) {
+        // Find the activity select
+        const activitySelect = document.querySelector('select') as HTMLSelectElement
+        if (activitySelect) activitySelect.focus()
+      }
+    }, 150)
+  }, [step])
 
+  
   // Get store actions
   const store = useProfileStore()
   const setProfile = store.setProfile
@@ -53,17 +72,46 @@ export default function ProfileForm({ onSave }: ProfileFormProps) {
     formState: { isValid }
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: {
       age: 25,
       gender: 'male',
       weight: 70,
-      height: 175,
-      activityLevel: 'moderately_active'
+      height: 175
     }
   })
 
+  // Debug form validity
+  useEffect(() => {
+    console.log('Form validity changed:', isValid)
+    console.log('Current step:', step)
+    console.log('Form values:', watch())
+  }, [isValid, step])
+
+  // Check if user already has profile data and populate the form
+  useEffect(() => {
+    if (profile && profile.age && profile.weight && profile.height) {
+      // User already has complete profile data, populate the form
+      setValue('age', profile.age)
+      setValue('gender', profile.gender)
+      setValue('weight', profile.weight)
+      setValue('height', profile.height)
+    }
+  }, [profile, setValue])
+
+  // Set activity level separately when user reaches that step
+  useEffect(() => {
+    if (step === 4 && profile?.activityLevel) {
+      // Use setTimeout to prevent immediate form submission
+      setTimeout(() => {
+        setValue('activityLevel', profile.activityLevel)
+      }, 100)
+    }
+  }, [step, profile, setValue])
+
   const onSubmit = async (data: ProfileFormData) => {
+    console.log('Form submitted with data:', data)
+    console.log('Current step:', step)
     setLoading(true)
 
     try {
@@ -88,8 +136,11 @@ export default function ProfileForm({ onSave }: ProfileFormProps) {
           onSave()
         }
         
-        // Redirect to home page after successful profile creation
-        router.push('/')
+        if (onSuccess) {
+          onSuccess()
+        }
+        
+        // Don't redirect here - let the parent component handle navigation
       } else {
         toast.error('Failed to save profile', {
           description: 'Please try again later.',
@@ -108,7 +159,7 @@ export default function ProfileForm({ onSave }: ProfileFormProps) {
 
   return (
     <form onSubmit={handleFormSubmit(onSubmit)}>
-      <div className="max-w-xl mx-auto mt-2">
+      <div className="max-w-xl mx-auto">
         <div className="relative bg-white/70 p-4 space-y-4 transition-all duration-300">
           {/* subtle gradient glow */}
           <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-br from-indigo-100 via-white to-blue-100 opacity-60 blur-2xl" />
@@ -124,19 +175,19 @@ export default function ProfileForm({ onSave }: ProfileFormProps) {
           <h3 className="text-lg md:text-xl font-semibold text-zinc-900">
             {step === 0 && "How old are you?"}
             {step === 1 && "What's your gender?"}
-            {step === 2 && "What's your weight?"}
-            {step === 3 && "What's your height?"}
+            {step === 2 && "What's your weight"}
+            {step === 3 && "What's your height"}
             {step === 4 && "How active are you?"}
           </h3>
 
           {/* Input */}
           <div>
             {step === 0 && (
-              <Input
-                type="number"
-                {...register('age', { valueAsNumber: true })}
-                className="h-10 text-sm w-20 rounded-xl border-zinc-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
-                placeholder="Enter your age"
+              <ProfileInput
+                placeholder="18"
+                register={register}
+                name="age"
+                validation={{ valueAsNumber: true }}
               />
             )}
 
@@ -145,39 +196,39 @@ export default function ProfileForm({ onSave }: ProfileFormProps) {
                 {['male', 'female'].map((g) => {
                   const selected = watch('gender') === g
                   return (
-                    <button
+                    <Button
                       key={g}
                       type="button"
                       onClick={() => setValue('gender', g as any)}
-                      className={`h-10 capitalize rounded-xl text-sm font-medium transition-all duration-200 border
+                      className={`h-12 capitalize text-sm font-medium transition-all duration-200
                       ${selected
-                            ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white border-transparent shadow-md scale-[1.02]'
-                            : 'border-zinc-200 hover:border-indigo-300 hover:bg-indigo-50'
+                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-transparent shadow-lg scale-[1.02]'
+                            : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
                           }
                     `}
                     >
-                      {g}
-                    </button>
+                      {g === 'male' ? 'Male' : 'Female'}
+                    </Button>
                   )
                 })}
               </div>
             )}
 
             {step === 2 && (
-              <Input
-                type="number"
-                {...register('weight', { valueAsNumber: true })}
-                className="h-10 w-20 rounded-xl border-zinc-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                placeholder="Weight in kg"
+              <ProfileInput
+                placeholder="in kg"
+                register={register}
+                name="weight"
+                validation={{ valueAsNumber: true }}
               />
             )}
 
             {step === 3 && (
-              <Input
-                type="number"
-                {...register('height', { valueAsNumber: true })}
-                className="h-10 w-20 rounded-xl border-zinc-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                placeholder="Height in cm"
+              <ProfileInput
+                placeholder="in cm"
+                register={register}
+                name="height"
+                validation={{ valueAsNumber: true }}
               />
             )}
 
@@ -197,19 +248,28 @@ export default function ProfileForm({ onSave }: ProfileFormProps) {
 
           {/* Navigation */}
           <div className="flex justify-between items-center pt-4">
-            <button
+            <Button
               type="button"
-              onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
+              variant={"ghost"}
+              onClick={(e) => {
+                e.preventDefault()
+                setStep((prev) => Math.max(prev - 1, 0))
+              }}
               className="text-sm text-zinc-500 hover:text-indigo-600 transition"
             >
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </button>
+            </Button>
 
             {step < steps.length - 1 ? (
               <Button
                 type="button"
-                onClick={() => setStep((prev) => prev + 1)}
-                className="rounded-full px-6 bg-gradient-to-r from-indigo-500 to-blue-500 hover:opacity-90 text-white shadow-md transition-all"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setStep((prev) => prev + 1)
+                }}
+                className="rounded-full p-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:opacity-90 text-white shadow-md transition-all"
               >
                 Continue
               </Button>

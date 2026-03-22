@@ -25,13 +25,15 @@ interface ManualEntryFormProps {
   setShowManualEntry: (show: boolean) => void
   isSubmitting: boolean
   onSubmit: (data: CalorieLogForm) => void
+  onToggleMode?: () => void
 }
 
 export function ManualEntryForm({ 
   showManualEntry, 
   setShowManualEntry, 
   isSubmitting, 
-  onSubmit 
+  onSubmit,
+  onToggleMode 
 }: ManualEntryFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<CalorieLogForm>({
     resolver: zodResolver(calorieLogSchema)
@@ -39,7 +41,7 @@ export function ManualEntryForm({
 
   if (!showManualEntry) {
     return (
-      <div className="text-center">
+      <div className="flex justify-center">
         <Button
           onClick={() => setShowManualEntry(true)}
           variant="outline"
@@ -53,81 +55,96 @@ export function ManualEntryForm({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">Manual Entry</h3>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-semibold text-gray-900 text-lg">Manual Entry</h3>
         <Button
-          onClick={() => setShowManualEntry(false)}
-          variant="ghost"
-          className="text-gray-500 hover:text-gray-700 p-2"
+          onClick={onToggleMode}
+          variant="outline"
+          className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
         >
-          ×
+          Food Analysis
         </Button>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex-1">
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="space-y-3">
           <Input
             type="text"
             {...register('foodName')}
             placeholder="Food name"
-            className={errors.foodName ? 'border-red-500 focus:border-red-500' : ''}
+            className={errors.foodName ? 'ring-2 ring-red-400 focus:ring-red-400' : 'ring-2 focus:ring-blue-400'}
           />
           {errors.foodName && (
             <p className="text-sm text-red-500 mt-1">{errors.foodName.message}</p>
           )}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="number"
             {...register('calories', { valueAsNumber: true })}
             placeholder="Calories"
-            className={errors.calories ? 'border-red-500 focus:border-red-500' : ''}
+            className={'text-xs ring-2 focus:ring-blue-400'}
           />
           <Input
             type="number"
+            {...register('quantity', { valueAsNumber: true })}
+            placeholder="Quantity"
+            className={'text-xs ring-2 focus:ring-blue-400'}
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <Input
+            type="number"
             {...register('protein', { valueAsNumber: true })}
-            placeholder="Protein (g)"
-            className={errors.protein ? 'border-red-500 focus:border-red-500' : ''}
+            placeholder="Protein"
+            className={'text-xs ring-2 focus:ring-blue-400'}
           />
           <Input
             type="number"
             {...register('carbs', { valueAsNumber: true })}
-            placeholder="Carbs (g)"
-            className={errors.carbs ? 'border-red-500 focus:border-red-500' : ''}
+            placeholder="Carbs"
+            className={'text-xs ring-2 focus:ring-blue-400'}
           />
           <Input
             type="number"
             {...register('fat', { valueAsNumber: true })}
-            placeholder="Fat (g)"
-            className={errors.fat ? 'border-red-500 focus:border-red-500' : ''}
+            placeholder="Fats"
+            className={'text-xs ring-2 focus:ring-blue-400'}
           />
-          <select {...register('mealType')} className="border rounded px-2 py-1">
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <select
+            {...register('mealType')}
+            className="w-full h-10 px-3 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+          >
             <option value="breakfast">Breakfast</option>
             <option value="lunch">Lunch</option>
             <option value="dinner">Dinner</option>
             <option value="snack">Snack</option>
           </select>
         </div>
-        {(errors.calories || errors.protein || errors.carbs || errors.fat) && (
-          <div className="text-sm text-red-500 mt-1 space-y-1">
-            {errors.calories && <p>{errors.calories.message}</p>}
-            {errors.protein && <p>{errors.protein.message}</p>}
-            {errors.carbs && <p>{errors.carbs.message}</p>}
-            {errors.fat && <p>{errors.fat.message}</p>}
-          </div>
-        )}
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="relative overflow-hidden ring-2 ring-blue-500 rounded-full text-blue-500 bg-transparent group"
-        >
-          {/* Water fill span */}
-          <span className="absolute inset-0 bg-blue-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></span>
 
-          <span className="relative z-10 group-hover:text-white transition-colors duration-300">
-            {isSubmitting ? "Adding..." : "Add Food"}
-          </span>
-        </Button>
+        <div className="flex gap-3 pt-2">
+          <Button
+            type="button"
+            onClick={() => setShowManualEntry(false)}
+            variant="outline"
+            className="flex-1 bg-red-400 hover:bg-gray-100 h-11 border-gray-200 text-white"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 shadow-sm h-11 text-white"
+          >
+            {isSubmitting ? 'Adding...' : 'Add Entry'}
+          </Button>
+        </div>
       </form>
     </div>
   )

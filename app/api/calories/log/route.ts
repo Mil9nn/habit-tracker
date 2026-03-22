@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (!session?.user?.email)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { foodName, calories, mealType, quantity, protein, carbs, fat } = await req.json()
+  const { foodName, calories, mealType, quantity, protein, carbs, fat, isMeal, mealItems } = await req.json()
 
   if (!foodName || !calories || !mealType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -51,17 +51,25 @@ export async function POST(req: Request) {
   await connectDB()
   
   const CalorieLog = getCalorieLogModel()
-  const log = await CalorieLog.create({
+  const logData: any = {
     userId: session.user.email,
     foodName,
     calories,
-    protein: protein || 0,    // ✅ Save macros
-    carbs: carbs || 0,      // ✅ Save macros  
-    fat: fat || 0,          // ✅ Save macros
+    protein: protein || 0,
+    carbs: carbs || 0,
+    fat: fat || 0,
     mealType,
     quantity,
     timestamp: new Date(),
-  })
+    isMeal: isMeal || false
+  }
+
+  // Add meal items if it's a meal
+  if (isMeal && mealItems) {
+    logData.mealItems = mealItems
+  }
+
+  const log = await CalorieLog.create(logData)
 
   return NextResponse.json(log, { status: 201 })
 }

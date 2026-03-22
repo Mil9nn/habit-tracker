@@ -32,7 +32,11 @@ export async function GET(req: Request) {
   })
 
   return NextResponse.json({
-    profile,
+    profile: {
+      ...profile.toObject(),
+      name: session.user.name || 'User',
+      email: session.user.email,
+    },
     recommendedCalories
   })
 }
@@ -64,9 +68,10 @@ export async function POST(req: Request) {
       weight,
       height,
       activityLevel,
-      dailyCalorieGoal: dailyCalorieGoal || calculateDailyCalorieNeeds({ age, gender, weight, height, activityLevel })
+      dailyCalorieGoal: dailyCalorieGoal || calculateDailyCalorieNeeds({ age, gender, weight, height, activityLevel }),
+      userId: session.user.email
     },
-    { upsert: true, new: true }
+    { new: true, upsert: true }
   )
 
   return NextResponse.json(profile)

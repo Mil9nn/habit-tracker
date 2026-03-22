@@ -80,7 +80,7 @@ export function RingProgress({
           </div>
         </div>
       </div>
-      <p className="text-sm font-medium text-gray-700 mt-2">{title}</p>
+      <p className="text-xs font-medium text-gray-700 mt-2">{title}</p>
     </div>
   )
 }

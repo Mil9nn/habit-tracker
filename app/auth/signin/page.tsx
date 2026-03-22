@@ -20,7 +20,7 @@ export default function SignIn() {
           <p className="text-gray-600 mb-6">Track your daily nutrition with precision and clarity.</p>
           <Button
             onClick={() => signIn('google', { callbackUrl: '/profile?edit=true' })}
-            className="w-full h-12 rounded-full shadow-md bg-white hover:bg-yellow-50 text-zinc-700 font-bold transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full h-12 rounded-full shadow-md bg-white hover:scale-105 active:scale-95 ease-in-out text-zinc-700 font-bold transition-all duration-300 flex items-center justify-center gap-2"
           >
             <img src="/google.svg" alt="Google" className="h-5 w-5" />
             <span className="tracking-tighter">Sign in with Google</span>

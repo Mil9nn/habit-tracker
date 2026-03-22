@@ -3,17 +3,31 @@
 import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Utensils, Apple, Coffee, Sun } from 'lucide-react'
-import CalorieGauge from './WaterGauge'
-import CalorieHeatmap from './WaterHeatmap'
-import { Input } from "@/components/ui/input"
-import { RingProgress } from '@/components/ui/ring-progress'
+import { Utensils, Calendar as CalendarIcon } from 'lucide-react'
+import dayjs from 'dayjs'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
+import CalorieGauge from './CalorieGauge'
+import CalorieHeatmap from './CalorieHeatmap'
+import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
 import { useProteinGoal, useCarbsGoal, useFatGoal } from '@/store/useProfileStore'
 import { ManualEntryForm, CalorieLogForm } from './ManualEntryForm'
 import { AIFoodAnalysis } from './AIFoodAnalysis'
 import { FoodLog } from './FoodLog'
 import Header from './Header'
+
+export interface FoodItem {
+  name: string;
+  quantity: number;
+  calories: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+}
 
 export interface CalorieLog {
   _id: string
@@ -28,6 +42,9 @@ export interface CalorieLog {
   userId: string
   createdAt: string
   updatedAt: string
+  // New fields for meal support
+  isMeal: boolean
+  mealItems?: FoodItem[]
 }
 
 export interface CalorieSummary {
@@ -50,15 +67,6 @@ export interface CalorieSummary {
   }
 }
 
-// Quick food items with calorie and macro values
-const quickFoods = [
-  { name: 'Apple', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, icon: Apple },
-  { name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, icon: Coffee },
-  { name: 'Egg', calories: 78, protein: 6, carbs: 0.6, fat: 5.3, icon: Sun },
-  { name: 'Bread Slice', calories: 80, protein: 3, carbs: 15, fat: 1, icon: Coffee },
-  { name: 'Rice Bowl', calories: 200, protein: 2.7, carbs: 28, fat: 0.3, icon: Utensils },
-]
-
 export default function CalorieTracker() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -71,13 +79,16 @@ export default function CalorieTracker() {
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
-  const [showManualEntry, setShowManualEntry] = useState(false)
+  const [entryMode, setEntryMode] = useState<'ai' | 'manual'>('ai')
+  const [showManualEntry, setShowManualEntry] = useState(entryMode === 'manual')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-
-
-  const remainingCalories = summary ? Math.max(0, summary.goal - summary.totalCalories) : 2000
-  const progressPercentage = summary ? Math.min((summary.totalCalories / summary.goal) * 100, 100) : 0
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  
+  const toggleEntryMode = () => {
+    const newMode = entryMode === 'ai' ? 'manual' : 'ai'
+    setEntryMode(newMode)
+    setShowManualEntry(newMode === 'manual')
+  }
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -85,13 +96,7 @@ export default function CalorieTracker() {
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
-  }, [status])
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchData()
-    }
-  }, [selectedDate])
+  }, [status, selectedDate])
 
   const fetchData = async () => {
     try {
@@ -172,76 +177,126 @@ export default function CalorieTracker() {
     )
   }
 
-  if (status === 'unauthenticated') {
-    router.push('/auth/signin')
-    return null
-  }
+  // if (status === 'unauthenticated') {
+  //   router.push('/auth/signin')
+  //   return null
+  // }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-50">
+    <div className="min-h-screen bg-[#F6F8FB]">
       <Header />
 
       <main className="space-y-4 p-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold mb-6 text-center">Today's Calorie Progress</h3>
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border rounded px-2 py-1 text-sm"
-            max={new Date().toISOString().split('T')[0]}
-          />
+        <div className="flex items-center gap-2 justify-between mb-2">
+          <h3 className="text-md font-semibold text-center">Todays Nutrition</h3>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal text-xs",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                {selectedDate ? format(new Date(selectedDate), "do 'of' MMMM yyyy") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dayjs(selectedDate).toDate()}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(dayjs(date).format('YYYY-MM-DD'))
+                    setCalendarOpen(false)
+                  }
+                }}
+                disabled={(date) => date > new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
+        <div className="flex items-center gap-6 mb-4">
           <CalorieGauge
             current={summary?.totalCalories || 0}
             target={summary?.goal || 2000}
-            size={240}
-            strokeWidth={14}
+            size={200}
+            strokeWidth={12}
           />
 
-          {/* Macro Progress Rings */}
-          <div className="grid grid-cols-3 gap-4 sm:gap-6">
-            <RingProgress
-              key={`protein-${summary?.totalProtein || 0}`}
-              value={summary?.totalProtein || 0}
-              max={proteinGoal || 150}
-              title="Protein"
-              size={80}
-              strokeWidth={6}
-              color="#06d6a0"
-            />
+          {/* Macro Progress Bars */}
+          <div className="w-64 space-y-3">
+            {/* Protein */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-gray-600">Protein</span>
+                <span className="text-xs text-gray-400">
+                  {Math.round((summary?.totalProtein || 0) * 10) / 10}g / {proteinGoal || 150}g
+                </span>
+              </div>
+              <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                <div 
+                  className="h-full bg-green-500 transition-all duration-500 ease-out"
+                  style={{ 
+                    transform: `translateX(-${100 - Math.min(((summary?.totalProtein || 0) / (proteinGoal || 150)) * 100, 100)}%)`,
+                    backgroundColor: '#06d6a0'
+                  }}
+                />
+              </div>
+            </div>
 
-            <RingProgress
-              key={`carbs-${summary?.totalCarbs || 0}`}
-              value={summary?.totalCarbs || 0}
-              max={carbsGoal || 300}
-              title="Carbs"
-              size={80}
-              strokeWidth={6}
-              color="#118ab2"
-            />
+            {/* Carbs */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-gray-600">Carbs</span>
+                <span className="text-xs text-gray-400">
+                  {Math.round((summary?.totalCarbs || 0) * 10) / 10}g / {carbsGoal || 300}g
+                </span>
+              </div>
+              <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                <div 
+                  className="h-full bg-blue-500 transition-all duration-500 ease-out"
+                  style={{ 
+                    transform: `translateX(-${100 - Math.min(((summary?.totalCarbs || 0) / (carbsGoal || 300)) * 100, 100)}%)`,
+                    backgroundColor: '#118ab2'
+                  }}
+                />
+              </div>
+            </div>
 
-            <RingProgress
-              key={`fats-${summary?.totalFat || 0}`}
-              value={summary?.totalFat || 0}
-              max={fatGoal || 100}
-              title="Fats"
-              size={80}
-              strokeWidth={6}
-              color="#ef476f"
-            />
+            {/* Fats */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-gray-600">Fats</span>
+                <span className="text-xs text-gray-400">
+                  {Math.round((summary?.totalFat || 0) * 10) / 10}g / {fatGoal || 100}g
+                </span>
+              </div>
+              <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                <div 
+                  className="h-full bg-pink-500 transition-all duration-500 ease-out"
+                  style={{ 
+                    transform: `translateX(-${100 - Math.min(((summary?.totalFat || 0) / (fatGoal || 100)) * 100, 100)}%)`,
+                    backgroundColor: '#ef476f'
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <AIFoodAnalysis onDataAdded={fetchData} />
-
-        <ManualEntryForm
-          showManualEntry={showManualEntry}
-          setShowManualEntry={setShowManualEntry}
-          isSubmitting={isSubmitting}
-          onSubmit={addCalorie}
-        />
+        {entryMode === 'ai' ? (
+          <AIFoodAnalysis onDataAdded={fetchData} onToggleMode={toggleEntryMode} />
+        ) : (
+          <ManualEntryForm
+            showManualEntry={showManualEntry}
+            setShowManualEntry={setShowManualEntry}
+            isSubmitting={isSubmitting}
+            onSubmit={addCalorie}
+            onToggleMode={toggleEntryMode}
+          />
+        )}
 
         {/* Daily Average */}
         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 shadow-sm hover:shadow-md transition">
@@ -254,9 +309,8 @@ export default function CalorieTracker() {
           </span>
         </div>
 
+        <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
         <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
-
-        <FoodLog logs={logs} selectedDate={selectedDate} />
       </main>
     </div>
   )
