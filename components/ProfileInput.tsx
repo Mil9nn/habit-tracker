@@ -16,19 +16,16 @@ interface ProfileInputProps {
 export default function ProfileInput({
   type = 'number',
   placeholder,
-  className = "rounded-xl focus:ring-2 focus:ring-indigo-400 transition",
-  width = "w-20",
-  textSize = "text-sm",
   register,
   name,
   validation
 }: ProfileInputProps) {
   return (
-    <Input
-      type={type}
-      placeholder={placeholder}
-      className={`h-10 ${textSize} ${width} ${className}`}
-      {...register(name, validation)}
-    />
+    <input
+  type={type}
+  placeholder={placeholder}
+  className="h-10 w-15 border-0 border-b-2 text-sm focus:outline-none focus:border-blue-400 focus:ring-0"
+  {...register(name, validation)}
+/>
   )
 }

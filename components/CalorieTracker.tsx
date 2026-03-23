@@ -188,7 +188,7 @@ export default function CalorieTracker() {
     <div className="min-h-screen bg-[#F6F8FB]">
       <Header />
 
-      <main className="space-y-4 p-4">
+      <main className="space-y-4 p-4 mt-14">
         <div className="flex items-center gap-2 justify-between mb-2">
           <h3 className="text-md font-semibold text-center">Todays Nutrition</h3>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
@@ -232,8 +232,8 @@ export default function CalorieTracker() {
             {/* Protein */}
             <div className="space-y-1">
               <div className="flex justify-between items-center flex-wrap">
-                <span className="text-xs font-medium text-gray-600">Protein</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-[11px] font-medium text-gray-600">Protein</span>
+                <span className="text-[11px] text-gray-400">
                   {Math.round((summary?.totalProtein || 0) * 10) / 10}g / {proteinGoal || 150}g
                 </span>
               </div>
@@ -251,8 +251,8 @@ export default function CalorieTracker() {
             {/* Carbs */}
             <div className="space-y-1">
               <div className="flex justify-between items-center flex-wrap">
-                <span className="text-xs font-medium text-gray-600">Carbs</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-[11px] font-medium text-gray-600">Carbs</span>
+                <span className="text-[11px] text-gray-400">
                   {Math.round((summary?.totalCarbs || 0) * 10) / 10}g / {carbsGoal || 300}g
                 </span>
               </div>
@@ -270,8 +270,8 @@ export default function CalorieTracker() {
             {/* Fats */}
             <div className="space-y-1">
               <div className="flex justify-between items-center flex-wrap">
-                <span className="text-xs font-medium text-gray-600">Fats</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-[11px] font-medium text-gray-600">Fats</span>
+                <span className="text-[11px] text-gray-400">
                   {Math.round((summary?.totalFat || 0) * 10) / 10}g / {fatGoal || 100}g
                 </span>
               </div>

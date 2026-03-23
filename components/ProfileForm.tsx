@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { useProfileStore, useProfile } from '@/store/useProfileStore'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Zod schema for form validation
 const profileSchema = z.object({
@@ -58,7 +59,7 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
     }, 150)
   }, [step])
 
-  
+
   // Get store actions
   const store = useProfileStore()
   const setProfile = store.setProfile
@@ -80,13 +81,6 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
       height: 175
     }
   })
-
-  // Debug form validity
-  useEffect(() => {
-    console.log('Form validity changed:', isValid)
-    console.log('Current step:', step)
-    console.log('Form values:', watch())
-  }, [isValid, step])
 
   // Check if user already has profile data and populate the form
   useEffect(() => {
@@ -117,7 +111,7 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
     try {
       setProfile(data)
       calculateMetrics()
-      
+
       const response = await fetch('/api/user/profile', {
         method: 'POST',
         headers: {
@@ -135,11 +129,11 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
         if (onSave) {
           onSave()
         }
-        
+
         if (onSuccess) {
           onSuccess()
         }
-        
+
         // Don't redirect here - let the parent component handle navigation
       } else {
         toast.error('Failed to save profile', {
@@ -159,130 +153,170 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
 
   return (
     <form onSubmit={handleFormSubmit(onSubmit)}>
-      <div className="max-w-xl mx-auto">
-        <div className="relative bg-white/70 p-4 space-y-4 transition-all duration-300">
-          {/* subtle gradient glow */}
-          <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-br from-indigo-100 via-white to-blue-100 opacity-60 blur-2xl" />
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#F6F8FB]">
+
+        <div className="w-full max-w-md relative">
 
           {/* Progress */}
-          <div className="w-full bg-zinc-200/60 rounded-full h-2 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-500 ease-out"
-              style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-            />
+          <div className="mb-6">
+            <div className="h-1.5 w-full bg-zinc-200 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-indigo-500 to-blue-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+                transition={{ duration: 0.4 }}
+              />
+            </div>
           </div>
 
-          <h3 className="text-lg md:text-xl font-semibold text-zinc-900">
-            {step === 0 && "How old are you?"}
-            {step === 1 && "What's your gender?"}
-            {step === 2 && "What's your weight"}
-            {step === 3 && "What's your height"}
-            {step === 4 && "How active are you?"}
-          </h3>
-
-          {/* Input */}
-          <div>
-            {step === 0 && (
-              <ProfileInput
-                placeholder="18"
-                register={register}
-                name="age"
-                validation={{ valueAsNumber: true }}
-              />
-            )}
-
-            {step === 1 && (
-              <div className="grid grid-cols-2 gap-3">
-                {['male', 'female'].map((g) => {
-                  const selected = watch('gender') === g
-                  return (
-                    <Button
-                      key={g}
-                      type="button"
-                      onClick={() => setValue('gender', g as any)}
-                      className={`h-12 capitalize text-sm font-medium transition-all duration-200
-                      ${selected
-                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-transparent shadow-lg scale-[1.02]'
-                            : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
-                          }
-                    `}
-                    >
-                      {g === 'male' ? 'Male' : 'Female'}
-                    </Button>
-                  )
-                })}
-              </div>
-            )}
-
-            {step === 2 && (
-              <ProfileInput
-                placeholder="in kg"
-                register={register}
-                name="weight"
-                validation={{ valueAsNumber: true }}
-              />
-            )}
-
-            {step === 3 && (
-              <ProfileInput
-                placeholder="in cm"
-                register={register}
-                name="height"
-                validation={{ valueAsNumber: true }}
-              />
-            )}
-
-            {step === 4 && (
-              <select
-                {...register('activityLevel')}
-                className="w-full h-12 px-3 rounded-xl border border-zinc-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
-              >
-                <option value="sedentary">Sedentary</option>
-                <option value="lightly_active">Lightly Active</option>
-                <option value="moderately_active">Moderately Active</option>
-                <option value="very_active">Very Active</option>
-                <option value="extra_active">Extra Active</option>
-              </select>
-            )}
-          </div>
-
-          {/* Navigation */}
-          <div className="flex justify-between items-center pt-4">
-            <Button
-              type="button"
-              variant={"ghost"}
-              onClick={(e) => {
-                e.preventDefault()
-                setStep((prev) => Math.max(prev - 1, 0))
-              }}
-              className="text-sm text-zinc-500 hover:text-indigo-600 transition"
+          {/* Animated Step */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
 
-            {step < steps.length - 1 ? (
-              <Button
-                type="button"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault()
-                  setStep((prev) => prev + 1)
-                }}
-                className="rounded-full p-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:opacity-90 text-white shadow-md transition-all"
-              >
-                Continue
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={loading}
-                className="rounded-xl px-6 bg-gradient-to-r from-indigo-500 to-blue-500 hover:opacity-90 text-white shadow-md"
-              >
-                {loading ? 'Saving...' : 'Finish'}
-              </Button>
-            )}
-          </div>
+              {/* Question */}
+              <div className='flex items-center gap-4'>
+                <h2 className="text-md font-semibold text-zinc-900 leading-snug tracking-tight">
+                  {step === 0 && "How old are you?"}
+                  {step === 1 && "Select your gender"}
+                  {step === 2 && "Your weight"}
+                  {step === 3 && "Your height"}
+                  {step === 4 && "Your activity level"}
+                </h2>
+
+                {/* Input Section */}
+                <div className="space-y-4">
+
+                  {step === 0 && (
+                    <ProfileInput
+                      placeholder="18"
+                      register={register}
+                      name="age"
+                      validation={{ valueAsNumber: true }}
+                    />
+                  )}
+
+                  {step === 1 && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {['male', 'female'].map((g) => {
+                        const selected = watch('gender') === g
+                        return (
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            key={g}
+                            type="button"
+                            onClick={() => {
+                              setValue('gender', g as any)
+                              setTimeout(() => setStep((prev) => prev + 1), 200)
+                            }}
+                            className={`p-1 px-2 rounded-2xl text-sm font-medium transition-all
+                      ${selected
+                                ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-lg'
+                                : 'bg-white border border-zinc-200 text-zinc-700'
+                              }`}
+                          >
+                            {g === 'male' ? 'Male' : 'Female'}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <ProfileInput
+                      placeholder="in kg"
+                      register={register}
+                      name="weight"
+                      validation={{ valueAsNumber: true }}
+                    />
+                  )}
+
+                  {step === 3 && (
+                    <ProfileInput
+                      placeholder="in cm"
+                      register={register}
+                      name="height"
+                      validation={{ valueAsNumber: true }}
+                    />
+                  )}
+
+                  {step === 4 && (
+                    <div className="space-y-3">
+                      {[
+                        { value: 'sedentary', label: 'Sedentary' },
+                        { value: 'lightly_active', label: 'Lightly Active' },
+                        { value: 'moderately_active', label: 'Moderately Active' },
+                        { value: 'very_active', label: 'Very Active' },
+                        { value: 'extra_active', label: 'Extra Active' }
+                      ].map((activity) => {
+                        const selected = watch('activityLevel') === activity.value
+                        return (
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            key={activity.value}
+                            type="button"
+                            onClick={() => setValue('activityLevel', activity.value as 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active')}
+                            className={`w-full p-3 rounded-2xl text-sm font-medium transition-all text-left
+                      ${selected
+                                ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-lg'
+                                : 'bg-white border border-zinc-200 text-zinc-700'
+                              }`}
+                          >
+                            {activity.label}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between pt-4">
+
+                {/* Back */}
+                {step > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStep((prev) => prev - 1)}
+                    className="text-sm text-zinc-500"
+                  >
+                    Back
+                  </button>
+                )}
+
+                {/* Next / Submit */}
+                {step < steps.length - 1 ? (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    type="button"
+                    onClick={() => setStep((prev) => prev + 1)}
+                    className="ml-auto p-2 px-4 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-medium shadow-md"
+                  >
+                    Continue
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    disabled={loading}
+                    className="ml-auto h-12 px-6 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-medium shadow-md"
+                  >
+                    {loading ? 'Saving...' : 'Finish'}
+                  </motion.button>
+                )}
+
+              </div>
+
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </form>

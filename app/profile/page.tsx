@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import ProfileDisplay from '@/components/ProfileDisplay'
 import { Progress } from "@/components/ui/progress"
@@ -20,9 +19,7 @@ const ProfileForm = dynamic(() => import('@/components/ProfileForm'), {
 
 function ProfilePageContent() {
   const { data: session, status } = useSession()
-  const searchParams = useSearchParams()
   const router = useRouter()
-  const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [calories, setCalories] = useState({ consumed: 0, goal: 0 })
 
@@ -42,15 +39,17 @@ function ProfilePageContent() {
     if (status === 'authenticated') {
       fetchProfile()
       fetchTodayCalories()
-
-      // Check if edit mode is requested via URL
-      const editMode = searchParams.get('edit')
-      if (editMode === 'true') {
-        setIsEditing(true)
-      }
       setLoading(false)
+    } else if (status === 'unauthenticated') {
+      router.push('/auth/signin')
     }
-  }, [status, searchParams])
+  }, [status])
+
+  useEffect(() => {
+    if (!loading && !profile) {
+      router.push('/profile/edit')
+    }
+  }, [profile, loading, router])
 
   const fetchTodayCalories = async () => {
     try {
@@ -84,16 +83,15 @@ function ProfilePageContent() {
   }
 
   const handleProfileUpdate = () => {
-    setIsEditing(true)
+    router.push('/profile/edit')
   }
 
   const handleProfileSaved = () => {
-    setIsEditing(false)
     router.push('/')
   }
 
   const handleCancelEdit = () => {
-    setIsEditing(false)
+    router.push('/')
   }
 
   // Animation variants
@@ -124,10 +122,6 @@ function ProfilePageContent() {
     )
   }
 
-  if (status === 'unauthenticated') {
-    redirect('/auth/signin')
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
@@ -142,7 +136,7 @@ function ProfilePageContent() {
         <ProfileDisplay dailyCalories={calories.consumed} />
       ) : (
         <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-gray-500">No profile found</p>
+          <p className="text-gray-500">Loading profile...</p>
         </div>
       )}
     </div>

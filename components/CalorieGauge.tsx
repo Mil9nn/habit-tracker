@@ -62,8 +62,8 @@ export default function CalorieGauge({
   const strokeDashoffset = circumference - (animatedProgress / 100) * circumference
 
   const getColor = () => {
-    if (percentage < 30) return '#ef4444' // red
-    if (percentage < 60) return '#f59e0b' // amber
+    if (percentage < 30) return '#f59e0b' // amber
+    if (percentage < 60) return '#ef4444' // red
     if (percentage < 80) return '#3b82f6' // blue
     return '#10b981' // green
   }
@@ -82,7 +82,7 @@ export default function CalorieGauge({
           r={radius}
           stroke="#e5e7eb"
           strokeWidth={responsiveSize.strokeWidth}
-          fill="none"
+          fill="#fff"
         />
         
         {/* Progress circle */}

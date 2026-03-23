@@ -2,8 +2,23 @@
 
 import { signIn } from 'next-auth/react'
 import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 
 export default function SignIn() {
+  const [isSigningIn, setIsSigningIn] = useState(false)
+
+  const handleSignIn = async () => {
+    setIsSigningIn(true)
+    try {
+      await signIn('google', { callbackUrl: '/profile' })
+    } catch (error) {
+      console.error('Sign in error:', error)
+    } finally {
+      setIsSigningIn(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-red-50 flex items-center justify-center">
       <div className="text-center p-6">
@@ -20,11 +35,21 @@ export default function SignIn() {
           </div>
           <p className="text-gray-600 mb-6">Track your daily nutrition with precision and clarity.</p>
           <Button
-            onClick={() => signIn('google', { callbackUrl: '/profile?edit=true' })}
+            onClick={handleSignIn}
+            disabled={isSigningIn}
             className="w-full h-12 rounded-full shadow-md bg-white hover:scale-105 active:scale-95 ease-in-out text-zinc-700 font-bold transition-all duration-300 flex items-center justify-center gap-2"
           >
-            <img src="/google.svg" alt="Google" className="h-5 w-5" />
-            <span className="tracking-tighter">Sign in with Google</span>
+            {isSigningIn ? (
+              <>
+                <Loader2 className="animate-spin text-red-500 h-5 w-5" />
+                <span className="tracking-tighter">Signing in...</span>
+              </>
+            ) : (
+              <>
+                <img src="/google.svg" alt="Google" className="h-5 w-5" />
+                <span className="tracking-tighter">Sign in with Google</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
