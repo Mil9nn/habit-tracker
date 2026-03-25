@@ -1,5 +1,10 @@
-import CalorieTracker from '@/components/CalorieTracker'
+import MainLayout from './layout/MainLayout'
+import CalorieTracker from "./calorie/page"
 
 export default function Home() {
-  return <CalorieTracker />
+  return (
+    <MainLayout>
+      <CalorieTracker />
+    </MainLayout>
+  )
 }

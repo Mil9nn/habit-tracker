@@ -19,7 +19,7 @@ export default function RootLayout({
         className="antialiased font-losevka"
       >
         <AuthWrapper>
-        {children}
+          {children}
         </AuthWrapper>
         <Toaster 
           position="top-right"

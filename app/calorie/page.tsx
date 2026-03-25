@@ -1,24 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Utensils, Calendar as CalendarIcon } from 'lucide-react'
 import dayjs from 'dayjs'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import CalorieGauge from './CalorieGauge'
-import CalorieHeatmap from './CalorieHeatmap'
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
+import CalorieGauge from './components/CalorieGauge'
+import CalorieHeatmap from './components/CalorieHeatmap'
+import { AIFoodAnalysis } from './components/AIFoodAnalysis'
 import { useProteinGoal, useCarbsGoal, useFatGoal } from '@/store/useProfileStore'
-import { ManualEntryForm, CalorieLogForm } from './ManualEntryForm'
-import { AIFoodAnalysis } from './AIFoodAnalysis'
-import { FoodLog } from './FoodLog'
-import Header from './Header'
+import MainLayout from '../layout/MainLayout'
+import { FoodLog } from './components/FoodLog'
+
+// Define CalorieLogForm interface locally since we removed ManualEntryForm
+export interface CalorieLogForm {
+  foodName: string
+  calories: number
+  protein?: number
+  carbs?: number
+  fat?: number
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  quantity?: number
+}
 
 export interface FoodItem {
   name: string;
@@ -79,16 +86,9 @@ export default function CalorieTracker() {
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
-  const [entryMode, setEntryMode] = useState<'ai' | 'manual'>('ai')
-  const [showManualEntry, setShowManualEntry] = useState(entryMode === 'manual')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   
-  const toggleEntryMode = () => {
-    const newMode = entryMode === 'ai' ? 'manual' : 'ai'
-    setEntryMode(newMode)
-    setShowManualEntry(newMode === 'manual')
-  }
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -97,6 +97,12 @@ export default function CalorieTracker() {
       setLoading(false)
     }
   }, [status, selectedDate])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
 
   const fetchData = async () => {
     try {
@@ -157,7 +163,6 @@ export default function CalorieTracker() {
 
       if (response.ok) {
         fetchData()
-        setShowManualEntry(false)
       }
     } catch (error) {
       console.error('Error adding calorie:', error)
@@ -179,18 +184,11 @@ export default function CalorieTracker() {
     )
   }
 
-  if (status === 'unauthenticated') {
-    router.push('/auth/signin')
-    return null
-  }
-
   return (
-    <div className="min-h-screen bg-[#F6F8FB]">
-      <Header />
-
-      <main className="space-y-4 p-4 mt-14">
+    <MainLayout>
+      <main className="space-y-4 p-4">
         <div className="flex items-center gap-2 justify-between mb-2">
-          <h3 className="text-md font-semibold text-center">Todays Nutrition</h3>
+          <h3 className="text-base font-semibold">Today's Nutrition</h3>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -232,9 +230,9 @@ export default function CalorieTracker() {
             {/* Protein */}
             <div className="space-y-1">
               <div className="flex justify-between items-center flex-wrap">
-                <span className="text-[11px] font-medium text-gray-600">Protein</span>
+                <span className="text-[11px] font-medium text-gray-600">Protein(g)</span>
                 <span className="text-[11px] text-gray-400">
-                  {Math.round((summary?.totalProtein || 0) * 10) / 10}g / {proteinGoal || 150}g
+                  {Math.round((summary?.totalProtein || 0) * 10) / 10}/{proteinGoal || 150}
                 </span>
               </div>
               <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -251,9 +249,9 @@ export default function CalorieTracker() {
             {/* Carbs */}
             <div className="space-y-1">
               <div className="flex justify-between items-center flex-wrap">
-                <span className="text-[11px] font-medium text-gray-600">Carbs</span>
+                <span className="text-[11px] font-medium text-gray-600">Carbs(g)</span>
                 <span className="text-[11px] text-gray-400">
-                  {Math.round((summary?.totalCarbs || 0) * 10) / 10}g / {carbsGoal || 300}g
+                  {Math.round((summary?.totalCarbs || 0) * 10) / 10}/{carbsGoal || 300}
                 </span>
               </div>
               <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -270,9 +268,9 @@ export default function CalorieTracker() {
             {/* Fats */}
             <div className="space-y-1">
               <div className="flex justify-between items-center flex-wrap">
-                <span className="text-[11px] font-medium text-gray-600">Fats</span>
+                <span className="text-[11px] font-medium text-gray-600">Fats(g)</span>
                 <span className="text-[11px] text-gray-400">
-                  {Math.round((summary?.totalFat || 0) * 10) / 10}g / {fatGoal || 100}g
+                  {Math.round((summary?.totalFat || 0) * 10) / 10}/{fatGoal || 100}
                 </span>
               </div>
               <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -288,17 +286,7 @@ export default function CalorieTracker() {
           </div>
         </div>
 
-        {entryMode === 'ai' ? (
-          <AIFoodAnalysis onDataAdded={fetchData} onToggleMode={toggleEntryMode} />
-        ) : (
-          <ManualEntryForm
-            showManualEntry={showManualEntry}
-            setShowManualEntry={setShowManualEntry}
-            isSubmitting={isSubmitting}
-            onSubmit={addCalorie}
-            onToggleMode={toggleEntryMode}
-          />
-        )}
+        <AIFoodAnalysis onDataAdded={fetchData} />
 
         {/* Daily Average */}
         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 shadow-sm hover:shadow-md transition">
@@ -314,6 +302,6 @@ export default function CalorieTracker() {
         <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
         <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
       </main>
-    </div>
+    </MainLayout>
   )
 }

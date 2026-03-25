@@ -22,7 +22,6 @@ export interface AuthState {
   setSession: (session: Session | null) => void
   setLoading: (loading: boolean) => void
   logout: () => void
-  clearAuth: () => void
 }
 
 // Create the store
@@ -81,17 +80,6 @@ export const useAuthStore = create<AuthState>()(
             'logout'
           ),
 
-        clearAuth: () => 
-          set(
-            { 
-              user: null, 
-              session: null, 
-              isAuthenticated: false,
-              isLoading: false 
-            },
-            false,
-            'clearAuth'
-          ),
       }),
       {
         name: 'auth-storage',
@@ -117,5 +105,4 @@ export const useAuthActions = () => useAuthStore((state) => ({
   setSession: state.setSession,
   setLoading: state.setLoading,
   logout: state.logout,
-  clearAuth: state.clearAuth,
 }))

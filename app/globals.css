@@ -132,3 +132,21 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .mobile-input {
+    @apply flex-col sm:flex-row;
+  }
+  
+  .mobile-stats {
+    @apply grid-cols-1 sm:grid-cols-3;
+  }
+  
+  .text-12 {
+    font-size: 0.75rem;
+  }
+  
+  .text-44 {
+    font-size: 2.75rem;
+  }
+}

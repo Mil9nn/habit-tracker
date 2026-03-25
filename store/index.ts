@@ -15,3 +15,13 @@ export {
   useProfileCompletion
 } from './useProfileStore'
 export type { UserProfile, ProfileState, Gender, ActivityLevel } from './useProfileStore'
+
+export { 
+  useWeightEntries, 
+  useWeightGoal, 
+  useWeightMilestones, 
+  useWeightLoading, 
+  useWeightInitialized,
+  useWeightActions,
+  useCurrentWeight
+} from './useWeightStore'

@@ -21,10 +21,9 @@ interface FoodAnalysis {
 
 interface AIFoodAnalysisProps {
   onDataAdded?: () => void
-  onToggleMode?: () => void
 }
 
-export function AIFoodAnalysis({ onDataAdded, onToggleMode }: AIFoodAnalysisProps) {
+export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
   const [aiFoodDescription, setAiFoodDescription] = useState('')
   const [aiAnalysis, setAiAnalysis] = useState<FoodAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -81,7 +80,6 @@ export function AIFoodAnalysis({ onDataAdded, onToggleMode }: AIFoodAnalysisProp
           setAiFoodDescription('')
           onDataAdded?.()
         } else {
-          // If adding failed, still show the analysis so user can try manually
           setAiAnalysis(analysis)
           console.error('Failed to add meal')
         }
@@ -148,13 +146,6 @@ export function AIFoodAnalysis({ onDataAdded, onToggleMode }: AIFoodAnalysisProp
         <h3 className="text-base sm:text-lg font-semibold tracking-tight text-zinc-900">
           Food Analysis
         </h3>
-        <Button
-          onClick={onToggleMode}
-          variant="outline"
-          className="bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
-        >
-          Manual Entry
-        </Button>
       </div>
 
       {/* Input Section */}

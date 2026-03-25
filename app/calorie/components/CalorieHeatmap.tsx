@@ -6,17 +6,17 @@ import 'react-calendar-heatmap/dist/styles.css'
 
 interface CalorieHeatmapProps {
   data: { date: string; count: number }[]
-  goal: number
+  goal?: number // Made goal optional since we're not using it for coloring
 }
 
 export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
   const [processedData, setProcessedData] = useState<any[]>([])
 
   useEffect(() => {
-    // Process data for heatmap - convert calories to count levels based on goal
-    const caloriesPerLevel = Math.ceil(goal / 5) // Divide goal into 5 levels
+    // Process data for heatmap - use simple 5-level coloring based on calorie count
     const heatmapData = data.map(entry => {
-      const level = Math.min(Math.floor(entry.count / caloriesPerLevel), 5)
+      // Simple division into 5 levels regardless of goal
+      const level = Math.min(Math.floor(entry.count / 200), 4) // Roughly every 200 calories = 1 level, max 4
       
       return {
         date: entry.date,
@@ -25,7 +25,7 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
     })
     
     setProcessedData(heatmapData)
-  }, [data, goal])
+  }, [data])
 
   const classForValue = (value: any) => {
     const count = value?.count || 0
@@ -34,7 +34,7 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
     if (count === 2) return 'fill-blue-300'
     if (count === 3) return 'fill-blue-500'
     if (count === 4) return 'fill-red-400'
-    return 'fill-red-600'
+    return 'fill-red-500' // Changed to red-500 for consistency
   }
 
   const getTooltipDataAttrs = (value: any) => {
@@ -53,10 +53,10 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900">Calorie Intake Heatmap</h3>
+      <div className="">
+        <h3 className="text-base font-semibold mb-3 text-gray-900">Calorie Intake Heatmap</h3>
         
-        <div className="mb-4">
+        <div className="mb-4 bg-white shadow-sm rounded-md p-2">
           <CalendarHeatmap
             startDate={new Date(new Date().setDate(new Date().getDate() - 90))}
             endDate={new Date()}

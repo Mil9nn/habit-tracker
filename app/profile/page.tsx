@@ -35,21 +35,26 @@ function ProfilePageContent() {
   const setProfile = store.setProfile
   const calculateMetrics = store.calculateMetrics
 
+  console.log("Profile", profile);
+
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchProfile()
-      fetchTodayCalories()
-      setLoading(false)
+      const loadData = async () => {
+        await fetchProfile()
+        await fetchTodayCalories()
+        setLoading(false)
+      }
+      loadData()
     } else if (status === 'unauthenticated') {
       router.push('/auth/signin')
     }
   }, [status])
 
   useEffect(() => {
-    if (!loading && !profile) {
+    if (status === 'authenticated' && !loading && !profile) {
       router.push('/profile/edit')
     }
-  }, [profile, loading, router])
+  }, [status, profile, loading, router])
 
   const fetchTodayCalories = async () => {
     try {

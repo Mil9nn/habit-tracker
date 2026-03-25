@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { X } from 'lucide-react'
-import { CalorieLog } from './CalorieTracker'
+import { CalorieLog } from '../app/calorie/page'
 
 interface AIEditFormProps {
   log: CalorieLog
@@ -21,7 +21,7 @@ export function AIEditForm({ log, onSave, onCancel }: AIEditFormProps) {
     setIsAnalyzing(true)
     try {
       // Create a prompt that includes the current meal info and the user's request
-      const fullPrompt = `Current meal: ${log.foodName}. Current items: ${log.mealItems?.map(item => `${item.quantity}× ${item.name}`).join(', ') || 'Single item'}. User request: ${aiPrompt}. Please update the meal based on this request and provide new nutritional information.`
+      const fullPrompt = `Current meal: ${log.foodName}. Current items: ${log.mealItems?.map((item: any) => `${item.quantity}× ${item.name}`).join(', ') || 'Single item'}. User request: ${aiPrompt}. Please update the meal based on this request and provide new nutritional information.`
 
       const response = await fetch('/api/ai/analyze-food', {
         method: 'POST',
@@ -85,7 +85,7 @@ export function AIEditForm({ log, onSave, onCancel }: AIEditFormProps) {
             <p className="text-sm text-amber-800">{log.foodName}</p>
             {log.mealItems && (
               <div className="mt-2 text-xs text-amber-700">
-                Items: {log.mealItems.map(item => `${item.quantity}× ${item.name}`).join(', ')}
+                Items: {log.mealItems.map((item: any) => `${item.quantity}× ${item.name}`).join(', ')}
               </div>
             )}
           </div>

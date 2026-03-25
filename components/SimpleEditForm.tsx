@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X } from 'lucide-react'
-import { CalorieLog } from './CalorieTracker'
+import { CalorieLog } from '../app/calorie/page'
 
 interface SimpleEditFormProps {
   log: CalorieLog

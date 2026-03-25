@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X, Plus, Trash2 } from 'lucide-react'
-import { FoodItem } from './CalorieTracker'
+import { FoodItem } from '../app/calorie/page'
 
 interface MealEditFormProps {
   meal: {
