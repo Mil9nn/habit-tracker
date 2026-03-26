@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className="antialiased font-losevka"
+        className="antialiased font-losevka bg-[#F6F8FB]"
       >
         <AuthWrapper>
           {children}

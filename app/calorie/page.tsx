@@ -289,8 +289,8 @@ export default function CalorieTracker() {
         <AIFoodAnalysis onDataAdded={fetchData} />
 
         {/* Daily Average */}
-        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 shadow-sm hover:shadow-md transition">
-          <span className="text-xs font-medium text-gray-500">
+        <div className="inline-flex items-center gap-4 transition">
+          <span className="text-sm font-medium text-gray-500">
             Daily Average
           </span>
 

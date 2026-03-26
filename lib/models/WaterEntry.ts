@@ -21,4 +21,5 @@ const WaterEntrySchema: Schema = new Schema(
   }
 );
 
-export const WaterEntry = mongoose.model<IWaterEntry>("WaterEntry", WaterEntrySchema);
+// Check if model already exists to prevent overwriting during hot reload
+export const WaterEntry = mongoose.models.WaterEntry || mongoose.model<IWaterEntry>("WaterEntry", WaterEntrySchema);
