@@ -55,6 +55,16 @@ export default function WaterTracker() {
         }
       })
       .catch(error => console.error('Error fetching water entries:', error))
+
+    // Fetch water goal
+    fetch('/api/water/goals')
+      .then(res => res.json())
+      .then(data => {
+        if (data.waterGoal) {
+          setGoal(data.waterGoal)
+        }
+      })
+      .catch(error => console.error('Error fetching water goal:', error))
   }, [])
 
   const handleLog = async () => {
@@ -89,12 +99,31 @@ export default function WaterTracker() {
     }
   }
 
-  const handleGoalUpdate = () => {
+  const handleGoalUpdate = async () => {
     const val = parseInt(tempGoal)
-    if (val && !isNaN(val) && val > 0) {
-      setGoal(val)
-      setShowGoalModal(false)
-      setTempGoal('')
+    if (val && !isNaN(val) && val > 0 && val >= 500 && val <= 10000) {
+      try {
+        const response = await fetch('/api/water/goals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            waterGoal: val
+          })
+        })
+
+        if (response.ok) {
+          setGoal(val)
+          setShowGoalModal(false)
+          setTempGoal('')
+        } else {
+          const errorData = await response.json()
+          console.error('Failed to update water goal:', errorData.error)
+        }
+      } catch (error) {
+        console.error('Error updating water goal:', error)
+      }
     }
   }
 
@@ -264,6 +293,8 @@ export default function WaterTracker() {
                   placeholder={goal ? goal.toString() : "e.g. 2000"}
                   id="water-goal"
                   className="flex-1 p-3.5 rounded-xl border border-zinc-200/60 bg-[#F9F7F5] text-base text-gray-900 font-Plus_Jakarta_Sans outline-none"
+                  value={tempGoal}
+                  onChange={e => setTempGoal(e.target.value)}
                 />
                 <span className="p-3.5 rounded-xl border border-zinc-200/60 bg-[#F9F7F5] text-sm text-gray-600 font-Plus_Jakarta_Sans flex items-center">
                   ml
@@ -277,15 +308,7 @@ export default function WaterTracker() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    const input = document.getElementById('water-goal') as HTMLInputElement
-                    const val = parseInt(input.value)
-                    if (val && !isNaN(val)) {
-                      setGoal(val)
-                      setShowGoalModal(false)
-                      setTempGoal('')
-                    }
-                  }}
+                  onClick={handleGoalUpdate}
                   className="flex-1 p-3.5 rounded-xl bg-[#1E40AF] text-white font-Plus_Jakarta_Sans font-semibold text-sm border-none cursor-pointer"
                 >
                   Set Goal

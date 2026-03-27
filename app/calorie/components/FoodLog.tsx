@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { CalorieLog } from '../page'
 import { format } from 'date-fns'
-import { Edit2, Trash2, MoreVertical } from 'lucide-react'
+import { Edit2, Trash2, MoreVertical, Bookmark } from 'lucide-react'
 import { MealEditForm } from '../../../components/MealEditForm'
+import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
+import { toast } from 'sonner'
 
 interface FoodLogProps {
   logs: CalorieLog[]
@@ -15,6 +17,50 @@ interface FoodLogProps {
 export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
   const [editingMeal, setEditingMeal] = useState<CalorieLog | null>(null)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [duplicateTemplateName, setDuplicateTemplateName] = useState('')
+
+  const saveAsTemplate = async (log: CalorieLog) => {
+    try {
+      const templateData = {
+        name: log.foodName,
+        mealType: log.mealType,
+        mealItems: log.mealItems || [{
+          name: log.foodName,
+          quantity: log.quantity || 1,
+          calories: log.calories,
+          protein: log.protein || 0,
+          carbs: log.carbs || 0,
+          fat: log.fat || 0
+        }]
+      }
+
+      const response = await fetch('/api/calories/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(templateData)
+      })
+
+      if (response.status === 409) {
+        // Template already exists
+        const errorData = await response.json()
+        setDuplicateTemplateName(log.foodName)
+        setShowDuplicateDialog(true)
+        setActiveMenu(null)
+        return
+      }
+
+      if (response.ok) {
+        setActiveMenu(null)
+        toast.success(`Template "${log.foodName}" saved successfully!`)
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to save template:', errorData.error)
+      }
+    } catch (error) {
+      console.error('Error saving template:', error)
+    }
+  }
 
 
   const deleteLog = async (logId: string) => {
@@ -156,12 +202,15 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                     className="relative opacity-0 group-hover:opacity-100 transition"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition">
+                    <button 
+                      onClick={() => setActiveMenu(activeMenu === log._id ? null : log._id)}
+                      className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition"
+                    >
                       <MoreVertical className="h-4 w-4" />
                     </button>
 
                     {activeMenu === log._id && (
-                      <div className="absolute right-0 top-full mt-2 w-32 rounded-lg border border-zinc-200 bg-white shadow-md overflow-hidden z-10">
+                      <div className="absolute right-0 top-8 w-50 rounded-lg border border-zinc-200 bg-white shadow-md overflow-hidden z-50">
                         <button
                           onClick={() => {
                             setEditingMeal(log)
@@ -171,6 +220,14 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                         >
                           <Edit2 className="h-4 w-4" />
                           Edit
+                        </button>
+
+                        <button
+                          onClick={() => saveAsTemplate(log)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50"
+                        >
+                          <Bookmark className="h-4 w-4" />
+                          Save as Template
                         </button>
 
                         <button
@@ -230,6 +287,13 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
           onCancel={() => setEditingMeal(null)}
         />
       )}
+
+      {/* Duplicate Template Dialog */}
+      <TemplateExistsDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        templateName={duplicateTemplateName}
+      />
     </>
   )
 }

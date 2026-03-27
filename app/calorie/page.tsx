@@ -15,6 +15,8 @@ import { AIFoodAnalysis } from './components/AIFoodAnalysis'
 import { useProteinGoal, useCarbsGoal, useFatGoal } from '@/store/useProfileStore'
 import MainLayout from '../layout/MainLayout'
 import { FoodLog } from './components/FoodLog'
+import { MealTemplates } from './components/MealTemplates'
+import { CalorieTrendsChart } from './components/CalorieTrendsChart'
 
 // Define CalorieLogForm interface locally since we removed ManualEntryForm
 export interface CalorieLogForm {
@@ -80,6 +82,8 @@ export default function CalorieTracker() {
   const [summary, setSummary] = useState<CalorieSummary | null>(null)
   const [logs, setLogs] = useState<CalorieLog[]>([])
   const [heatmapData, setHeatmapData] = useState<{ date: string; count: number }[]>([])
+  const [trendsData, setTrendsData] = useState<any[]>([])
+  const [trendsPeriod, setTrendsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   // Get macro goals from store
@@ -90,9 +94,26 @@ export default function CalorieTracker() {
   const [calendarOpen, setCalendarOpen] = useState(false)
   
 
+  const fetchTrendsData = async (period: 'week' | 'month' | 'quarter' = 'week') => {
+    try {
+      const response = await fetch(`/api/calories/trends?period=${period}`)
+      if (response.ok) {
+        const data = await response.json()
+        setTrendsData(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching trends data:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchTrendsData(trendsPeriod)
+  }, [trendsPeriod])
+
   useEffect(() => {
     if (status === 'authenticated') {
       fetchData()
+      fetchTrendsData(trendsPeriod)
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
@@ -146,9 +167,43 @@ export default function CalorieTracker() {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch data:', error)
+      console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleTemplateSelect = async (template: any) => {
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/calories/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          foodName: template.name,
+          calories: template.totalCalories,
+          protein: template.totalProtein,
+          carbs: template.totalCarbs,
+          fat: template.totalFat,
+          mealType: template.mealType,
+          quantity: 1,
+          isMeal: template.mealItems.length > 1,
+          mealItems: template.mealItems
+        })
+      })
+
+      if (response.ok) {
+        // Update template usage count
+        await fetch(`/api/calories/templates/${template._id}/use`, {
+          method: 'POST'
+        })
+        
+        fetchData() // Refresh data
+      }
+    } catch (error) {
+      console.error('Error adding template:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -288,6 +343,12 @@ export default function CalorieTracker() {
 
         <AIFoodAnalysis onDataAdded={fetchData} />
 
+        {/* Meal Templates */}
+        <MealTemplates 
+          onTemplateSelect={handleTemplateSelect}
+          onDataUpdated={fetchData}
+        />
+
         {/* Daily Average */}
         <div className="inline-flex items-center gap-4 transition">
           <span className="text-sm font-medium text-gray-500">
@@ -300,6 +361,14 @@ export default function CalorieTracker() {
         </div>
 
         <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
+        
+        {/* Calorie Trends Chart */}
+        <CalorieTrendsChart 
+          data={trendsData}
+          period={trendsPeriod}
+          onPeriodChange={setTrendsPeriod}
+        />
+        
         <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
       </main>
     </MainLayout>
