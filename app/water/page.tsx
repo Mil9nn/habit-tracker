@@ -68,6 +68,10 @@ export default function WaterTracker() {
       .catch(error => console.error('Error fetching water goal:', error))
   }, [])
 
+  const handleQuickLog = (amount: number) => {
+    handleLog(amount)
+  }
+
   const handleLog = async (amount: number) => {
     try {
       const response = await fetch('/api/water/entries', {
@@ -210,6 +214,27 @@ export default function WaterTracker() {
           <WaterProgress current={todayTotal} goal={goal} />
 
           <WaterInput onLog={handleLog} />
+
+          {/* Quick Water Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <span className="text-xs text-zinc-400">Quick:</span>
+            {[{ amount: 300, label: "1 Glass" }, { amount: 250, label: "250ml" }, { amount: 500, label: "500ml" }, { amount: 750, label: "750ml" }, { amount: 1000, label: "1L" }].map(({ amount, label }) => (
+              <motion.button
+                key={amount}
+                onClick={() => handleQuickLog(amount)}
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ scale: 1.05 }}
+                className="text-xs px-3 py-1.5 rounded-full border border-zinc-200 text-zinc-600 hover:border-blue-300 hover:text-blue-600 transition-colors"
+              >
+                {label}
+              </motion.button>
+            ))}
+          </motion.div>
 
           <WaterChart data={chartData} />
 

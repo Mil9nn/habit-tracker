@@ -15,7 +15,7 @@ import { AIFoodAnalysis } from './components/AIFoodAnalysis'
 import { useProteinGoal, useCarbsGoal, useFatGoal } from '@/store/useProfileStore'
 import MainLayout from '../layout/MainLayout'
 import { FoodLog } from './components/FoodLog'
-import { MealTemplates } from './components/MealTemplates'
+import { MealTemplatesMinimal } from './components/MealTemplates'
 import { CalorieTrendsChart } from './components/CalorieTrendsChart'
 
 // Define CalorieLogForm interface locally since we removed ManualEntryForm
@@ -344,7 +344,7 @@ export default function CalorieTracker() {
         <AIFoodAnalysis onDataAdded={fetchData} />
 
         {/* Meal Templates */}
-        <MealTemplates 
+        <MealTemplatesMinimal
           onTemplateSelect={handleTemplateSelect}
           onDataUpdated={fetchData}
         />

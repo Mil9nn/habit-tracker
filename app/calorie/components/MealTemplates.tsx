@@ -1,9 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Plus, Star, MoreVertical, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CalorieLog } from '../page'
+import { format } from 'date-fns'
+import { Edit2, Trash2, MoreVertical, Bookmark } from 'lucide-react'
+import { MealEditForm } from '../../../components/MealEditForm'
+import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
 import { toast } from 'sonner'
+
+interface FoodLogProps {
+  logs: CalorieLog[]
+  selectedDate: string
+  onDataUpdated?: () => void
+}
 
 interface MealTemplate {
   _id: string
@@ -30,7 +39,246 @@ interface MealTemplatesProps {
   onDataUpdated?: () => void
 }
 
-export function MealTemplates({ onTemplateSelect, onDataUpdated }: MealTemplatesProps) {
+
+
+export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
+  const [editingMeal, setEditingMeal] = useState<CalorieLog | null>(null)
+  const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [duplicateTemplateName, setDuplicateTemplateName] = useState('')
+
+  // ---------- Actions ----------
+
+  const saveAsTemplate = async (log: CalorieLog) => {
+    try {
+      const templateData = {
+        name: log.foodName,
+        mealType: log.mealType,
+        mealItems:
+          log.mealItems || [
+            {
+              name: log.foodName,
+              quantity: log.quantity || 1,
+              calories: log.calories,
+              protein: log.protein || 0,
+              carbs: log.carbs || 0,
+              fat: log.fat || 0
+            }
+          ]
+      }
+
+      const res = await fetch('/api/calories/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(templateData)
+      })
+
+      if (res.status === 409) {
+        setDuplicateTemplateName(log.foodName)
+        setShowDuplicateDialog(true)
+        setActiveMenu(null)
+        return
+      }
+
+      if (res.ok) {
+        toast.success(`Saved "${log.foodName}"`)
+        setActiveMenu(null)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const deleteLog = async (id: string) => {
+    try {
+      const res = await fetch(`/api/calories/log/${id}`, {
+        method: 'DELETE'
+      })
+      if (res.ok) onDataUpdated?.()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const updateMeal = async (updated: any) => {
+    try {
+      const res = await fetch(`/api/calories/log/${updated._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      })
+      if (res.ok) {
+        setEditingMeal(null)
+        onDataUpdated?.()
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // ---------- UI ----------
+
+  return (
+    <>
+      <div className="mt-4" onClick={() => setActiveMenu(null)}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3 text-sm font-medium text-zinc-700">
+          <h3>
+            {selectedDate === new Date().toISOString().split('T')[0]
+              ? 'Today'
+              : format(new Date(selectedDate), 'do MMMM')}
+          </h3>
+
+          <span className="text-xs text-zinc-400">
+            {logs.length} entries
+          </span>
+        </div>
+
+        {/* List */}
+        {logs.length > 0 ? (
+          <div className="divide-y divide-zinc-200">
+            {logs.map(log => (
+              <div
+                key={log._id}
+                className="group py-3 flex flex-col gap-2"
+              >
+                {/* Top Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-zinc-900">
+                      {log.foodName}
+                    </span>
+                    <span className="text-xs text-amber-500 font-medium">
+                      {log.calories} kcal
+                    </span>
+                  </div>
+
+                  {/* Menu */}
+                  <div
+                    className="relative opacity-0 group-hover:opacity-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() =>
+                        setActiveMenu(activeMenu === log._id ? null : log._id)
+                      }
+                      className="p-1 text-zinc-400 hover:text-zinc-700"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+
+                    {activeMenu === log._id && (
+                      <div className="absolute right-0 mt-2 w-44 border bg-white text-sm z-50">
+                        <button
+                          onClick={() => {
+                            setEditingMeal(log)
+                            setActiveMenu(null)
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2 hover:bg-zinc-50"
+                        >
+                          <Edit2 className="h-4 w-4" /> Edit
+                        </button>
+
+                        <button
+                          onClick={() => saveAsTemplate(log)}
+                          className="flex w-full items-center gap-2 px-3 py-2 hover:bg-zinc-50"
+                        >
+                          <Bookmark className="h-4 w-4" /> Template
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            deleteLog(log._id)
+                            setActiveMenu(null)
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Meal Items */}
+                {log.mealItems && log.mealItems.length > 1 && (
+                  <div className="text-xs text-zinc-600 space-y-1">
+                    {log.mealItems.map((item, i) => (
+                      <div key={i} className="flex justify-between">
+                        <span>
+                          {item.quantity}× {item.name}
+                        </span>
+                        <span>{item.calories} kcal</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Bottom Row */}
+                <div className="flex items-center justify-between text-xs text-zinc-500">
+                  <div className="flex gap-3">
+                    {log.protein ? <span>P {log.protein}g</span> : null}
+                    {log.carbs ? <span>C {log.carbs}g</span> : null}
+                    {log.fat ? <span>F {log.fat}g</span> : null}
+                  </div>
+
+                  <span>
+                    {new Date(log.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-6 text-center text-sm text-zinc-400">
+            No entries
+          </div>
+        )}
+      </div>
+
+      {/* Edit */}
+      {editingMeal && (
+        <MealEditForm
+          meal={{
+            _id: editingMeal._id,
+            foodName: editingMeal.foodName,
+            mealItems:
+              editingMeal.mealItems || [
+                {
+                  name: editingMeal.foodName,
+                  quantity: editingMeal.quantity || 1,
+                  calories: editingMeal.calories,
+                  protein: editingMeal.protein || 0,
+                  carbs: editingMeal.carbs || 0,
+                  fat: editingMeal.fat || 0
+                }
+              ],
+            calories: editingMeal.calories,
+            protein: editingMeal.protein,
+            carbs: editingMeal.carbs,
+            fat: editingMeal.fat,
+            mealType: editingMeal.mealType
+          }}
+          onSave={updateMeal}
+          onCancel={() => setEditingMeal(null)}
+        />
+      )}
+
+      <TemplateExistsDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        templateName={duplicateTemplateName}
+      />
+    </>
+  )
+}
+
+// -------------------- UPDATED MEAL TEMPLATES --------------------
+
+export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTemplatesProps) {
   const [templates, setTemplates] = useState<MealTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [showAll, setShowAll] = useState(false)
@@ -42,135 +290,113 @@ export function MealTemplates({ onTemplateSelect, onDataUpdated }: MealTemplates
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/calories/templates')
-      if (response.ok) {
-        const data = await response.json()
+      const res = await fetch('/api/calories/templates')
+      if (res.ok) {
+        const data = await res.json()
         setTemplates(data.templates || [])
       }
-    } catch (error) {
-      console.error('Error fetching templates:', error)
+    } catch (e) {
+      console.error(e)
     } finally {
       setLoading(false)
     }
   }
 
-  const deleteTemplate = async (templateId: string) => {
+  const deleteTemplate = async (id: string) => {
     try {
-      const response = await fetch(`/api/calories/templates/${templateId}`, {
+      const res = await fetch(`/api/calories/templates/${id}`, {
         method: 'DELETE'
       })
-      if (response.ok) {
-        const template = templates.find(t => t._id === templateId)
-        setTemplates(prev => prev.filter(t => t._id !== templateId))
+      if (res.ok) {
+        setTemplates(prev => prev.filter(t => t._id !== id))
         setActiveMenu(null)
-        toast.success(`Template "${template?.name}" deleted successfully!`)
+        toast.success('Deleted')
       }
-    } catch (error) {
-      console.error('Error deleting template:', error)
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const filteredTemplates = templates
+  const list = templates
     .sort((a, b) => b.useCount - a.useCount)
     .slice(0, showAll ? undefined : 6)
 
   if (loading) {
     return (
-      <div className="flex gap-2 mb-4">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse flex-1" />
-        ))}
-      </div>
+      <div className="text-sm text-zinc-400 mb-3">Loading templates...</div>
     )
   }
 
-  if (filteredTemplates.length === 0) {
+  if (!list.length) {
     return (
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Quick Templates
-          </h4>
-        </div>
-        <div className="text-center py-4 px-3 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-xs text-gray-500 mb-2">
-            No templates yet
-          </p>
-          <p className="text-xs text-gray-400">
-            Click the three dots (⋯) on any food entry and select "Save as Template"
-          </p>
-        </div>
+      <div className="text-sm text-zinc-400 mb-3">
+        No templates yet
       </div>
     )
   }
 
   return (
-    <div className="mb-4">
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <Clock className="w-4 h-4" />
-          Quick Templates
-        </h4>
+    <div className="mb-4" onClick={() => setActiveMenu(null)}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2 text-sm text-zinc-600">
+        <span>Templates</span>
         {templates.length > 6 && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-xs text-blue-600 hover:text-blue-700"
+            className="text-xs text-zinc-400 hover:text-zinc-700"
           >
-            {showAll ? 'Show Less' : 'Show All'}
+            {showAll ? 'less' : 'all'}
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        <AnimatePresence>
-          {filteredTemplates.map((template) => (
-            <motion.div
-              key={template._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              onClick={() => onTemplateSelect(template)}
-              className="p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all text-left cursor-pointer"
+      {/* List */}
+      <div className="divide-y divide-zinc-200">
+        {list.map(t => (
+          <div
+            key={t._id}
+            className="group flex items-center justify-between py-2 cursor-pointer"
+            onClick={() => onTemplateSelect(t)}
+          >
+            <div className="flex flex-col">
+              <span className="text-sm text-zinc-900 font-medium">
+                {t.name}
+              </span>
+              <span className="text-xs text-zinc-400">
+                {t.totalCalories} kcal
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div
+              className="relative opacity-0 group-hover:opacity-100"
+              onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-start justify-between mb-1">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {template.name}
-                  </p>
-                </div>
-                <div className="relative">
+              <button
+                onClick={() =>
+                  setActiveMenu(activeMenu === t._id ? null : t._id)
+                }
+                className="p-1 text-zinc-400 hover:text-zinc-700"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+
+              {activeMenu === t._id && (
+                <div className="absolute right-0 mt-2 w-28 border bg-white text-sm z-50">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveMenu(activeMenu === template._id ? null : template._id)
-                    }}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    onClick={() => deleteTemplate(t._id)}
+                    className="flex w-full items-center gap-2 px-2 py-1 text-red-600 hover:bg-red-50"
                   >
-                    <MoreVertical className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" />
+                    Delete
                   </button>
-
-                  {activeMenu === template._id && (
-                    <div className="absolute right-0 top-8 w-32 rounded-lg border border-gray-200 bg-white shadow-md overflow-hidden z-50">
-                      <button
-                        onClick={() => deleteTemplate(template._id)}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </button>
-                    </div>
-                  )}
                 </div>
-              </div>
-
-              <div className="text-xs font-bold text-amber-500">
-                {template.totalCalories} kcal
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
+
