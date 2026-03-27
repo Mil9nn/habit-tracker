@@ -7,6 +7,7 @@ import { Droplets, Plus, Edit2 } from 'lucide-react'
 import WaterProgress from './components/WaterProgress'
 import WaterChart from './components/WaterChart'
 import WaterLog from './components/WaterLog'
+import WaterInput from './components/WaterInput'
 
 interface WaterEntry {
   _id: string
@@ -67,10 +68,7 @@ export default function WaterTracker() {
       .catch(error => console.error('Error fetching water goal:', error))
   }, [])
 
-  const handleLog = async () => {
-    const val = parseFloat(waterIntake)
-    if (!val || isNaN(val)) return
-
+  const handleLog = async (amount: number) => {
     try {
       const response = await fetch('/api/water/entries', {
         method: 'POST',
@@ -78,7 +76,7 @@ export default function WaterTracker() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: val,
+          amount,
           unit: 'ml'
         })
       })
@@ -86,9 +84,6 @@ export default function WaterTracker() {
       if (response.ok) {
         const data = await response.json()
         setEntries(prev => [data.entry, ...prev])
-        setWaterIntake('')
-        setLogged(true)
-        setTimeout(() => setLogged(false), 2000)
       } else {
         const errorData = await response.json()
         console.error('Failed to log water intake:', errorData.error)
@@ -128,7 +123,7 @@ export default function WaterTracker() {
   }
 
   const handleEntryUpdate = (updatedEntry: WaterEntry) => {
-    setEntries(prev => prev.map(entry => 
+    setEntries(prev => prev.map(entry =>
       entry._id === updatedEntry._id ? updatedEntry : entry
     ))
   }
@@ -139,7 +134,7 @@ export default function WaterTracker() {
 
   // Get today's entries
   const today = new Date().toISOString().split('T')[0]
-  const todayEntries = entries.filter((entry: WaterEntry) => 
+  const todayEntries = entries.filter((entry: WaterEntry) =>
     new Date(entry.date).toISOString().split('T')[0] === today
   )
   const todayTotal = todayEntries.reduce((sum: number, entry: WaterEntry) => sum + entry.amount, 0)
@@ -154,13 +149,13 @@ export default function WaterTracker() {
       const date = new Date(today)
       date.setDate(date.getDate() - i)
       const dateStr = date.toISOString().split('T')[0]
-      
-      const dayEntries = entries.filter((entry: WaterEntry) => 
+
+      const dayEntries = entries.filter((entry: WaterEntry) =>
         new Date(entry.date).toISOString().split('T')[0] === dateStr
       )
-      
+
       const dayTotal = dayEntries.reduce((sum: number, entry: WaterEntry) => sum + entry.amount, 0)
-      
+
       // Determine status based on goal comparison
       let status = 'below'
       if (dayTotal >= goal) {
@@ -168,15 +163,15 @@ export default function WaterTracker() {
       } else if (dayTotal >= goal * 0.9) { // Within 10% of goal
         status = 'close'
       }
-      
+
       data.push({
         date: date.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }),
         amount: dayTotal,
         goal: goal,
-        status: status as 'above' | 'close' | 'below'
+        status: status as 'above' | 'close' | 'below',
       })
     }
-    
+
     return data
   }
 
@@ -185,7 +180,7 @@ export default function WaterTracker() {
   return (
     <MainLayout>
       <div className="min-h-screen bg-[#F6F8FB] p-4 sm:p-5">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -16 }}
@@ -212,52 +207,14 @@ export default function WaterTracker() {
             </button>
           </div>
 
-          {/* Current Intake */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
-            className="mb-2"
-          >
-            <div className="">
-              <label className="text-sm font-semibold text-gray-700" htmlFor="water-intake">Enter amount in ml:</label>
-              <div className="flex items-center gap-4 mt-2">
-                <input
-                  type="number"
-                  value={waterIntake}
-                  onChange={e => setWaterIntake(e.target.value)}
-                  placeholder="250 ml"
-                  className="w-32 h-14 text-sm bg-white font-bold rounded-lg ring-2 ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 px-4"
-                  step="100"
-                  min="0"
-                />
-                <button
-                  onClick={handleLog}
-                  disabled={!waterIntake || isNaN(parseFloat(waterIntake))}
-                  className="px-6 h-14 rounded-lg bg-blue-600 text-white font-semibold text-sm border-none cursor-pointer transition-all duration-200 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-transform ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Log Intake
-                </button>
-              </div>
-            </div>
-            {logged && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="mt-4 text-green-600 font-semibold text-sm"
-              >
-                ✓ Logged successfully!
-              </motion.div>
-            )}
-          </motion.div>
-
           <WaterProgress current={todayTotal} goal={goal} />
+
+          <WaterInput onLog={handleLog} />
 
           <WaterChart data={chartData} />
 
-          <WaterLog 
-            entries={entries} 
+          <WaterLog
+            entries={entries}
             onEntryUpdate={handleEntryUpdate}
             onEntryDelete={handleEntryDelete}
           />
