@@ -49,43 +49,42 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
       if (res.status === 409) {
         setDuplicateTemplateName(log.foodName)
         setShowDuplicateDialog(true)
-        setActiveMenu(null)
-        return
+      } else if (res.ok) {
+        toast.success(`"${log.foodName}" saved as template`)
       }
-
-      if (res.ok) {
-        toast.success(`Saved "${log.foodName}"`)
-        setActiveMenu(null)
-      }
-    } catch (e) {
-      console.error(e)
+    } catch (error) {
+      console.error('Error saving template:', error)
     }
   }
 
-  const deleteLog = async (id: string) => {
+  const deleteLog = async (logId: string) => {
     try {
-      const res = await fetch(`/api/calories/log/${id}`, {
+      const response = await fetch(`/api/calories/log/${logId}`, {
         method: 'DELETE'
       })
-      if (res.ok) onDataUpdated?.()
-    } catch (e) {
-      console.error(e)
+
+      if (response.ok) {
+        onDataUpdated?.()
+      }
+    } catch (error) {
+      console.error('Error deleting log:', error)
     }
   }
 
-  const updateMeal = async (updated: any) => {
+  const updateMeal = async (updatedMeal: CalorieLog) => {
     try {
-      const res = await fetch(`/api/calories/log/${updated._id}`, {
+      const response = await fetch(`/api/calories/log/${updatedMeal._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
+        body: JSON.stringify(updatedMeal)
       })
-      if (res.ok) {
+
+      if (response.ok) {
         setEditingMeal(null)
         onDataUpdated?.()
       }
-    } catch (e) {
-      console.error(e)
+    } catch (error) {
+      console.error('Error updating meal:', error)
     }
   }
 
@@ -93,126 +92,94 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
   return (
     <>
-      <div className="mt-4" onClick={() => setActiveMenu(null)}>
+      <div className="space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 text-sm font-medium text-zinc-700">
-          <h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-gray-700">
             {selectedDate === new Date().toISOString().split('T')[0]
               ? 'Today'
               : format(new Date(selectedDate), 'do MMMM')}
           </h3>
-
-          <span className="text-xs text-zinc-400">
-            {logs.length} entries
+          <span className="text-xs text-gray-400">
+            {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
           </span>
         </div>
 
-        {/* List */}
+        {/* Entries */}
         {logs.length > 0 ? (
-          <div className="divide-y divide-zinc-200">
+          <div className="space-y-1">
             {logs.map(log => (
               <div
                 key={log._id}
-                className="group py-3 flex flex-col gap-2"
+                className="group py-3 px-4 border-l-2 border-transparent hover:border-gray-300 hover:bg-gray-50 transition-colors"
               >
-                {/* Top Row */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-zinc-900">
-                      {log.foodName}
-                    </span>
-                    <span className="text-xs text-amber-500 font-medium">
-                      {log.calories} kcal
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-900 truncate">
+                        {log.foodName}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {log.calories} kcal
+                      </span>
+                    </div>
+
+                    {/* Macros */}
+                    <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                      {log.protein && <span>P {log.protein}g</span>}
+                      {log.carbs && <span>C {log.carbs}g</span>}
+                      {log.fat && <span>F {log.fat}g</span>}
+                    </div>
                   </div>
 
-                  {/* Menu */}
-                  <div
-                    className="relative opacity-0 group-hover:opacity-100"
-                    onClick={e => e.stopPropagation()}
-                  >
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() =>
-                        setActiveMenu(activeMenu === log._id ? null : log._id)
-                      }
-                      className="p-1 text-zinc-400 hover:text-zinc-700"
+                      onClick={() => saveAsTemplate(log)}
+                      className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+                      title="Save as template"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <Bookmark className="w-4 h-4" />
                     </button>
-
-                    {activeMenu === log._id && (
-                      <div className="absolute right-0 mt-2 w-44 border bg-white text-sm z-50">
-                        <button
-                          onClick={() => {
-                            setEditingMeal(log)
-                            setActiveMenu(null)
-                          }}
-                          className="flex w-full items-center gap-2 px-3 py-2 hover:bg-zinc-50"
-                        >
-                          <Edit2 className="h-4 w-4" /> Edit
-                        </button>
-
-                        <button
-                          onClick={() => saveAsTemplate(log)}
-                          className="flex w-full items-center gap-2 px-3 py-2 hover:bg-zinc-50"
-                        >
-                          <Bookmark className="h-4 w-4" /> Template
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            deleteLog(log._id)
-                            setActiveMenu(null)
-                          }}
-                          className="flex w-full items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" /> Delete
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      onClick={() => setEditingMeal(log)}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteLog(log._id)}
+                      className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
                 {/* Meal Items */}
                 {log.mealItems && log.mealItems.length > 1 && (
-                  <div className="text-xs text-zinc-600 space-y-1">
+                  <div className="mt-2 pl-4 text-xs text-gray-500 space-y-1">
                     {log.mealItems.map((item, i) => (
                       <div key={i} className="flex justify-between">
-                        <span>
-                          {item.quantity}× {item.name}
-                        </span>
+                        <span>{item.quantity}× {item.name}</span>
                         <span>{item.calories} kcal</span>
                       </div>
                     ))}
                   </div>
                 )}
-
-                {/* Bottom Row */}
-                <div className="flex items-center justify-between text-xs text-zinc-500">
-                  <div className="flex gap-3">
-                    {log.protein ? <span>P {log.protein}g</span> : null}
-                    {log.carbs ? <span>C {log.carbs}g</span> : null}
-                    {log.fat ? <span>F {log.fat}g</span> : null}
-                  </div>
-
-                  <span>
-                    {new Date(log.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="py-6 text-center text-sm text-zinc-400">
-            No entries
+          <div className="py-12 text-center text-sm text-gray-400">
+            No entries for this day
           </div>
         )}
       </div>
 
-      {/* Edit */}
+      {/* Edit Modal */}
       {editingMeal && (
         <MealEditForm
           meal={{

@@ -10,7 +10,6 @@ interface WaterInputProps {
 
 export default function WaterInput({ onLog, disabled = false }: WaterInputProps) {
   const [waterIntake, setWaterIntake] = useState('')
-  const [logged, setLogged] = useState(false)
 
   const handleLog = () => {
     const val = parseFloat(waterIntake)
@@ -18,38 +17,34 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
 
     onLog(val)
     setWaterIntake('')
-    setLogged(true)
-    setTimeout(() => setLogged(false), 2000)
   }
 
   return (
-    <div className="flex items-center gap-3 mt-2">
-      {/* Input */}
-      <div className="relative flex-1 max-w-[140px]">
+    <div className="flex items-center gap-3">
+      <div className="flex-1 relative">
         <input
           type="number"
           value={waterIntake}
           onChange={e => setWaterIntake(e.target.value)}
-          placeholder="250"
+          placeholder="Enter amount"
           step="100"
           min="0"
-          className="w-full bg-transparent border-b-2 border-gray-200 outline-none text-sm text-gray-900 placeholder:text-gray-400 pb-1 focus:border-b-2 focus:border-blue-500"
+          className="w-full px-4 py-2 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           disabled={disabled}
         />
+        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+          ml
+        </span>
       </div>
 
-      {/* Unit */}
-      <span className="text-sm text-gray-500">ml</span>
-
-      {/* Button */}
       <motion.button
         onClick={handleLog}
         disabled={!waterIntake || isNaN(parseFloat(waterIntake)) || disabled}
-        whileTap={{ scale: 0.92 }}
-        whileHover={{ scale: 1.05 }}
-        className="bg-blue-500 rounded-full ml-4 px-4 py-2 text-white text-sm hover:scale-105 active:scale-95 transition-transform ease-in-out font-medium disabled:opacity-40"
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        className="px-6 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        Add Water
+        Add
       </motion.button>
     </div>
   )

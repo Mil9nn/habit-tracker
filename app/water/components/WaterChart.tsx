@@ -36,14 +36,14 @@ export default function WaterChart({ data }: WaterChartProps) {
       
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-zinc-500">Water Intake</span>
+        <span className="text-md font-bold text-zinc-700">Water Intake</span>
 
         <div className="flex gap-2">
           {["weekly", "monthly"].map((t) => (
             <button
               key={t}
               onClick={() => setTimePeriod(t as TimePeriod)}
-              className={`text-xs px-2 py-1 transition ${
+              className={`text-sm px-2 py-1 transition ${
                 timePeriod === t
                   ? "text-blue-600"
                   : "text-zinc-400 hover:text-zinc-600"

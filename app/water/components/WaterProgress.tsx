@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { Droplets } from "lucide-react"
 
 type WaterProgressProps = {
   current: number
@@ -11,37 +12,40 @@ export default function WaterProgress({ current, goal }: WaterProgressProps) {
   const percentage = Math.min((current / goal) * 100, 100)
 
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="relative inline-flex items-center justify-center">
+      {/* Background circle */}
+      <div className="w-32 h-32 rounded-full border-8 border-gray-100" />
       
-      {/* Top Row */}
-      <div className="flex items-center justify-between text-sm font-semibold text-gray-700 mb-1">
-        <span className="">Water Intake</span>
-        <span className="font-medium">
-          {current} / {goal} ml
-        </span>
-      </div>
-
-      {/* Thin Progress Line */}
-      <div className="relative h-[5px] rounded-full w-full bg-zinc-200 overflow-hidden">
-        
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="h-full bg-blue-500"
+      {/* Progress circle */}
+      <svg className="absolute inset-0 w-32 h-32 transform -rotate-90">
+        <circle
+          cx="64"
+          cy="64"
+          r="56"
+          stroke="#e5e7eb"
+          strokeWidth="8"
+          fill="none"
         />
-
-        {/* Subtle glow (very minimal) */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: percentage > 10 ? 0.2 : 0 }}
-          className="absolute top-0 left-0 h-full w-full bg-blue-400 blur-sm"
+        <motion.circle
+          cx="64"
+          cy="64"
+          r="56"
+          stroke="#3b82f6"
+          strokeWidth="8"
+          fill="none"
+          strokeDasharray={`${2 * Math.PI * 56}`}
+          strokeDashoffset={`${2 * Math.PI * 56 * (1 - percentage / 100)}`}
+          strokeLinecap="round"
+          initial={{ strokeDashoffset: 2 * Math.PI * 56 }}
+          animate={{ strokeDashoffset: 2 * Math.PI * 56 * (1 - percentage / 100) }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         />
-      </div>
-
-      {/* Bottom Meta */}
-      <div className="flex justify-end mt-1">
-        <span className="text-xs text-zinc-400">
+      </svg>
+      
+      {/* Center content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <Droplets className="w-5 h-5 text-blue-500 mb-1" />
+        <span className="text-lg font-light text-gray-900">
           {Math.round(percentage)}%
         </span>
       </div>

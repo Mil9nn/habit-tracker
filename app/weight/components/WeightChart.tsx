@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import {
   AreaChart,
@@ -18,68 +19,52 @@ export default function WeightChart({
   weeklyChange,
   projectedWeeks
 }: any) {
-  const chartData = entries.slice(-trendView).map((e: any) => ({
+  const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly">(trendView === 7 ? "weekly" : "monthly")
+  const filteredData = timePeriod === "weekly" ? entries.slice(-7) : entries.slice(-30)
+  const chartData = filteredData.map((e: any) => ({
     weight: e.weight,
     label: e.date.slice(5)
   }))
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-6">
-      
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm text-zinc-500">Weight Trend</span>
-
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-700">Weight Trend</h3>
         <div className="flex gap-2">
-          {[7, 30, 90].map((days) => (
+          {["weekly", "monthly"].map((period) => (
             <button
-              key={days}
-              onClick={() => setTrendView(days)}
-              className={`text-xs ${
-                trendView === days
-                  ? "text-blue-600"
-                  : "text-zinc-400 hover:text-zinc-600"
+              key={period}
+              onClick={() => {
+                setTimePeriod(period as "weekly" | "monthly")
+                setTrendView(period === "weekly" ? 7 : 30)
+              }}
+              className={`text-xs px-2 py-1 rounded-md transition-colors ${
+                timePeriod === period
+                  ? "bg-blue-100 text-blue-600"
+                  : "text-gray-400 hover:text-gray-600"
               }`}
             >
-              {days}d
+              {period}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Key Insight */}
-      <div className="flex gap-3 text-sm mb-3">
-        {weeklyChange !== null && (
-          <span
-            className={`font-medium ${
-              weeklyChange < 0 ? "text-green-600" : "text-zinc-500"
-            }`}
-          >
-            {weeklyChange < 0 ? "↓" : "↑"} {Math.abs(weeklyChange)} {unit}/week
-          </span>
-        )}
-
-        {projectedWeeks && (
-          <span className="text-zinc-400">
-            ~{projectedWeeks} weeks to goal
-          </span>
-        )}
-      </div>
-
       {/* Chart */}
-      <div className="w-full h-[200px]">
+      <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
-            
             <XAxis
               dataKey="label"
               tick={{ fontSize: 11 }}
               axisLine={false}
               tickLine={false}
             />
-
-            <YAxis hide domain={["auto", "auto"]} />
-
+            <YAxis
+              hide
+              domain={["auto", "auto"]}
+            />
             <Tooltip
               contentStyle={{
                 borderRadius: "8px",
@@ -87,7 +72,6 @@ export default function WeightChart({
                 fontSize: "12px"
               }}
             />
-
             <Area
               type="monotone"
               dataKey="weight"
@@ -99,6 +83,20 @@ export default function WeightChart({
             />
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Footer Stats */}
+      <div className="flex justify-between text-xs text-gray-400">
+        <span>
+          {weeklyChange !== null && (
+            <>
+              {weeklyChange < 0 ? "↓" : "↑"} {Math.abs(weeklyChange)} {unit}/week
+            </>
+          )}
+        </span>
+        <span>
+          {projectedWeeks !== null && `~${projectedWeeks} weeks to goal`}
+        </span>
       </div>
     </div>
   )
