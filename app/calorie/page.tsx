@@ -396,8 +396,11 @@ export default function CalorieTracker() {
             {/* Left Column */}
             <div className="space-y-6">
               
-              {/* AI Food Analysis */}
-              <AIFoodAnalysis onDataAdded={fetchData} />
+              {/* AI Food Analysis - Hero Section */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-gray-700">Quick Add Food</h3>
+                <AIFoodAnalysis onDataAdded={fetchData} />
+              </div>
 
               {/* Meal Templates */}
               <MealTemplatesMinimal

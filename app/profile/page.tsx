@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import MainLayout from '../layout/MainLayout'
 import ProfileDisplay from '@/components/ProfileDisplay'
 import { Progress } from "@/components/ui/progress"
 import { motion } from 'framer-motion'
@@ -121,38 +122,62 @@ function ProfilePageContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-pulse text-center text-indigo-600">Loading...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse text-center text-gray-600">Loading...</div>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-pulse text-center text-indigo-600">Loading profile...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse text-center text-gray-600">Loading profile...</div>
       </div>
     )
   }
 
   return (
-    <div>
-      {profile ? (
-        <ProfileDisplay dailyCalories={calories.consumed} />
-      ) : (
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-gray-500">Loading profile...</p>
+    <MainLayout>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-2xl font-light text-gray-900 tracking-tight">Profile</h1>
+                <p className="text-sm text-gray-500 mt-1">Manage your personal information and goals</p>
+              </div>
+              
+              <button
+                onClick={handleProfileUpdate}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Profile
+              </button>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          {profile ? (
+            <ProfileDisplay dailyCalories={calories.consumed} />
+          ) : (
+            <div className="flex items-center justify-center min-h-[50vh]">
+              <p className="text-gray-500">Loading profile...</p>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </MainLayout>
   )
 }
 
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-pulse text-center text-indigo-600">Loading...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse text-center text-gray-600">Loading...</div>
       </div>
     }>
       <ProfilePageContent />

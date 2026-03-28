@@ -470,15 +470,7 @@ export default function WeightTracker() {
             {/* Left Column */}
             <div className="space-y-6">
               
-              {/* BMI Insights */}
-              <BMIInsights
-                bmi={bmiValue}
-                height={profile?.height || null}
-                weight={currentWeight}
-                unit={unit}
-              />
-
-              {/* Weight Input */}
+              {/* Weight Input - Hero Section */}
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-gray-700">Log Weight</h3>
                 <WeightLogInput
@@ -490,6 +482,14 @@ export default function WeightTracker() {
                   logged={logged}
                 />
               </div>
+
+              {/* BMI Insights */}
+              <BMIInsights
+                bmi={bmiValue}
+                height={profile?.height || null}
+                weight={currentWeight}
+                unit={unit}
+              />
 
               {/* Milestones */}
               {updatedMilestones.length > 0 && (

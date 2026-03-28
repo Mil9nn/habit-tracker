@@ -34,7 +34,7 @@ export default function ProfileDisplay({ dailyCalories }: Props) {
       lightly_active: 'Light Activity',
       moderately_active: 'Moderate',
       very_active: 'Active',
-      extra_active: 'Extreme'
+      extra_active: 'Very Active'
     }
     return labels[level as keyof typeof labels] || level
   }
@@ -44,132 +44,106 @@ export default function ProfileDisplay({ dailyCalories }: Props) {
   if (!profile) return null
 
   return (
-    <div className="min-h-screen bg-[#F6F8FB] text-zinc-900">
-
-      {/* Header */}
-      <div className="border-b bg-white">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-base font-medium">Profile</h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push('/')}>
-              <Home size={18} className="text-red-600" />
-            </button>
-            <button onClick={() => router.push('/profile/edit')}>
-              <Edit size={18} className="text-zinc-600" />
-            </button>
-          </div>
+    <div className="space-y-8">
+      
+      {/* Profile Overview */}
+      <div className="flex items-center gap-4 pb-6 border-b border-gray-100">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-lg font-medium text-white">
+          {profile?.name?.charAt(0).toUpperCase() || 'U'}
         </div>
+        <div className="flex-1">
+          <h2 className="text-lg font-medium text-gray-900">{profile?.name}</h2>
+          <p className="text-sm text-gray-500">{profile?.email}</p>
+        </div>
+        <button
+          onClick={() => router.push('/')}
+          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <Home size={18} />
+        </button>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-
-        {/* Profile Info */}
-        <section className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-sm font-medium text-white">
-            {profile?.name?.charAt(0).toUpperCase() || 'U'}
-          </div>
-          <div>
-            <p className="font-medium text-gray-900">{profile?.name}</p>
-            <p className="text-sm text-gray-500">{profile?.email}</p>
-          </div>
-        </section>
-
-        {/* Body Metrics */}
-        <section className="bg-white border rounded-lg p-4 space-y-3">
-          <h2 className="text-sm font-medium text-indigo-600">Body Metrics</h2>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-gray-500">Age</p>
-              <p className="font-medium text-gray-900">{profile.age}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Gender</p>
-              <p className="font-medium text-gray-900">{profile.gender}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Weight</p>
-              <p className="font-medium text-gray-900">{format(profile.weight)} kg</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Height</p>
-              <p className="font-medium text-gray-900">{format(profile.height)} cm</p>
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Left Column - Personal Info */}
+        <div className="space-y-6">
+          
+          {/* Body Metrics */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">Body Metrics</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500">Age</p>
+                <p className="text-sm font-medium text-gray-900">{profile.age}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500">Gender</p>
+                <p className="text-sm font-medium text-gray-900">{profile.gender}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500">Weight</p>
+                <p className="text-sm font-medium text-gray-900">{format(profile.weight)} kg</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500">Height</p>
+                <p className="text-sm font-medium text-gray-900">{format(profile.height)} cm</p>
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* Calories */}
-        <section className="bg-white border rounded-lg p-4 space-y-4">
-          <h2 className="text-sm font-medium text-orange-600">Calories</h2>
-
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Activity size={16} className="text-green-500" />
-              <span>BMR</span>
+          {/* Activity Level */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">Activity Level</h3>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-emerald-600">
+                {getActivityLabel(profile.activityLevel)}
+              </p>
             </div>
-            <p className="font-medium text-gray-900">{format(bmr)} kcal</p>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Flame size={16} className="text-orange-500" />
-              <span>Daily Requirement</span>
+        {/* Right Column - Goals */}
+        <div className="space-y-6">
+          
+          {/* Calorie Goals */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">Energy Goals</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">BMR</span>
+                <span className="text-sm font-medium text-gray-900">{format(bmr)} kcal</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Daily Requirement</span>
+                <span className="text-sm font-medium text-gray-900">{format(calorieGoal)} kcal</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Today's Intake</span>
+                <span className="text-sm font-medium text-blue-600">{dailyCalories} kcal</span>
+              </div>
             </div>
-            <p className="font-medium text-gray-900">{format(calorieGoal)} kcal</p>
-          </div>
-        </section>
-
-        {/* Macros */}
-        <section className="bg-white border rounded-lg p-4 space-y-3">
-          <h2 className="text-sm font-medium text-blue-600">Macronutrients</h2>
-
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Protein</span>
-            <span className="font-medium text-blue-600">{format(proteinGoal || 0)} g</span>
           </div>
 
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Carbohydrates</span>
-            <span className="font-medium text-amber-600">{format(carbsGoal || 0)} g</span>
+          {/* Macro Goals */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">Macronutrient Goals</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Protein</span>
+                <span className="text-sm font-medium text-blue-600">{format(proteinGoal || 0)} g</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Carbohydrates</span>
+                <span className="text-sm font-medium text-amber-600">{format(carbsGoal || 0)} g</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Fats</span>
+                <span className="text-sm font-medium text-rose-600">{format(fatGoal || 0)} g</span>
+              </div>
+            </div>
           </div>
-
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Fats</span>
-            <span className="font-medium text-purple-600">{format(fatGoal || 0)} g</span>
-          </div>
-        </section>
-
-        {/* Activity */}
-        <section className="bg-white border rounded-lg p-4 flex justify-between items-center text-sm">
-          <div>
-            <p className="text-gray-500">Activity Level</p>
-            <p className="font-medium text-emerald-600">
-              {getActivityLabel(profile.activityLevel)}
-            </p>
-          </div>
-        </section>
-
-        {/* Insight */}
-        <section className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Your body burns <span className="font-medium text-green-600">{format(bmr)} kcal</span> at rest.
-            Based on your activity level, you need approximately{' '}
-            <span className="font-medium text-orange-600">{format(calorieGoal)} kcal</span> per day.
-          </p>
-        </section>
-
-        {/* Sign Out */}
-        <Button
-          onClick={handleSignOut}
-          variant="destructive"
-          className="w-full"
-        >
-          Sign Out
-        </Button>
-
+        </div>
       </div>
     </div>
   )

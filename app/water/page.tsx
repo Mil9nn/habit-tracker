@@ -268,6 +268,15 @@ export default function WaterTracker() {
                 </p>
               </div>
             </div>
+            
+            {!goal && (
+              <button
+                onClick={() => setShowGoalModal(true)}
+                className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Set Goal
+              </button>
+            )}
           </div>
 
           {/* Main Content Grid */}
@@ -276,9 +285,9 @@ export default function WaterTracker() {
             {/* Left Column */}
             <div className="space-y-6">
               
-              {/* Water Input */}
+              {/* Water Input - Hero Section */}
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">Add Water</h3>
+                <h3 className="text-sm font-medium text-gray-700">Log Water</h3>
                 <WaterInput onLog={handleLog} />
               </div>
 
