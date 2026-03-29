@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import MainLayout from '../layout/MainLayout'
 import ProfileDisplay from '@/components/ProfileDisplay'
 import { Progress } from "@/components/ui/progress"
 import { motion } from 'framer-motion'
-import { ChevronLeft, Edit, Flame, Target, TrendingUp, Droplets, Home } from 'lucide-react'
-import { useProfile, useCalorieGoal, useProteinGoal, useCarbsGoal, useFatGoal, useProfileStore } from '@/store/useProfileStore'
+import { ChevronLeft, Edit, Flame, Target, TrendingUp, Droplets, Home, LogOut } from 'lucide-react'
+import { useProfile, useCalorieGoal, useProteinGoal, useCarbsGoal, useFatGoal, useProfileInitialized } from '@/store/useProfileStore'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 
@@ -26,36 +26,30 @@ function ProfilePageContent() {
 
   // Use Zustand store for profile and macro goals
   const profile = useProfile()
+  const isInitialized = useProfileInitialized()
   const calorieGoal = useCalorieGoal()
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
 
-  // Get store actions and state in one call to avoid multiple instances
-  const store = useProfileStore()
-  const setProfile = store.setProfile
-  const calculateMetrics = store.calculateMetrics
-
-  console.log("Profile", profile);
+  console.log("Profile", profile, "Initialized:", isInitialized);
 
   useEffect(() => {
     if (status === 'authenticated') {
-      const loadData = async () => {
-        await fetchProfile()
-        await fetchTodayCalories()
-        setLoading(false)
-      }
-      loadData()
+      // Fetch today's calories
+      fetchTodayCalories()
+      setLoading(false)
     } else if (status === 'unauthenticated') {
       router.push('/auth/signin')
     }
   }, [status])
 
   useEffect(() => {
-    if (status === 'authenticated' && !loading && !profile) {
+    // Only redirect to edit if initialization is complete AND no profile exists
+    if (status === 'authenticated' && isInitialized && !profile) {
       router.push('/profile/edit')
     }
-  }, [status, profile, loading, router])
+  }, [status, profile, isInitialized, router])
 
   const fetchTodayCalories = async () => {
     try {
@@ -64,27 +58,12 @@ function ProfilePageContent() {
         const data = await response.json()
         setCalories({
           consumed: data.consumed || 0,
-          goal: data.goal || profile?.calorieGoal || 0 // Use profile goal instead of dummy data
+          goal: data.goal || profile?.calorieGoal || 0
         })
       }
     } catch (error) {
       console.error('Error fetching calories:', error)
       setCalories({ consumed: 0, goal: profile?.calorieGoal || 0 })
-    }
-  }
-
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch('/api/user/profile')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.profile) {
-          setProfile(data.profile)
-          calculateMetrics()
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error)
     }
   }
 
@@ -98,6 +77,10 @@ function ProfilePageContent() {
 
   const handleCancelEdit = () => {
     router.push('/')
+  }
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: '/auth/signin' })
   }
 
   // Animation variants
@@ -122,51 +105,72 @@ function ProfilePageContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-center text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-pulse text-center text-white">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-pulse text-center text-white">Initializing profile...</div>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-center text-gray-600">Loading profile...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-pulse text-center text-white">Loading profile...</div>
       </div>
     )
   }
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           
           {/* Header Section */}
           <div className="mb-8">
+            <h1 className="text-3xl font-light text-white tracking-tight">Profile</h1>
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-2xl font-light text-gray-900 tracking-tight">Profile</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage your personal information and goals</p>
-              </div>
+                <p className="text-sm text-gray-400 mt-1">Manage your personal information and goals</p>
               
               <button
                 onClick={handleProfileUpdate}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
               >
                 <Edit className="w-4 h-4" />
-                Edit Profile
+                Edit
               </button>
             </div>
           </div>
 
           {/* Main Content */}
           {profile ? (
-            <ProfileDisplay dailyCalories={calories.consumed} />
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 mb-8">
+              <ProfileDisplay dailyCalories={calories.consumed} />
+            </div>
           ) : (
             <div className="flex items-center justify-center min-h-[50vh]">
-              <p className="text-gray-500">Loading profile...</p>
+              <p className="text-gray-400">Loading profile...</p>
             </div>
           )}
+
+          {/* Logout Section */}
+          <div className="mt-12 pt-8 border-t border-white/20">
+            <div className="flex justify-center">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-6 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors border border-red-500/20 hover:border-red-400/30"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </MainLayout>
@@ -176,8 +180,8 @@ function ProfilePageContent() {
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-center text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-pulse text-center text-white">Loading...</div>
       </div>
     }>
       <ProfilePageContent />

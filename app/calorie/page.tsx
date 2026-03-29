@@ -119,11 +119,11 @@ export default function CalorieTracker() {
     }
   }, [status, selectedDate])
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    }
-  }, [status, router])
+  // useEffect(() => {
+  //   if (status === 'unauthenticated') {
+  //     router.push('/auth/signin')
+  //   }
+  // }, [status, router])
 
   const fetchData = async () => {
     try {
@@ -229,202 +229,186 @@ export default function CalorieTracker() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
-        <div className="animate-pulse">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-8 w-8 text-blue-500 fill-current">
-            <path d="M320 176C311.2 176 304 168.8 304 160L304 144C304 99.8 339.8 64 384 64L400 64C408.8 64 416 71.2 416 80L416 96C416 140.2 380.2 176 336 176L320 176zM96 352C96 275.7 131.7 192 208 192C235.3 192 267.7 202.3 290.7 211.3C309.5 218.6 330.6 218.6 349.4 211.3C372.3 202.4 404.8 192 432.1 192C508.4 192 544.1 275.7 544.1 352C544.1 480 464.1 576 384.1 576C367.6 576 346 569.4 332.6 564.7C324.5 561.9 315.7 561.9 307.6 564.7C294.2 569.4 272.6 576 256.1 576C176.1 576 96.1 480 96.1 352z"/>
-          </svg>
+      <MainLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-pulse">
+            <div className="w-8 h-8 bg-violet-500/20 rounded-full"></div>
+          </div>
         </div>
-      </div>
+      </MainLayout>
     )
   }
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="py-8 space-y-12">
+        
+        {/* Header Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-white tracking-tight">Nutrition</h1>
+            <p className="text-zinc-400 mt-2">Track your daily calories and macros</p>
+          </div>
           
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-2xl font-light text-gray-900 tracking-tight">Nutrition</h1>
-                <p className="text-sm text-gray-500 mt-1">Track your daily calories and macros</p>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <button className="px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-200">
+                {selectedDate ? format(new Date(selectedDate), "MMM do, yyyy") : "Today"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-zinc-800 border-zinc-700" align="end">
+              <Calendar
+                mode="single"
+                selected={dayjs(selectedDate).toDate()}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(dayjs(date).format('YYYY-MM-DD'))
+                    setCalendarOpen(false)
+                  }
+                }}
+                disabled={(date) => date > new Date()}
+                initialFocus
+                className="text-white"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Daily Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          
+          {/* Calorie Progress */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <CalorieGauge
+                current={summary?.totalCalories || 0}
+                target={summary?.goal || 2000}
+                size={200}
+                strokeWidth={12}
+              />
+              <div className="mt-6 space-y-2">
+                <p className="text-2xl font-medium text-white">
+                  {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
+                </p>
+                <p className="text-zinc-400">
+                  {Math.round(((summary?.totalCalories || 0) / (summary?.goal || 2000)) * 100)}% of daily goal
+                </p>
               </div>
-              
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    {selectedDate ? format(new Date(selectedDate), "MMM do, yyyy") : "Today"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={dayjs(selectedDate).toDate()}
-                    onSelect={(date) => {
-                      if (date) {
-                        setSelectedDate(dayjs(date).format('YYYY-MM-DD'))
-                        setCalendarOpen(false)
-                      }
+            </div>
+          </div>
+
+          {/* Macros */}
+          <div className="space-y-8">
+            <h2 className="text-xl font-medium text-white">Macronutrients</h2>
+            
+            <div className="space-y-6">
+              {/* Protein */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-300 font-medium">Protein</span>
+                  <span className="text-white font-semibold">
+                    {Math.round((summary?.totalProtein || 0) * 10) / 10}g / {proteinGoal || 150}g
+                  </span>
+                </div>
+                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ 
+                      width: `${Math.min(((summary?.totalProtein || 0) / (proteinGoal || 150)) * 100, 100)}%`
                     }}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          {/* Main Stats Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            
-            {/* Calorie Progress */}
-            <div className="lg:col-span-1">
-              <div className="text-center">
-                <div className="relative inline-flex items-center justify-center">
-                  <CalorieGauge
-                    current={summary?.totalCalories || 0}
-                    target={summary?.goal || 2000}
-                    size={160}
-                    strokeWidth={10}
                   />
                 </div>
-                <div className="mt-4 space-y-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {Math.round(((summary?.totalCalories || 0) / (summary?.goal || 2000)) * 100)}% of daily goal
-                  </p>
+              </div>
+
+              {/* Carbs */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-300 font-medium">Carbs</span>
+                  <span className="text-white font-semibold">
+                    {Math.round((summary?.totalCarbs || 0) * 10) / 10}g / {carbsGoal || 300}g
+                  </span>
+                </div>
+                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ 
+                      width: `${Math.min(((summary?.totalCarbs || 0) / (carbsGoal || 300)) * 100, 100)}%`
+                    }}
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* Macros Section */}
-            <div className="lg:col-span-2">
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">Macronutrients</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Protein */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Protein</span>
-                      <span className="text-sm text-gray-500">
-                        {Math.round((summary?.totalProtein || 0) * 10) / 10}g
-                      </span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
-                        style={{ 
-                          width: `${Math.min(((summary?.totalProtein || 0) / (proteinGoal || 150)) * 100, 100)}%`
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400">Goal: {proteinGoal || 150}g</p>
-                  </div>
-
-                  {/* Carbs */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Carbs</span>
-                      <span className="text-sm text-gray-500">
-                        {Math.round((summary?.totalCarbs || 0) * 10) / 10}g
-                      </span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
-                        style={{ 
-                          width: `${Math.min(((summary?.totalCarbs || 0) / (carbsGoal || 300)) * 100, 100)}%`
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400">Goal: {carbsGoal || 300}g</p>
-                  </div>
-
-                  {/* Fats */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Fats</span>
-                      <span className="text-sm text-gray-500">
-                        {Math.round((summary?.totalFat || 0) * 10) / 10}g
-                      </span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-rose-500 rounded-full transition-all duration-500 ease-out"
-                        style={{ 
-                          width: `${Math.min(((summary?.totalFat || 0) / (fatGoal || 100)) * 100, 100)}%`
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400">Goal: {fatGoal || 100}g</p>
-                  </div>
+              {/* Fats */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-300 font-medium">Fats</span>
+                  <span className="text-white font-semibold">
+                    {Math.round((summary?.totalFat || 0) * 10) / 10}g / {fatGoal || 100}g
+                  </span>
+                </div>
+                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-rose-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ 
+                      width: `${Math.min(((summary?.totalFat || 0) / (fatGoal || 100)) * 100, 100)}%`
+                    }}
+                  />
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Quick Stats */}
-          <div className="flex items-center justify-between py-4 border-y border-gray-100 mb-6">
-            <div className="flex items-center gap-6">
-              <div>
-                <p className="text-xs text-gray-500">Daily Average</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {summary ? `${Math.round(summary.averageDaily)} kcal` : "0 kcal"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Entries Today</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {logs?.length || 0}
-                </p>
-              </div>
-            </div>
+        {/* Quick Stats */}
+        <div className="flex items-center gap-8 py-6 border-y border-zinc-800">
+          <div>
+            <p className="text-zinc-500 text-sm">Daily Average</p>
+            <p className="text-white font-medium">
+              {summary ? `${Math.round(summary.averageDaily)} kcal` : "0 kcal"}
+            </p>
           </div>
+          <div>
+            <p className="text-zinc-500 text-sm">Entries Today</p>
+            <p className="text-white font-medium">
+              {logs?.length || 0}
+            </p>
+          </div>
+        </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          
+          {/* Left Column */}
+          <div className="space-y-8">
             
-            {/* Left Column */}
-            <div className="space-y-6">
-              
-              {/* AI Food Analysis - Hero Section */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">Quick Add Food</h3>
-                <AIFoodAnalysis onDataAdded={fetchData} />
-              </div>
-
-              {/* Meal Templates */}
-              <MealTemplatesMinimal
-                onTemplateSelect={handleTemplateSelect}
-                onDataUpdated={fetchData}
-              />
-
-              {/* Food Log */}
-              <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
+            {/* AI Food Analysis */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-white">Quick Add Food</h3>
+              <AIFoodAnalysis onDataAdded={fetchData} />
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-6">
-              
-              {/* Calorie Trends Chart */}
-              <CalorieTrendsChart 
-                data={trendsData}
-                period={trendsPeriod}
-                onPeriodChange={setTrendsPeriod}
-              />
+            {/* Meal Templates */}
+            <MealTemplatesMinimal
+              onTemplateSelect={handleTemplateSelect}
+              onDataUpdated={fetchData}
+            />
 
-              {/* Calorie Heatmap */}
-              <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
-            </div>
+            {/* Food Log */}
+            <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-8">
+            
+            {/* Calorie Trends Chart */}
+            <CalorieTrendsChart 
+              data={trendsData}
+              period={trendsPeriod}
+              onPeriodChange={setTrendsPeriod}
+            />
+
+            {/* Calorie Heatmap */}
+            <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
           </div>
         </div>
       </div>

@@ -13,6 +13,18 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
     setEditAmount(entry.amount.toString())
   }
 
+  const handleSave = () => {
+    const val = parseFloat(editAmount)
+    if (val && !isNaN(val) && val > 0) {
+      const entryToUpdate = entries.find((e: any) => e._id === editingEntry)
+      if (entryToUpdate) {
+        onEntryUpdate({ ...entryToUpdate, amount: val })
+        setEditingEntry(null)
+        setEditAmount("")
+      }
+    }
+  }
+
   const handleCancel = () => {
     setEditingEntry(null)
     setEditAmount("")
@@ -33,17 +45,17 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
     <div className="w-full max-w-xl mx-auto mt-6">
       
       {/* Header */}
-      <h3 className="text-sm text-zinc-500 mb-3">Water Log</h3>
+      <h3 className="text-sm text-gray-300 mb-3">Today's Water Log</h3>
 
       {Object.keys(groupedEntries).length === 0 ? (
-        <p className="text-sm text-zinc-400">No entries yet</p>
+        <p className="text-sm text-gray-400">No entries today</p>
       ) : (
         <div className="space-y-5">
           {Object.entries(groupedEntries).map(([date, dayEntries]: any) => (
             <div key={date}>
               
               {/* Date (subtle) */}
-              <p className="text-xs text-zinc-400 mb-2">{date}</p>
+              <p className="text-xs text-gray-400 mb-2">{date}</p>
 
               <div className="space-y-1">
                 {dayEntries.map((entry: any) => (
@@ -51,24 +63,24 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
                     key={entry._id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-between py-1 group"
+                    className="flex items-center justify-between py-2 group hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors"
                   >
                     {/* Left */}
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-zinc-800 font-medium">
+                      <span className="text-sm text-white font-medium">
                         {editingEntry === entry._id ? (
                           <input
                             type="number"
                             value={editAmount}
                             onChange={(e) => setEditAmount(e.target.value)}
-                            className="w-16 bg-transparent border-b border-zinc-300 outline-none text-sm"
+                            className="w-16 bg-white/10 border-b border-white/20 outline-none text-sm text-white rounded px-1"
                           />
                         ) : (
                           `${entry.amount} ml`
                         )}
                       </span>
 
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs text-gray-400">
                         {new Date(entry.date).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit"
@@ -80,20 +92,20 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                       {editingEntry === entry._id ? (
                         <>
-                          <button onClick={() => handleCancel()}>
-                            <X className="w-4 h-4 text-zinc-500" />
+                          <button onClick={handleCancel}>
+                            <X className="w-4 h-4 text-gray-400 hover:text-gray-300" />
                           </button>
-                          <button>
-                            <Check className="w-4 h-4 text-green-600" />
+                          <button onClick={handleSave}>
+                            <Check className="w-4 h-4 text-emerald-400 hover:text-emerald-300" />
                           </button>
                         </>
                       ) : (
                         <>
                           <button onClick={() => handleEdit(entry)}>
-                            <Edit2 className="w-4 h-4 text-zinc-400 hover:text-blue-500" />
+                            <Edit2 className="w-4 h-4 text-gray-400 hover:text-blue-400" />
                           </button>
                           <button onClick={() => onEntryDelete(entry._id)}>
-                            <Trash2 className="w-4 h-4 text-zinc-400 hover:text-red-500" />
+                            <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
                           </button>
                         </>
                       )}

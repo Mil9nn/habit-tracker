@@ -29,12 +29,12 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
 
   const classForValue = (value: any) => {
     const count = value?.count || 0
-    if (count === 0) return 'fill-gray-100'
-    if (count === 1) return 'fill-blue-100'
-    if (count === 2) return 'fill-blue-300'
-    if (count === 3) return 'fill-blue-500'
-    if (count === 4) return 'fill-red-400'
-    return 'fill-red-500' // Changed to red-500 for consistency
+    if (count === 0) return 'fill-zinc-700'
+    if (count === 1) return 'fill-violet-900/50'
+    if (count === 2) return 'fill-violet-700'
+    if (count === 3) return 'fill-violet-500'
+    if (count === 4) return 'fill-violet-300'
+    return 'fill-violet-200'
   }
 
   const getTooltipDataAttrs = (value: any) => {
@@ -52,37 +52,35 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
   }
 
   return (
-    <div className="w-full">
-      <div className="">
-        <h3 className="text-base font-semibold mb-3 text-gray-900">Calorie Intake Heatmap</h3>
-        
-        <div className="mb-4 bg-white shadow-sm rounded-md p-2">
-          <CalendarHeatmap
-            startDate={new Date(new Date().setDate(new Date().getDate() - 90))}
-            endDate={new Date()}
-            values={processedData}
-            classForValue={classForValue}
-            tooltipDataAttrs={getTooltipDataAttrs}
-            showWeekdayLabels={true}
-            showMonthLabels={true}
-            horizontal={true}
-            gutterSize={2}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <span>Less</span>
-            <div className="flex gap-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-sm bg-gray-100" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-blue-100" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-blue-300" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-blue-500" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-red-400" />
-              <div className="w-2 sm:w-3 sm:h-3 h-2 sm:w-3 sm:h-3 rounded-sm bg-red-600" />
-            </div>
-            <span>More</span>
+    <div className="w-full space-y-4">
+      <h3 className="text-lg font-medium text-white">Activity Heatmap</h3>
+      
+      <div className="bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/50">
+        <CalendarHeatmap
+          startDate={new Date(new Date().setDate(new Date().getDate() - 90))}
+          endDate={new Date()}
+          values={processedData}
+          classForValue={classForValue}
+          tooltipDataAttrs={getTooltipDataAttrs}
+          showWeekdayLabels={true}
+          showMonthLabels={true}
+          horizontal={true}
+          gutterSize={2}
+        />
+      </div>
+      
+      <div className="flex items-center justify-between text-sm text-zinc-400">
+        <div className="flex items-center gap-2">
+          <span>Less</span>
+          <div className="flex gap-1">
+            <div className="w-3 h-3 rounded-sm bg-zinc-700" />
+            <div className="w-3 h-3 rounded-sm bg-violet-900/50" />
+            <div className="w-3 h-3 rounded-sm bg-violet-700" />
+            <div className="w-3 h-3 rounded-sm bg-violet-500" />
+            <div className="w-3 h-3 rounded-sm bg-violet-300" />
+            <div className="w-3 h-3 rounded-sm bg-violet-200" />
           </div>
+          <span>More</span>
         </div>
       </div>
     </div>

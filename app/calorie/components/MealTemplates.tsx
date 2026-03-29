@@ -336,34 +336,34 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
   }
 
   return (
-    <div className="mb-4" onClick={() => setActiveMenu(null)}>
+    <div className="space-y-4" onClick={() => setActiveMenu(null)}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2 text-sm text-zinc-600">
-        <span>Templates</span>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-white">Meal Templates</h3>
         {templates.length > 6 && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-xs text-zinc-400 hover:text-zinc-700"
+            className="text-sm text-zinc-400 hover:text-white transition-colors"
           >
-            {showAll ? 'less' : 'all'}
+            {showAll ? 'Show less' : 'Show all'}
           </button>
         )}
       </div>
 
       {/* List */}
-      <div className="divide-y divide-zinc-200">
+      <div className="space-y-2">
         {list.map(t => (
           <div
             key={t._id}
-            className="group flex items-center justify-between py-2 cursor-pointer"
+            className="group flex items-center justify-between p-4 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer"
             onClick={() => onTemplateSelect(t)}
           >
             <div className="flex flex-col">
-              <span className="text-sm text-zinc-900 font-medium">
+              <span className="text-white font-medium">
                 {t.name}
               </span>
-              <span className="text-xs text-zinc-400">
-                {t.totalCalories} kcal
+              <span className="text-sm text-zinc-400">
+                {t.totalCalories} kcal • {t.useCount} uses
               </span>
             </div>
 
@@ -376,16 +376,16 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
                 onClick={() =>
                   setActiveMenu(activeMenu === t._id ? null : t._id)
                 }
-                className="p-1 text-zinc-400 hover:text-zinc-700"
+                className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-700 transition-colors"
               >
                 <MoreVertical className="h-4 w-4" />
               </button>
 
               {activeMenu === t._id && (
-                <div className="absolute right-0 mt-2 w-28 border bg-white text-sm z-50">
+                <div className="absolute right-0 mt-2 w-32 bg-zinc-800 border border-zinc-700 rounded-xl text-sm z-50 shadow-lg">
                   <button
                     onClick={() => deleteTemplate(t._id)}
-                    className="flex w-full items-center gap-2 px-2 py-1 text-red-600 hover:bg-red-50"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-red-400 hover:bg-zinc-700 rounded-xl transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete

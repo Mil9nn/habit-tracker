@@ -140,79 +140,58 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
   }
 
   return (
-    <div className="space-y-2">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-base sm:text-lg font-semibold tracking-tight text-zinc-900">
-          Food Analysis
-        </h3>
-      </div>
-
+    <div className="space-y-4">
       {/* Input Section */}
-      <div className="flex flex-col gap-3">
+      <div className="space-y-3">
         <textarea
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
-          placeholder="e.g. 2 bananas, protein shake, 3 chapatis with cauliflower"
-          className="w-full h-30 rounded-xl ring ring-zinc-200 bg-white shadow-sm px-3 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 resize-none transition"
+          placeholder="Describe your meal (e.g., grilled chicken salad with avocado)"
+          className="w-full rounded-xl bg-zinc-800/50 border border-zinc-700 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 px-4 py-3 text-sm resize-none transition-all duration-200"
           rows={3}
         />
 
-        <Button
+        <button
           onClick={analyzeFoodWithAI}
           disabled={isAnalyzing || !aiFoodDescription.trim()}
-          className={`w-full h-12 sm:w-fit bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:shadow-md hover:scale-105 active:scale-95 ease-in-out transition-all disabled:opacity-50 relative overflow-hidden ${
-            isAnalyzing ? '' : ''
-          }`}
+          className="w-full bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 disabled:from-zinc-700 disabled:to-zinc-700 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
         >
-          {isAnalyzing && (
-            <div className="absolute inset-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-            </div>
-          )}
-          <span className="relative z-10">{isAnalyzing ? "Adding..." : "Add Meal"}</span>
-        </Button>
+          {isAnalyzing ? "Analyzing..." : "Analyze & Add Meal"}
+        </button>
       </div>
 
       {/* Results - Only show if adding failed */}
       {aiAnalysis && (
-        <div className="rounded-xl border border-red-200 bg-red-50/70 p-4 space-y-4">
+        <div className="rounded-xl border border-red-800/50 bg-red-900/20 p-4 space-y-4">
           {/* Top Bar */}
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-red-900">
-              ⚠️ Adding Failed - Manual Review Required
+            <h4 className="text-sm font-medium text-red-400">
+              ⚠️ Analysis failed - please try again
             </h4>
           </div>
 
           {/* Food List */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {aiAnalysis.foods.map((food, index: number) => (
               <div
                 key={index}
-                className="flex items-center justify-between px-3 py-2 rounded-lg bg-white border border-zinc-100"
+                className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-zinc-800 truncate">
-                    <span className="text-zinc-500 font-normal mr-1">
+                  <p className="text-sm font-medium text-white truncate">
+                    <span className="text-zinc-400 mr-2">
                       {food.quantity}×
                     </span>
                     {food.name}
                   </p>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-zinc-500">
                     {food.unit}
                   </p>
-                  {/* Macros per food */}
-                  <div className="flex gap-3 mt-1 text-xs">
-                    <span className="text-blue-600 font-semibold">Protein: {food.protein || 0}g</span>
-                    <span className="text-green-600 font-semibold">Carbs: {food.carbs || 0}g</span>
-                    <span className="text-orange-600 font-semibold">Fat: {food.fat || 0}g</span>
-                  </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-amber-600">
-                    {food.calories}
-                    <span className="text-xs text-zinc-400 ml-1">kcal</span>
+                  <span className="text-sm font-semibold text-violet-400">
+                    {food.calories} kcal
                   </span>
                 </div>
               </div>
@@ -220,42 +199,31 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
           </div>
 
           {/* Total */}
-          <div className="flex items-center justify-between pt-3 border-t border-zinc-200">
-            <div>
-              <span className="text-sm font-semibold text-zinc-800">
-                Total
-              </span>
-              <div className="flex gap-4 mt-1 text-xs font-semibold">
-                <span className="text-blue-600">Protein: {aiAnalysis.totalProtein || 0}g</span>
-                <span className="text-green-600">Carbs: {aiAnalysis.totalCarbs || 0}g</span>
-                <span className="text-orange-600">Fat: {aiAnalysis.totalFat || 0}g</span>
-              </div>
-            </div>
-            <span className="text-lg font-bold text-amber-600">
-              {aiAnalysis.totalCalories}
-              <span className="text-sm text-zinc-400 ml-1">kcal</span>
+          <div className="flex items-center justify-between pt-3 border-t border-zinc-700">
+            <span className="text-sm font-medium text-zinc-300">
+              Total: {aiAnalysis.totalCalories} kcal
             </span>
           </div>
 
-          {/* Actions - Only manual add option */}
+          {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <Button
+            <button
               onClick={addAnalyzedFoods}
               disabled={isAddingFoods}
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200"
             >
-              {isAddingFoods ? "Adding..." : "Try Adding Again"}
-            </Button>
+              {isAddingFoods ? "Adding..." : "Add Meal"}
+            </button>
 
-            <Button
+            <button
               onClick={() => {
                 setAiAnalysis(null);
                 setAiFoodDescription("");
               }}
-              className="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 text-sm font-medium rounded-xl transition"
+              className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 font-medium px-4 py-2 rounded-xl transition-all duration-200"
             >
               Cancel
-            </Button>
+            </button>
           </div>
         </div>
       )}

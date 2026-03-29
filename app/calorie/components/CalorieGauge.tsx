@@ -44,7 +44,7 @@ export default function CalorieGauge({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#f3f4f6"
+          stroke="#374151"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -54,7 +54,7 @@ export default function CalorieGauge({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#3b82f6"
+          stroke="#8b5cf6"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
@@ -66,8 +66,8 @@ export default function CalorieGauge({
       
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <Flame className="w-5 h-5 text-blue-500 mb-1" />
-        <span className="text-lg font-light text-gray-900">
+        <Flame className="w-6 h-6 text-violet-400 mb-2" />
+        <span className="text-xl font-medium text-white">
           {Math.round(animatedProgress)}%
         </span>
       </div>

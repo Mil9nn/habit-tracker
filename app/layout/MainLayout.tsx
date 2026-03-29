@@ -1,10 +1,14 @@
+'use client'
+
 import Header from '@/components/Header'
  
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <div className="min-h-screen">
       <Header />
-      <main className="mt-14">{children}</main>
-    </>
+      <main className="pt-16 px-4 lg:px-8 max-w-7xl mx-auto">
+        {children}
+      </main>
+    </div>
   )
 }

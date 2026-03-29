@@ -42,21 +42,24 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
       movingAvg:
         i < 6
           ? null
-          : Math.round(
-              data
-                .slice(i - 6, i + 1)
-                .reduce((sum, x) => sum + x.calories, 0) / 7
-            )
+          : (() => {
+              const slice = data.slice(i - 6, i + 1)
+              return slice.length > 0 
+                ? Math.round(slice.reduce((sum, x) => sum + x.calories, 0) / slice.length)
+                : null
+            })()
     }))
   }, [data, period])
 
-  const avgCalories = Math.round(
-    data.reduce((sum, d) => sum + d.calories, 0) / data.length
-  )
+  const avgCalories = data.length > 0 
+    ? Math.round(data.reduce((sum, d) => sum + d.calories, 0) / data.length)
+    : 0
 
   const daysUnderGoal = data.filter(d => d.calories <= d.goal).length
 
-  const successRate = Math.round((daysUnderGoal / data.length) * 100)
+  const successRate = data.length > 0 
+    ? Math.round((daysUnderGoal / data.length) * 100)
+    : 0
 
   // Better trend: compare last 5 vs previous 5
   const trend = useMemo(() => {
@@ -68,7 +71,7 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
     const lastAvg = last.reduce((s, d) => s + d.calories, 0) / last.length
     const prevAvg = prev.reduce((s, d) => s + d.calories, 0) / prev.length
 
-    return (lastAvg - prevAvg) / prevAvg
+    return prevAvg > 0 ? (lastAvg - prevAvg) / prevAvg : 0
   }, [data])
 
   const trendLabel =
@@ -80,15 +83,15 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
     const d = payload[0].payload
 
     return (
-      <div className="bg-white px-3 py-2 border text-sm">
-        <div>{d.date}</div>
-        <div>Calories: {d.calories}</div>
-        <div>Goal: {d.goal}</div>
+      <div className="bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-white rounded-lg shadow-lg">
+        <div className="text-zinc-300">{d.date}</div>
+        <div className="text-violet-400">Calories: {d.calories}</div>
+        <div className="text-zinc-400">Goal: {d.goal}</div>
         <div>
           Diff:{' '}
           <span
             className={
-              d.calories > d.goal ? 'text-red-500' : 'text-green-500'
+              d.calories > d.goal ? 'text-red-400' : 'text-emerald-400'
             }
           >
             {d.calories - d.goal}
@@ -102,41 +105,55 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full"
+      className="w-full space-y-4"
     >
-      {/* Top Row */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-sm">
-          Avg: <span className="font-semibold">{avgCalories}</span> kcal
-        </div>
-
-        <div className="text-sm">
-          On Track: <span className="font-semibold">{successRate}%</span>
-        </div>
-
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-white">Calorie Trends</h3>
+        
         {onPeriodChange && (
-          <div className="flex gap-2 text-sm">
+          <div className="flex gap-1">
             {(['week', 'month', 'quarter'] as const).map(p => (
               <button
                 key={p}
                 onClick={() => onPeriodChange(p)}
-                className={`px-2 py-1 border ${period === p ? 'bg-black text-white' : ''}`}
+                className={`px-3 py-1 text-sm rounded-lg transition-all duration-200 ${
+                  period === p 
+                    ? 'bg-violet-500 text-white' 
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
               >
-                {p}
+                {p.charAt(0).toUpperCase() + p.slice(1)}
               </button>
             ))}
           </div>
         )}
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-semibold text-white">{avgCalories}</div>
+          <div className="text-sm text-zinc-400">Avg Calories</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-semibold text-emerald-400">{successRate}%</div>
+          <div className="text-sm text-zinc-400">On Track</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-semibold text-violet-400">{trendLabel}</div>
+          <div className="text-sm text-zinc-400">Trend</div>
+        </div>
+      </div>
+
       {/* Chart */}
       <div className="h-64">
         <ResponsiveContainer>
           <AreaChart data={formattedData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
 
-            <XAxis dataKey="label" />
-            <YAxis />
+            <XAxis dataKey="label" stroke="#9ca3af" />
+            <YAxis stroke="#9ca3af" />
 
             <Tooltip content={<CustomTooltip />} />
 
@@ -144,7 +161,7 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
             <Line
               type="monotone"
               dataKey="goal"
-              stroke="#888"
+              stroke="#6b7280"
               strokeDasharray="5 5"
               dot={false}
             />
@@ -153,9 +170,9 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
             <Area
               type="monotone"
               dataKey="calories"
-              stroke="#3b82f6"
+              stroke="#8b5cf6"
               fillOpacity={0.2}
-              fill="#3b82f6"
+              fill="#8b5cf6"
             />
 
             {/* Moving avg */}
@@ -167,15 +184,6 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="flex justify-between mt-4 text-sm">
-        <div>
-          Trend: <span className="font-semibold">{trendLabel}</span>
-        </div>
-
-        <div>{Math.abs(trend * 100).toFixed(1)}%</div>
       </div>
     </motion.div>
   )

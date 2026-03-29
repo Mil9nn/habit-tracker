@@ -346,24 +346,24 @@ export default function WeightTracker() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           
           {/* Header Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-2xl font-light text-gray-900 tracking-tight">Weight Tracking</h1>
-                <p className="text-sm text-gray-500 mt-1">Monitor your weight progress and goals</p>
+                <h1 className="text-3xl font-light text-white tracking-tight">Weight Tracking</h1>
+                <p className="text-sm text-gray-400 mt-1">Monitor your weight progress and goals</p>
               </div>
               
               {goal && (
                 <button
                   onClick={() => setShowGoalModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
                 >
                   <Edit2 className="w-4 h-4" />
-                  Goal: {goal.targetWeight}{unit}
+                  Goal: <span className="text-emerald-400 font-semibold mr-1">{goal.targetWeight}</span>{unit}
                 </button>
               )}
             </div>
@@ -374,47 +374,49 @@ export default function WeightTracker() {
             
             {/* Current Weight */}
             <div className="lg:col-span-1">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-32 h-32 rounded-full border-8 border-gray-100">
-                  <div className="text-center">
-                    <p className="text-2xl font-light text-gray-900">
-                      {currentWeight || '--'}
-                    </p>
-                    <p className="text-sm text-gray-500">{unit}</p>
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-32 h-32 rounded-full border-8 border-white/10">
+                    <div className="text-center">
+                      <p className="text-2xl font-light text-white">
+                        {currentWeight || '--'}
+                      </p>
+                      <p className="text-sm text-gray-400">{unit}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 space-y-1">
-                  <p className="text-sm font-medium text-gray-900">Current Weight</p>
-                  {totalChange && (
-                    <p className={`text-xs ${totalChange < 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {totalChange < 0 ? '↓' : '↑'} {Math.abs(totalChange)} {unit} total
-                    </p>
-                  )}
+                  <div className="mt-4 space-y-1">
+                    <p className="text-sm font-medium text-gray-300">Current Weight</p>
+                    {totalChange && (
+                      <p className={`text-xs ${totalChange < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {totalChange < 0 ? '↓' : '↑'} {Math.abs(totalChange)} {unit} total
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Progress Stats */}
             <div className="lg:col-span-2">
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">Progress Overview</h3>
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <h3 className="text-sm font-medium text-gray-300 mb-4">Progress Overview</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500">Weekly Change</p>
-                    <p className={`text-lg font-light ${changeLastWeek && changeLastWeek < 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                    <p className="text-xs text-gray-400">Weekly Change</p>
+                    <p className={`text-lg font-light ${changeLastWeek && changeLastWeek < 0 ? 'text-emerald-400' : 'text-white'}`}>
                       {changeLastWeek ? `${changeLastWeek < 0 ? '' : '+'}${changeLastWeek}` : '--'} {unit}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500">BMI</p>
-                    <p className="text-lg font-light text-gray-900">
+                    <p className="text-xs text-gray-400">BMI</p>
+                    <p className="text-lg font-light text-white">
                       {bmiValue ? bmiValue.toFixed(1) : '--'}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500">To Goal</p>
-                    <p className="text-lg font-light text-gray-900">
+                    <p className="text-xs text-gray-400">To Goal</p>
+                    <p className="text-lg font-light text-white">
                       {remainingWeight ? `${remainingWeight} ${unit}` : '--'}
                     </p>
                   </div>
@@ -424,12 +426,12 @@ export default function WeightTracker() {
                 {goal && current && (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Goal Progress</span>
-                      <span className="text-xs text-gray-500">{progressPercentage}%</span>
+                      <span className="text-xs text-gray-400">Goal Progress</span>
+                      <span className="text-xs text-gray-400">{progressPercentage}%</span>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+                        className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${progressPercentage}%` }}
                       />
                     </div>
@@ -440,16 +442,16 @@ export default function WeightTracker() {
           </div>
 
           {/* Quick Stats Bar */}
-          <div className="flex items-center justify-between py-4 border-y border-gray-100 mb-6">
+          <div className="flex items-center justify-between py-4 border-y border-white/20 mb-6">
             <div className="flex items-center gap-6">
               <div>
-                <p className="text-xs text-gray-500">Entries</p>
-                <p className="text-sm font-medium text-gray-900">{entries.length}</p>
+                <p className="text-xs text-gray-400">Entries</p>
+                <p className="text-sm font-medium text-white">{entries.length}</p>
               </div>
               {projectedWeeks && (
                 <div>
-                  <p className="text-xs text-gray-500">Est. to Goal</p>
-                  <p className="text-sm font-medium text-gray-900">{projectedWeeks} weeks</p>
+                  <p className="text-xs text-gray-400">Est. to Goal</p>
+                  <p className="text-sm font-medium text-white">{projectedWeeks} weeks</p>
                 </div>
               )}
             </div>
@@ -457,7 +459,7 @@ export default function WeightTracker() {
             {!goal && (
               <button
                 onClick={() => setShowGoalModal(true)}
-                className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-colors"
               >
                 Set Goal
               </button>
@@ -471,8 +473,8 @@ export default function WeightTracker() {
             <div className="space-y-6">
               
               {/* Weight Input - Hero Section */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">Log Weight</h3>
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <h3 className="text-sm font-medium text-gray-300 mb-4">Log Weight</h3>
                 <WeightLogInput
                   weight={weight}
                   setWeight={setWeight}
@@ -484,25 +486,27 @@ export default function WeightTracker() {
               </div>
 
               {/* BMI Insights */}
-              <BMIInsights
-                bmi={bmiValue}
-                height={profile?.height || null}
-                weight={currentWeight}
-                unit={unit}
-              />
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <BMIInsights
+                  bmi={bmiValue}
+                  height={profile?.height || null}
+                  weight={currentWeight}
+                  unit={unit}
+                />
+              </div>
 
               {/* Milestones */}
               {updatedMilestones.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-700">Achievements</h3>
+                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                  <h3 className="text-sm font-medium text-gray-300 mb-4">Achievements</h3>
                   <div className="space-y-2">
                     {updatedMilestones.map(milestone => (
                       <div
                         key={milestone.id}
-                        className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg"
+                        className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg"
                       >
                         <span className="text-lg">🏆</span>
-                        <span className="text-sm text-green-800 font-medium">{milestone.title}</span>
+                        <span className="text-sm text-emerald-300 font-medium">{milestone.title}</span>
                       </div>
                     ))}
                   </div>
@@ -514,29 +518,33 @@ export default function WeightTracker() {
             <div className="space-y-6">
               
               {/* Weight Chart */}
-              <WeightChart
-                entries={entries}
-                unit={unit}
-                trendView={trendView}
-                setTrendView={setTrendView}
-                progressPercentage={progressPercentage}
-                remainingWeight={remainingWeight}
-                weeklyChange={weeklyChange}
-                projectedWeeks={projectedWeeks}
-              />
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <WeightChart
+                  entries={entries}
+                  unit={unit}
+                  trendView={trendView}
+                  setTrendView={setTrendView}
+                  progressPercentage={progressPercentage}
+                  remainingWeight={remainingWeight}
+                  weeklyChange={weeklyChange}
+                  projectedWeeks={projectedWeeks}
+                />
+              </div>
 
               {/* Weight Entries */}
-              <WeightEntries
-                entries={entries}
-                unit={unit}
-                editingEntry={editingEntry}
-                editWeight={editWeight}
-                onEdit={handleEdit}
-                onSaveEdit={handleSaveEdit}
-                onCancelEdit={handleCancelEdit}
-                onDelete={handleDelete}
-                setEditWeight={setEditWeight}
-              />
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <WeightEntries
+                  entries={entries}
+                  unit={unit}
+                  editingEntry={editingEntry}
+                  editWeight={editWeight}
+                  onEdit={handleEdit}
+                  onSaveEdit={handleSaveEdit}
+                  onCancelEdit={handleCancelEdit}
+                  onDelete={handleDelete}
+                  setEditWeight={setEditWeight}
+                />
+              </div>
             </div>
           </div>
         </div>

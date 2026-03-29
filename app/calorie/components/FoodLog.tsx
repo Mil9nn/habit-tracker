@@ -95,37 +95,35 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-700">
-            {selectedDate === new Date().toISOString().split('T')[0]
-              ? 'Today'
-              : format(new Date(selectedDate), 'do MMMM')}
+          <h3 className="text-lg font-medium text-white">
+            Food Log
           </h3>
-          <span className="text-xs text-gray-400">
+          <span className="text-sm text-zinc-400">
             {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
           </span>
         </div>
 
         {/* Entries */}
         {logs.length > 0 ? (
-          <div className="space-y-1">
+          <div className="space-y-2">
             {logs.map(log => (
               <div
                 key={log._id}
-                className="group py-3 px-4 border-l-2 border-transparent hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                className="group p-4 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:bg-zinc-800/50 transition-all duration-200"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-gray-900 truncate">
+                      <span className="text-white font-medium truncate">
                         {log.foodName}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-violet-400 font-semibold">
                         {log.calories} kcal
                       </span>
                     </div>
 
                     {/* Macros */}
-                    <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                    <div className="flex items-center gap-4 text-sm text-zinc-400 mt-1">
                       {log.protein && <span>P {log.protein}g</span>}
                       {log.carbs && <span>C {log.carbs}g</span>}
                       {log.fat && <span>F {log.fat}g</span>}
@@ -136,21 +134,21 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => saveAsTemplate(log)}
-                      className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+                      className="p-2 text-zinc-400 hover:text-violet-400 transition-colors rounded-lg hover:bg-zinc-700"
                       title="Save as template"
                     >
                       <Bookmark className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setEditingMeal(log)}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+                      className="p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-zinc-700"
                       title="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deleteLog(log._id)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-2 text-zinc-400 hover:text-red-400 transition-colors rounded-lg hover:bg-zinc-700"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -160,7 +158,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
                 {/* Meal Items */}
                 {log.mealItems && log.mealItems.length > 1 && (
-                  <div className="mt-2 pl-4 text-xs text-gray-500 space-y-1">
+                  <div className="mt-3 pl-4 text-sm text-zinc-500 space-y-1">
                     {log.mealItems.map((item, i) => (
                       <div key={i} className="flex justify-between">
                         <span>{item.quantity}× {item.name}</span>
@@ -173,7 +171,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
             ))}
           </div>
         ) : (
-          <div className="py-12 text-center text-sm text-gray-400">
+          <div className="py-12 text-center text-zinc-500">
             No entries for this day
           </div>
         )}

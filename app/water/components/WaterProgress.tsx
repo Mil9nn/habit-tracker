@@ -14,7 +14,7 @@ export default function WaterProgress({ current, goal }: WaterProgressProps) {
   return (
     <div className="relative inline-flex items-center justify-center">
       {/* Background circle */}
-      <div className="w-32 h-32 rounded-full border-8 border-gray-100" />
+      <div className="w-32 h-32 rounded-full border-8 border-white/10" />
       
       {/* Progress circle */}
       <svg className="absolute inset-0 w-32 h-32 transform -rotate-90">
@@ -22,7 +22,7 @@ export default function WaterProgress({ current, goal }: WaterProgressProps) {
           cx="64"
           cy="64"
           r="56"
-          stroke="#e5e7eb"
+          stroke="rgba(255,255,255,0.1)"
           strokeWidth="8"
           fill="none"
         />
@@ -30,7 +30,7 @@ export default function WaterProgress({ current, goal }: WaterProgressProps) {
           cx="64"
           cy="64"
           r="56"
-          stroke="#3b82f6"
+          stroke="url(#waterGradient)"
           strokeWidth="8"
           fill="none"
           strokeDasharray={`${2 * Math.PI * 56}`}
@@ -40,12 +40,18 @@ export default function WaterProgress({ current, goal }: WaterProgressProps) {
           animate={{ strokeDashoffset: 2 * Math.PI * 56 * (1 - percentage / 100) }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
+        <defs>
+          <linearGradient id="waterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#60a5fa" />
+            <stop offset="100%" stopColor="#a855f7" />
+          </linearGradient>
+        </defs>
       </svg>
       
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <Droplets className="w-5 h-5 text-blue-500 mb-1" />
-        <span className="text-lg font-light text-gray-900">
+        <Droplets className="w-5 h-5 text-blue-400 mb-1" />
+        <span className="text-lg font-light text-white">
           {Math.round(percentage)}%
         </span>
       </div>

@@ -36,17 +36,17 @@ export default function WaterChart({ data }: WaterChartProps) {
       
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-md font-bold text-zinc-700">Water Intake</span>
+        <span className="text-md font-bold text-white">Water Intake</span>
 
         <div className="flex gap-2">
           {["weekly", "monthly"].map((t) => (
             <button
               key={t}
               onClick={() => setTimePeriod(t as TimePeriod)}
-              className={`text-sm px-2 py-1 transition ${
+              className={`text-sm px-3 py-1 rounded-md transition ${
                 timePeriod === t
-                  ? "text-blue-600"
-                  : "text-zinc-400 hover:text-zinc-600"
+                  ? "text-blue-400 bg-blue-500/20"
+                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
               }`}
             >
               {t}
@@ -75,16 +75,19 @@ export default function WaterChart({ data }: WaterChartProps) {
             {/* Goal Line (subtle) */}
             <ReferenceLine
               y={filteredData[0]?.goal || 0}
-              stroke="#94a3b8"
+              stroke="rgba(255,255,255,0.3)"
               strokeDasharray="3 3"
             />
 
             <Tooltip
-              cursor={{ fill: "rgba(0,0,0,0.03)" }}
+              cursor={{ fill: "rgba(255,255,255,0.05)" }}
               contentStyle={{
                 borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "12px"
+                border: "1px solid rgba(255,255,255,0.2)",
+                backgroundColor: "rgba(30,41,59,0.95)",
+                color: "white",
+                fontSize: "12px",
+                backdropFilter: "blur(8px)"
               }}
             />
 
@@ -103,17 +106,23 @@ export default function WaterChart({ data }: WaterChartProps) {
                     width={width}
                     height={height}
                     rx={4}
-                    fill={met ? "#22c55e" : "#3b82f6"}
+                    fill={met ? "#10b981" : "url(#waterBarGradient)"}
                   />
                 )
               }}
             />
+            <defs>
+              <linearGradient id="waterBarGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#60a5fa" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* Footer Stats */}
-      <div className="flex justify-between mt-2 text-xs text-zinc-400">
+      <div className="flex justify-between mt-2 text-xs text-gray-400">
         <span>
           Avg: {Math.round(avg)} ml
         </span>
