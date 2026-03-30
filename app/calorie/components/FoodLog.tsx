@@ -92,7 +92,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 p-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-white">

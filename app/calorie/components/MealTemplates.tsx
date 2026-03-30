@@ -120,7 +120,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
   return (
     <>
-      <div className="mt-4" onClick={() => setActiveMenu(null)}>
+      <div className="mt-4 px-4" onClick={() => setActiveMenu(null)}>
         {/* Header */}
         <div className="flex items-center justify-between mb-3 text-sm font-medium text-zinc-700">
           <h3>
@@ -327,16 +327,8 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
     )
   }
 
-  if (!list.length) {
-    return (
-      <div className="text-sm text-zinc-400 mb-3">
-        No templates yet
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-4" onClick={() => setActiveMenu(null)}>
+    <div className="space-y-4 px-4" onClick={() => setActiveMenu(null)}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-white">Meal Templates</h3>

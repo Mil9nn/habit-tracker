@@ -17,24 +17,24 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
     const heatmapData = data.map(entry => {
       // Simple division into 5 levels regardless of goal
       const level = Math.min(Math.floor(entry.count / 200), 4) // Roughly every 200 calories = 1 level, max 4
-      
+
       return {
         date: entry.date,
         count: level
       }
     })
-    
+
     setProcessedData(heatmapData)
   }, [data])
 
   const classForValue = (value: any) => {
     const count = value?.count || 0
-    if (count === 0) return 'fill-zinc-700'
-    if (count === 1) return 'fill-violet-900/50'
-    if (count === 2) return 'fill-violet-700'
-    if (count === 3) return 'fill-violet-500'
-    if (count === 4) return 'fill-violet-300'
-    return 'fill-violet-200'
+    if (count === 0) return 'fill-white'
+    if (count === 1) return 'fill-green-100'
+    if (count === 2) return 'fill-green-300'
+    if (count === 3) return 'fill-green-500'
+    if (count === 4) return 'fill-green-700'
+    return 'fill-green-900'
   }
 
   const getTooltipDataAttrs = (value: any) => {
@@ -52,36 +52,33 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full p-4">
       <h3 className="text-lg font-medium text-white">Activity Heatmap</h3>
-      
-      <div className="bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/50">
-        <CalendarHeatmap
-          startDate={new Date(new Date().setDate(new Date().getDate() - 90))}
-          endDate={new Date()}
-          values={processedData}
-          classForValue={classForValue}
-          tooltipDataAttrs={getTooltipDataAttrs}
-          showWeekdayLabels={true}
-          showMonthLabels={true}
-          horizontal={true}
-          gutterSize={2}
-        />
-      </div>
-      
-      <div className="flex items-center justify-between text-sm text-zinc-400">
-        <div className="flex items-center gap-2">
-          <span>Less</span>
-          <div className="flex gap-1">
-            <div className="w-3 h-3 rounded-sm bg-zinc-700" />
-            <div className="w-3 h-3 rounded-sm bg-violet-900/50" />
-            <div className="w-3 h-3 rounded-sm bg-violet-700" />
-            <div className="w-3 h-3 rounded-sm bg-violet-500" />
-            <div className="w-3 h-3 rounded-sm bg-violet-300" />
-            <div className="w-3 h-3 rounded-sm bg-violet-200" />
-          </div>
-          <span>More</span>
+
+      <div className="overflow-x-auto -mx-4 px-4">
+        <div style={{ minWidth: '1000px' }} className="p-2">
+          <CalendarHeatmap
+            startDate={new Date(new Date().getFullYear(), 0, 1)}
+            endDate={new Date(new Date().getFullYear(), 11, 31)}
+            values={processedData}
+            classForValue={classForValue}
+            tooltipDataAttrs={getTooltipDataAttrs}
+            showMonthLabels={true}
+            gutterSize={4}
+          />
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm text-zinc-400">
+        <span>Less</span>
+        <div className="flex gap-1">
+          <div className="w-3 h-3 rounded-sm bg-white border border-zinc-400" />
+          <div className="w-3 h-3 rounded-sm bg-green-100" />
+          <div className="w-3 h-3 rounded-sm bg-green-300" />
+          <div className="w-3 h-3 rounded-sm bg-green-500" />
+          <div className="w-3 h-3 rounded-sm bg-green-700" />
+        </div>
+        <span>More</span>
       </div>
     </div>
   )

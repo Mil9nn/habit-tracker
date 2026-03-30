@@ -105,21 +105,21 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full space-y-4"
+      className="w-full space-y-4 p-4"
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="">
         <h3 className="text-lg font-medium text-white">Calorie Trends</h3>
         
         {onPeriodChange && (
-          <div className="flex gap-1">
+          <div className="flex items-center justify-end gap-2 mt-2">
             {(['week', 'month', 'quarter'] as const).map(p => (
               <button
                 key={p}
                 onClick={() => onPeriodChange(p)}
-                className={`px-3 py-1 text-sm rounded-lg transition-all duration-200 ${
+                className={`text-sm transition-all duration-200 ${
                   period === p 
-                    ? 'bg-violet-500 text-white' 
+                    ? 'text-violet-400' 
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                 }`}
               >
@@ -133,16 +133,16 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="text-center">
-          <div className="text-2xl font-semibold text-white">{avgCalories}</div>
-          <div className="text-sm text-zinc-400">Avg Calories</div>
+          <div className="text-sm font-semibold text-white">{avgCalories}</div>
+          <div className="text-xs text-zinc-400">Avg Calories</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-semibold text-emerald-400">{successRate}%</div>
-          <div className="text-sm text-zinc-400">On Track</div>
+          <div className="text-sm font-semibold text-emerald-400">{successRate}%</div>
+          <div className="text-xs text-zinc-400">On Track</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-semibold text-violet-400">{trendLabel}</div>
-          <div className="text-sm text-zinc-400">Trend</div>
+          <div className="text-sm font-semibold text-violet-400">{trendLabel}</div>
+          <div className="text-xs text-zinc-400">Trend</div>
         </div>
       </div>
 

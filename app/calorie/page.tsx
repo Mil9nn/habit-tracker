@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
+import { Drumstick, Wheat, Droplet } from 'lucide-react'
 import CalorieGauge from './components/CalorieGauge'
+import MacroRing from './components/MacroRing'
 import CalorieHeatmap from './components/CalorieHeatmap'
 import { AIFoodAnalysis } from './components/AIFoodAnalysis'
 import { useProteinGoal, useCarbsGoal, useFatGoal } from '@/store/useProfileStore'
@@ -92,7 +94,38 @@ export default function CalorieTracker() {
   const fatGoal = useFatGoal()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
-  
+  const [carouselSlide, setCarouselSlide] = useState(0)
+  const touchStartXRef = useRef<number | null>(null)
+  const touchEndXRef = useRef<number | null>(null)
+  const minSwipeDistance = 50
+
+  const handleTouchStart = (event: any) => {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null
+  }
+
+  const handleTouchMove = (event: any) => {
+    touchEndXRef.current = event.touches[0]?.clientX ?? null
+  }
+
+  const handleTouchEnd = () => {
+    if (touchStartXRef.current === null || touchEndXRef.current === null) {
+      return
+    }
+
+    const distance = touchStartXRef.current - touchEndXRef.current
+    if (Math.abs(distance) > minSwipeDistance) {
+      if (distance > 0) {
+        // swipe left -> next
+        setCarouselSlide((prev) => (prev + 1) % 2)
+      } else {
+        // swipe right -> previous
+        setCarouselSlide((prev) => (prev - 1 + 2) % 2)
+      }
+    }
+
+    touchStartXRef.current = null
+    touchEndXRef.current = null
+  }
 
   const fetchTrendsData = async (period: 'week' | 'month' | 'quarter' = 'week') => {
     try {
@@ -197,7 +230,7 @@ export default function CalorieTracker() {
         await fetch(`/api/calories/templates/${template._id}/use`, {
           method: 'POST'
         })
-        
+
         fetchData() // Refresh data
       }
     } catch (error) {
@@ -241,15 +274,15 @@ export default function CalorieTracker() {
 
   return (
     <MainLayout>
-      <div className="py-8 space-y-12">
-        
+      <div className="space-y-4">
+
         {/* Header Section */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-4 py-2">
           <div>
             <h1 className="text-3xl font-semibold text-white tracking-tight">Nutrition</h1>
             <p className="text-zinc-400 mt-2">Track your daily calories and macros</p>
           </div>
-          
+
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <button className="px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-200">
@@ -274,118 +307,134 @@ export default function CalorieTracker() {
           </Popover>
         </div>
 
-        {/* Daily Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          
-          {/* Calorie Progress */}
-          <div className="space-y-6">
-            <div className="text-center">
-              <CalorieGauge
-                current={summary?.totalCalories || 0}
-                target={summary?.goal || 2000}
-                size={200}
-                strokeWidth={12}
-              />
-              <div className="mt-6 space-y-2">
-                <p className="text-2xl font-medium text-white">
-                  {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
-                </p>
-                <p className="text-zinc-400">
-                  {Math.round(((summary?.totalCalories || 0) / (summary?.goal || 2000)) * 100)}% of daily goal
-                </p>
+        {/* Daily Summary - Carousel */}
+        <div className="space-y-6 px-4">
+          <div className="relative bg-zinc-900/50 rounded-2xl border border-zinc-800 overflow-hidden">
+            {/* Carousel Container */}
+            <div
+              className="flex"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* Slide 1: Calorie Progress */}
+              <div
+                className={`w-full flex-shrink-0 transition-opacity duration-500 ${carouselSlide === 0 ? 'opacity-100' : 'opacity-0 hidden'
+                  }`}
+              >
+                <div className="p-4">
+                  <div className="text-center space-y-4">
+                    <h3 className="text-lg font-medium text-zinc-300">Daily Calories</h3>
+                    <div className="flex items-center justify-center gap-4">
+                      <CalorieGauge
+                      current={summary?.totalCalories || 0}
+                      target={summary?.goal || 2000}
+                      size={140}
+                      strokeWidth={8}
+                    />
+                    <div className="space-y-2 pt-2">
+                      <p className="text-xl font-semibold text-white">
+                        {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
+                      </p>
+                      <p className="text-zinc-400">
+                        {Math.round(((summary?.totalCalories || 0) / (summary?.goal || 2000)) * 100)}% of daily goal
+                      </p>
+                    </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Slide 2: Macronutrients */}
+              <div
+                className={`w-full flex-shrink-0 transition-opacity duration-500 ${carouselSlide === 1 ? 'opacity-100' : 'opacity-0 hidden'
+                  }`}
+              >
+                <div className="p-4">
+                  <div className="space-y-8">
+                    <h3 className="text-lg font-medium text-zinc-300">Macronutrients</h3>
+
+                    <div className="flex justify-center items-center gap-8">
+                      <MacroRing
+                        current={summary?.totalProtein || 0}
+                        goal={proteinGoal || 150}
+                        label="Protein"
+                        icon={Drumstick}
+                        color="emerald"
+                        size={70}
+                        strokeWidth={5}
+                      />
+                      <MacroRing
+                        current={summary?.totalCarbs || 0}
+                        goal={carbsGoal || 300}
+                        label="Carbs"
+                        icon={Wheat}
+                        color="blue"
+                        size={70}
+                        strokeWidth={5}
+                      />
+                      <MacroRing
+                        current={summary?.totalFat || 0}
+                        goal={fatGoal || 100}
+                        label="Fats"
+                        icon={Droplet}
+                        color="amber"
+                        size={70}
+                        strokeWidth={5}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Macros */}
-          <div className="space-y-8">
-            <h2 className="text-xl font-medium text-white">Macronutrients</h2>
-            
-            <div className="space-y-6">
-              {/* Protein */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-300 font-medium">Protein</span>
-                  <span className="text-white font-semibold">
-                    {Math.round((summary?.totalProtein || 0) * 10) / 10}g / {proteinGoal || 150}g
-                  </span>
-                </div>
-                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
-                    style={{ 
-                      width: `${Math.min(((summary?.totalProtein || 0) / (proteinGoal || 150)) * 100, 100)}%`
-                    }}
+            {/* Navigation Controls */}
+            <div className="flex items-center justify-center px-6 py-4">
+              <button
+                onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
+                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                aria-label="Previous slide"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Slide Indicators */}
+              <div className="flex gap-2">
+                {[0, 1].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCarouselSlide(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${carouselSlide === index
+                        ? 'bg-violet-500 w-6'
+                        : 'bg-zinc-700 w-2 hover:bg-zinc-600'
+                      }`}
+                    aria-label={`Go to slide ${index + 1}`}
                   />
-                </div>
+                ))}
               </div>
 
-              {/* Carbs */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-300 font-medium">Carbs</span>
-                  <span className="text-white font-semibold">
-                    {Math.round((summary?.totalCarbs || 0) * 10) / 10}g / {carbsGoal || 300}g
-                  </span>
-                </div>
-                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
-                    style={{ 
-                      width: `${Math.min(((summary?.totalCarbs || 0) / (carbsGoal || 300)) * 100, 100)}%`
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Fats */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-300 font-medium">Fats</span>
-                  <span className="text-white font-semibold">
-                    {Math.round((summary?.totalFat || 0) * 10) / 10}g / {fatGoal || 100}g
-                  </span>
-                </div>
-                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-rose-500 rounded-full transition-all duration-500 ease-out"
-                    style={{ 
-                      width: `${Math.min(((summary?.totalFat || 0) / (fatGoal || 100)) * 100, 100)}%`
-                    }}
-                  />
-                </div>
-              </div>
+              <button
+                onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
+                className="hidden md:blockp-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                aria-label="Next slide"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="flex items-center gap-8 py-6 border-y border-zinc-800">
-          <div>
-            <p className="text-zinc-500 text-sm">Daily Average</p>
-            <p className="text-white font-medium">
-              {summary ? `${Math.round(summary.averageDaily)} kcal` : "0 kcal"}
-            </p>
-          </div>
-          <div>
-            <p className="text-zinc-500 text-sm">Entries Today</p>
-            <p className="text-white font-medium">
-              {logs?.length || 0}
-            </p>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          
+
           {/* Left Column */}
           <div className="space-y-8">
-            
-            {/* AI Food Analysis */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white">Quick Add Food</h3>
-              <AIFoodAnalysis onDataAdded={fetchData} />
-            </div>
+
+            <AIFoodAnalysis onDataAdded={fetchData} />
 
             {/* Meal Templates */}
             <MealTemplatesMinimal
@@ -399,9 +448,9 @@ export default function CalorieTracker() {
 
           {/* Right Column */}
           <div className="space-y-8">
-            
+
             {/* Calorie Trends Chart */}
-            <CalorieTrendsChart 
+            <CalorieTrendsChart
               data={trendsData}
               period={trendsPeriod}
               onPeriodChange={setTrendsPeriod}

@@ -140,23 +140,23 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-4 py-2">
       {/* Input Section */}
       <div className="space-y-3">
         <textarea
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
           placeholder="Describe your meal (e.g., grilled chicken salad with avocado)"
-          className="w-full rounded-xl bg-zinc-800/50 border border-zinc-700 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 px-4 py-3 text-sm resize-none transition-all duration-200"
+          className="w-full rounded-xl bg-zinc-950 border-2 border-zinc-900 shadow-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 px-4 py-3 text-sm resize-none transition-all duration-200"
           rows={3}
         />
 
         <button
           onClick={analyzeFoodWithAI}
           disabled={isAnalyzing || !aiFoodDescription.trim()}
-          className="w-full bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 disabled:from-zinc-700 disabled:to-zinc-700 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
+          className="w-full text-sm bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 disabled:from-zinc-700 disabled:to-zinc-700 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
         >
-          {isAnalyzing ? "Analyzing..." : "Analyze & Add Meal"}
+          {isAnalyzing ? "Analyzing..." : "Add Meal"}
         </button>
       </div>
 

@@ -38,14 +38,14 @@ export default function WaterChart({ data }: WaterChartProps) {
       <div className="flex items-center justify-between mb-3">
         <span className="text-md font-bold text-white">Water Intake</span>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {["weekly", "monthly"].map((t) => (
             <button
               key={t}
               onClick={() => setTimePeriod(t as TimePeriod)}
-              className={`text-sm px-3 py-1 rounded-md transition ${
+              className={`text-sm px-2 py-1 transition ${
                 timePeriod === t
-                  ? "text-blue-400 bg-blue-500/20"
+                  ? "text-blue-400"
                   : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
               }`}
             >
@@ -84,7 +84,7 @@ export default function WaterChart({ data }: WaterChartProps) {
               contentStyle={{
                 borderRadius: "8px",
                 border: "1px solid rgba(255,255,255,0.2)",
-                backgroundColor: "rgba(30,41,59,0.95)",
+                backgroundColor: "rgba(69, 81, 101, 0.95)",
                 color: "white",
                 fontSize: "12px",
                 backdropFilter: "blur(8px)"
@@ -106,7 +106,7 @@ export default function WaterChart({ data }: WaterChartProps) {
                     width={width}
                     height={height}
                     rx={4}
-                    fill={met ? "#10b981" : "url(#waterBarGradient)"}
+                    fill={met ? "#10b981" : "#5a99e6"}
                   />
                 )
               }}

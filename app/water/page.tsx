@@ -196,7 +196,7 @@ export default function WaterTracker() {
   return (
     <MainLayout>
       <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto py-8">
+        <div className="max-w-7xl mx-auto py-8 px-4">
 
           {/* Header Section */}
           <div className="mb-8">
@@ -225,95 +225,56 @@ export default function WaterTracker() {
 
             {/* Water Progress */}
             <div className="lg:col-span-1">
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <div className="text-center">
-                  <WaterProgress current={todayTotal} goal={goal} />
-                  <div className="mt-4 space-y-1">
-                    <p className="text-sm font-medium text-gray-300">
-                      <span className="text-blue-400 font-semibold">{todayTotal}</span> / <span className="text-emerald-400 font-semibold">{goal}</span> ml
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {Math.round((todayTotal / goal) * 100)}% of daily goal
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="lg:col-span-2">
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 className="text-sm font-medium text-gray-300 mb-4">Today's Progress</h3>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-400">Consumed</p>
-                    <p className="text-lg font-light text-white">{todayTotal} ml</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-400">Remaining</p>
-                    <p className="text-lg font-light text-white">{Math.max(0, goal - todayTotal)} ml</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-400">Entries</p>
-                    <p className="text-lg font-light text-white">{entries.length}</p>
-                  </div>
+              <div className="text-center">
+                <WaterProgress current={todayTotal} goal={goal} />
+                <div className="mt-4 space-y-1">
+                  <p className="text-sm font-medium text-gray-300">
+                    <span className="text-blue-400 font-semibold">{todayTotal}</span> / <span className="text-emerald-400 font-semibold">{goal}</span> ml
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {remaining} ml remaining
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
             {/* Left Column */}
-            <div className="space-y-6">
+            <div className="space-y-2">
+              <WaterInput onLog={handleLog} />
 
-              {/* Water Input - Hero Section */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 className="text-sm font-medium text-gray-300 mb-4">Log Water</h3>
-                <WaterInput onLog={handleLog} />
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { amount: 300, label: "1 Glass" },
+                  { amount: 250, label: "250ml" },
+                  { amount: 500, label: "500ml" },
+                  { amount: 750, label: "750ml" },
+                  { amount: 1000, label: "1L" },
+                ].map(({ amount, label }) => (
+                  <button
+                    key={amount}
+                    onClick={() => handleQuickLog(amount)}
+                    className="px-4 py-2 text-sm border border-white/20 text-gray-300 hover:border-blue-400/50 hover:text-blue-400 rounded-full transition-colors bg-zinc-950 hover:bg-zinc-900"
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
 
-              {/* Quick Add Buttons */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 className="text-sm font-medium text-gray-300 mb-4">Quick Add</h3>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { amount: 300, label: "1 Glass" },
-                    { amount: 250, label: "250ml" },
-                    { amount: 500, label: "500ml" },
-                    { amount: 750, label: "750ml" },
-                    { amount: 1000, label: "1L" },
-                  ].map(({ amount, label }) => (
-                    <button
-                      key={amount}
-                      onClick={() => handleQuickLog(amount)}
-                      className="px-4 py-2 text-sm border border-white/20 text-gray-300 hover:border-blue-400/50 hover:text-blue-400 rounded-full transition-colors bg-white/5 hover:bg-white/10"
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Water Log */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <WaterLog
-                  entries={entries}
-                  onEntryUpdate={handleEntryUpdate}
-                  onEntryDelete={handleEntryDelete}
-                />
-              </div>
+              <WaterLog
+                entries={entries}
+                onEntryUpdate={handleEntryUpdate}
+                onEntryDelete={handleEntryDelete}
+              />
             </div>
 
             {/* Right Column */}
             <div className="space-y-6">
-
-              {/* Water Chart */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <WaterChart data={chartData} />
-              </div>
+              <WaterChart data={chartData} />
             </div>
           </div>
         </div>
@@ -326,18 +287,18 @@ export default function WaterTracker() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
             onClick={() => setShowGoalModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-slate-800/95 backdrop-blur-md rounded-2xl p-8 w-[90%] max-w-[400px] border border-white/20"
+              className="bg-slate-800 backdrop-blur-md rounded-2xl p-8 w-[90%] max-w-[400px] border border-white/20"
               onClick={e => e.stopPropagation()}
             >
               <h3 className="text-lg font-medium text-white mb-4">
-                Set Your Water Goal 💧
+                Set Your Water Goal
               </h3>
               <p className="text-sm text-gray-300 mb-6">
                 What's your daily water intake goal? This helps track progress and stay hydrated.
@@ -346,11 +307,11 @@ export default function WaterTracker() {
                 <input
                   type="number"
                   placeholder={goal ? goal.toString() : "e.g. 2000"}
-                  className="flex-1 p-3 rounded-lg border border-white/20 bg-white/10 text-white placeholder-gray-400 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+                  className="flex-1 p-2 border-b-2 border-red-500 text-white placeholder-gray-400 outline-none focus:border-blue-400"
                   value={tempGoal}
                   onChange={e => setTempGoal(e.target.value)}
                 />
-                <span className="p-3 rounded-lg border border-white/20 bg-white/10 text-sm text-gray-300 flex items-center">
+                <span className="text-sm text-gray-300 flex items-center">
                   ml
                 </span>
               </div>
@@ -363,7 +324,7 @@ export default function WaterTracker() {
                 </button>
                 <button
                   onClick={handleGoalUpdate}
-                  className="flex-1 p-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium text-sm hover:from-blue-600 hover:to-purple-700 transition-colors"
+                  className="flex-1 p-3 rounded-lg bg-blue-700 text-white font-medium text-sm hover:from-blue-600 hover:to-purple-700 transition-colors"
                 >
                   Set Goal
                 </button>
