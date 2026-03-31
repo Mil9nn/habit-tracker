@@ -129,7 +129,7 @@ function ProfilePageContent() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-8">
           
           {/* Header Section */}
@@ -150,9 +150,9 @@ function ProfilePageContent() {
 
           {/* Main Content */}
           {profile ? (
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 mb-8">
+            
               <ProfileDisplay dailyCalories={calories.consumed} />
-            </div>
+            
           ) : (
             <div className="flex items-center justify-center min-h-[50vh]">
               <p className="text-gray-400">Loading profile...</p>
@@ -160,11 +160,11 @@ function ProfilePageContent() {
           )}
 
           {/* Logout Section */}
-          <div className="mt-12 pt-8 border-t border-white/20">
-            <div className="flex justify-center">
+          <div className="mt-10 pt-5 border-t border-white/20">
+            <div className="flex justify-end">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-6 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors border border-red-500/20 hover:border-red-400/30"
+                className="flex items-center gap-2 px-6 py-3 bg-zinc-950 border-2 border-zinc-900 text-sm text-red-400 hover:text-red-500 rounded-xl transition-colors hover:border-red-400"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out

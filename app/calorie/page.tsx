@@ -312,16 +312,14 @@ export default function CalorieTracker() {
           <div className="relative bg-zinc-900/50 rounded-2xl border border-zinc-800 overflow-hidden">
             {/* Carousel Container */}
             <div
-              className="flex"
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${carouselSlide * 100}%)` }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
               {/* Slide 1: Calorie Progress */}
-              <div
-                className={`w-full flex-shrink-0 transition-opacity duration-500 ${carouselSlide === 0 ? 'opacity-100' : 'opacity-0 hidden'
-                  }`}
-              >
+              <div className="w-full flex-shrink-0">
                 <div className="p-4">
                   <div className="text-center space-y-4">
                     <h3 className="text-lg font-medium text-zinc-300">Daily Calories</h3>
@@ -346,10 +344,7 @@ export default function CalorieTracker() {
               </div>
 
               {/* Slide 2: Macronutrients */}
-              <div
-                className={`w-full flex-shrink-0 transition-opacity duration-500 ${carouselSlide === 1 ? 'opacity-100' : 'opacity-0 hidden'
-                  }`}
-              >
+              <div className="w-full flex-shrink-0">
                 <div className="p-4">
                   <div className="space-y-8">
                     <h3 className="text-lg font-medium text-zinc-300">Macronutrients</h3>
@@ -417,7 +412,7 @@ export default function CalorieTracker() {
 
               <button
                 onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
-                className="hidden md:blockp-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
                 aria-label="Next slide"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

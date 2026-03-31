@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     
     // Get user's current goal
     const userProfile = await UserProfile.findOne({ userId: session.user.email })
-    const currentGoal = userProfile?.calorieGoal || 2000
+    const currentGoal = userProfile?.dailyCalorieGoal || userProfile?.calorieGoal || 2000
 
     // Calculate date range
     const today = new Date()

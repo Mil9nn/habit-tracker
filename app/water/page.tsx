@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import MainLayout from '../layout/MainLayout'
 import { Droplets, Plus, Edit2 } from 'lucide-react'
@@ -29,6 +29,10 @@ export default function WaterTracker() {
   const [entries, setEntries] = useState<WaterEntry[]>([])
   const [allEntries, setAllEntries] = useState<WaterEntry[]>([])
   const [showGoalModal, setShowGoalModal] = useState(false)
+  const [carouselSlide, setCarouselSlide] = useState(0)
+  const touchStartXRef = useRef<number | null>(null)
+  const touchEndXRef = useRef<number | null>(null)
+  const minSwipeDistance = 50
 
   useEffect(() => {
     // Fetch profile data
@@ -152,6 +156,34 @@ export default function WaterTracker() {
     setAllEntries(prev => prev.filter(entry => entry._id !== entryId))
   }
 
+  const handleTouchStart = (event: any) => {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null
+  }
+
+  const handleTouchMove = (event: any) => {
+    touchEndXRef.current = event.touches[0]?.clientX ?? null
+  }
+
+  const handleTouchEnd = () => {
+    if (touchStartXRef.current === null || touchEndXRef.current === null) {
+      return
+    }
+
+    const distance = touchStartXRef.current - touchEndXRef.current
+    if (Math.abs(distance) > minSwipeDistance) {
+      if (distance > 0) {
+        // swipe left -> next
+        setCarouselSlide((prev) => (prev + 1) % 2)
+      } else {
+        // swipe right -> previous
+        setCarouselSlide((prev) => (prev - 1 + 2) % 2)
+      }
+    }
+
+    touchStartXRef.current = null
+    touchEndXRef.current = null
+  }
+
   // Get today's entries
   const todayTotal = entries.reduce((sum: number, entry: WaterEntry) => sum + entry.amount, 0)
   const remaining = Math.max(0, goal - todayTotal)
@@ -204,28 +236,89 @@ export default function WaterTracker() {
             <p className="text-sm text-gray-400 mt-1">Track your daily water intake</p>
           </div>
 
-          {/* Main Stats Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-            {/* Water Progress */}
-            <div className="lg:col-span-1">
-              <div className="text-center">
-                <WaterProgress
-                  current={todayTotal}
-                  goal={goal}
-                  onClick={() => {
-                    setShowGoalModal(true)
-                    setTempGoal(goal.toString())
-                  }}
-                />
-                <div className="mt-4 space-y-1">
-                  <p className="text-sm font-medium text-gray-300">
-                    <span className="text-blue-400 font-semibold">{todayTotal}</span> / <span className="text-emerald-400 font-semibold">{goal}</span> ml
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {remaining} ml remaining
-                  </p>
+          {/* Daily Summary - Carousel */}
+          <div className="space-y-6 mb-8">
+            <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+              {/* Carousel Container */}
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${carouselSlide * 100}%)` }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                {/* Slide 1: Water Progress */}
+                <div className="w-full flex-shrink-0">
+                  <div className="p-6">
+                    <div className="text-center space-y-4">
+                      <div className="flex items-center justify-center gap-6">
+                        <WaterProgress
+                          current={todayTotal}
+                          goal={goal}
+                          onClick={() => {
+                            setShowGoalModal(true)
+                            setTempGoal(goal.toString())
+                          }}
+                        />
+                        <div className="space-y-2">
+                          <p className="text-sm font-semibold text-white">
+                            <span className="text-blue-400">{todayTotal}</span> / <span className="text-emerald-400">{goal}</span> ml
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {remaining} ml remaining
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Slide 2: Water Log */}
+                <div className="w-full p-4 flex-shrink-0">
+                  <WaterLog
+                    entries={entries}
+                    onEntryUpdate={handleEntryUpdate}
+                    onEntryDelete={handleEntryDelete}
+                  />
+                </div>
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="flex items-center justify-center px-6 py-4">
+                <button
+                  onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
+                  className="hidden md:block p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                  aria-label="Previous slide"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+
+                {/* Slide Indicators */}
+                <div className="flex gap-2">
+                  {[0, 1].map((index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCarouselSlide(index)}
+                      className={`h-2 rounded-full transition-all duration-300 ${carouselSlide === index
+                        ? 'bg-blue-500 w-6'
+                        : 'bg-white/20 w-2 hover:bg-white/30'
+                        }`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
+                  className="hidden md:block p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                  aria-label="Next slide"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -254,13 +347,6 @@ export default function WaterTracker() {
                   </button>
                 ))}
               </div>
-
-
-              <WaterLog
-                entries={entries}
-                onEntryUpdate={handleEntryUpdate}
-                onEntryDelete={handleEntryDelete}
-              />
             </div>
 
             {/* Right Column */}

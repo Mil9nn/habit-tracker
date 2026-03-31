@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getUserProfileModel } from '@/lib/models'
+import { getWaterGoalModel } from '@/lib/models'
 
 // GET: Fetch water goal
 export async function GET(request: Request) {
@@ -13,10 +13,10 @@ export async function GET(request: Request) {
 
     await connectDB()
     
-    const UserProfile = getUserProfileModel()
-    const userProfile = await UserProfile.findOne({ userId: session.user.email })
+    const WaterGoal = getWaterGoalModel()
+    const waterGoalDoc = await WaterGoal.findOne({ userId: session.user.email })
     
-    const waterGoal = userProfile?.waterGoal || 2000 // Default 2000ml
+    const waterGoal = waterGoalDoc?.targetMl || 2000 // Default 2000ml
     
     return NextResponse.json({ waterGoal })
   } catch (error) {
@@ -41,25 +41,15 @@ export async function POST(request: Request) {
 
     await connectDB()
     
-    const UserProfile = getUserProfileModel()
+    const WaterGoal = getWaterGoalModel()
     
-    // Update or create user profile with water goal
-    const userProfile = await UserProfile.findOneAndUpdate(
+    const waterGoalDoc = await WaterGoal.findOneAndUpdate(
       { userId: session.user.email },
-      { 
-        $set: { waterGoal },
-        $setOnInsert: { 
-          userId: session.user.email,
-          calorieGoal: 2000, // Default calorie goal
-          proteinGoal: 50,   // Default protein goal
-          carbsGoal: 250,    // Default carbs goal
-          fatGoal: 65        // Default fat goal
-        }
-      },
-      { upsert: true, new: true }
+      { targetMl: waterGoal },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     )
     
-    return NextResponse.json({ waterGoal })
+    return NextResponse.json({ waterGoal: waterGoalDoc?.targetMl || waterGoal })
   } catch (error) {
     console.error('Error updating water goal:', error)
     return NextResponse.json({ error: 'Failed to update water goal' }, { status: 500 })

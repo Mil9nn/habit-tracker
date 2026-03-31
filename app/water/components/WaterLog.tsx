@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Edit2, Trash2, Check, X } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any) {
   const [editingEntry, setEditingEntry] = useState<string | null>(null)
@@ -42,7 +43,7 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
   }, {})
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-6">
+    <div className="w-full">
       
       {/* Header */}
       <h3 className="text-sm text-gray-300 mb-3">Today's Water Log</h3>
@@ -57,8 +58,9 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
               {/* Date (subtle) */}
               <p className="text-xs text-gray-400 mb-2">{date}</p>
 
-              <div className="space-y-1">
-                {dayEntries.map((entry: any) => (
+              <ScrollArea className="w-full h-20">
+                <div className="space-y-1">
+                  {dayEntries.map((entry: any) => (
                   <motion.div
                     key={entry._id}
                     initial={{ opacity: 0, y: 6 }}
@@ -112,7 +114,8 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
                     </div>
                   </motion.div>
                 ))}
-              </div>
+                </div>
+              </ScrollArea>
             </div>
           ))}
         </div>
