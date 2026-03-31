@@ -279,13 +279,13 @@ export default function CalorieTracker() {
         {/* Header Section */}
         <div className="flex items-center justify-between px-4 py-2">
           <div>
-            <h1 className="text-3xl font-semibold text-white tracking-tight">Nutrition</h1>
-            <p className="text-zinc-400 mt-2">Track your daily calories and macros</p>
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Nutrition</h1>
+            <p className="text-zinc-400 text-sm mt-2">Track your daily calories and macros</p>
           </div>
 
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
-              <button className="px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-200">
+              <button className="px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-200">
                 {selectedDate ? format(new Date(selectedDate), "MMM do, yyyy") : "Today"}
               </button>
             </PopoverTrigger>

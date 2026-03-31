@@ -52,12 +52,12 @@ export default function WeightEntries({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 12 }}
                 transition={{ delay: i * 0.03 }}
-                className={`flex justify-between items-center px-4 rounded-md ${i === 0 ? 'bg-[#FFF]' : 'bg-[#FAFAF8]'}`}
+                className={`flex justify-between items-center px-4 rounded-md ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-800'}`}
               >
                 <span className="text-sm text-gray-600 font-medium">{e.date}</span>
-                <div className="flex items-center gap-6 p-4">
+                <div className="flex items-center gap-6 p-3">
                   {diff !== null && (
-                    <span className={`text-xs font-semibold text-white px-2 py-0.5 rounded-md ${diff < 0 ? 'bg-[#1E40AF]' : 'bg-gray-500'}`}>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${diff < 0 ? 'text-red-500' : 'text-blue-500'}`}>
                       {diff > 0 ? '+' : ''}{diff}
                     </span>
                   )}
@@ -65,6 +65,7 @@ export default function WeightEntries({
                     {editingEntry === e.date ? (
                       <input
                         type="number"
+                        step={0.1}
                         value={editWeight}
                         onChange={e => setEditWeight(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && onSaveEdit()}
@@ -74,7 +75,7 @@ export default function WeightEntries({
                       />
                     ) : (
                       <>
-                        {e.weight} <span className="text-xs font-normal text-gray-400">{unit}</span>
+                        <span className="text-white">{e.weight}</span> <span className="text-xs font-normal text-gray-400">{unit}</span>
                       </>
                     )}
                   </span>

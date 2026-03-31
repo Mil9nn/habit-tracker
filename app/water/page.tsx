@@ -200,24 +200,8 @@ export default function WaterTracker() {
 
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 justify-between">
-              <h1 className="text-3xl font-light text-white tracking-tight">Hydration</h1>
-              <button
-                onClick={() => {
-                  setShowGoalModal(true)
-                  setTempGoal(goal.toString())
-                }}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-colors border border-white/20"
-              >
-                <Edit2 className="w-4 h-4" />
-                Goal: <span className="text-blue-400 font-semibold">{goal}</span>ml
-              </button>
-            </div>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-sm text-gray-400 mt-1">Track your daily water intake</p>
-              </div>
-            </div>
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Hydration</h1>
+            <p className="text-sm text-gray-400 mt-1">Track your daily water intake</p>
           </div>
 
           {/* Main Stats Row */}
@@ -226,7 +210,14 @@ export default function WaterTracker() {
             {/* Water Progress */}
             <div className="lg:col-span-1">
               <div className="text-center">
-                <WaterProgress current={todayTotal} goal={goal} />
+                <WaterProgress
+                  current={todayTotal}
+                  goal={goal}
+                  onClick={() => {
+                    setShowGoalModal(true)
+                    setTempGoal(goal.toString())
+                  }}
+                />
                 <div className="mt-4 space-y-1">
                   <p className="text-sm font-medium text-gray-300">
                     <span className="text-blue-400 font-semibold">{todayTotal}</span> / <span className="text-emerald-400 font-semibold">{goal}</span> ml
@@ -243,7 +234,7 @@ export default function WaterTracker() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
             {/* Left Column */}
-            <div className="space-y-2">
+            <div className="space-y-4">
               <WaterInput onLog={handleLog} />
 
               <div className="flex flex-wrap gap-2">

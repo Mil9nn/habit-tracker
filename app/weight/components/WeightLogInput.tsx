@@ -47,7 +47,7 @@ export default function WeightLogInput({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="65.5"
-            className="w-full bg-transparent outline-none text-zinc-800 text-sm pb-1"
+            className="w-full outline-none text-zinc-400 text-sm"
           />
 
           {/* Base line */}

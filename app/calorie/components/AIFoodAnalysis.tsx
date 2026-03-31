@@ -154,7 +154,7 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         <button
           onClick={analyzeFoodWithAI}
           disabled={isAnalyzing || !aiFoodDescription.trim()}
-          className="w-full text-sm bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 disabled:from-zinc-700 disabled:to-zinc-700 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
+          className="w-full text-sm bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 disabled:from-zinc-700 disabled:to-zinc-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
         >
           {isAnalyzing ? "Analyzing..." : "Add Meal"}
         </button>

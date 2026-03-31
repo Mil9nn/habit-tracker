@@ -20,8 +20,8 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1">
+    <div className="flex items-center gap-4 justify-between">
+      <div className="relative">
         <input
           type="number"
           value={waterIntake}
@@ -29,10 +29,10 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
           placeholder="Enter amount"
           step="100"
           min="0"
-          className="w-full p-2 border-b-2 max-w-sm border-white shadow-sm text-white placeholder:text-gray-400 outline-none focus:border-blue-400"
+          className="w-full p-2 border-b-2 max-w-50 border-white shadow-sm text-white placeholder:text-gray-400 outline-none focus:border-blue-400"
           disabled={disabled}
         />
-        <span className="">
+        <span className="absolute right-2 top-1/2 transform -translate-y-1/2">
           ml
         </span>
       </div>
@@ -44,7 +44,7 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
         whileHover={{ scale: 1.02 }}
         className="px-6 py-3 bg-blue-500 text-white text-sm font-medium rounded-full hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        Add
+        Add Water
       </motion.button>
     </div>
   )

@@ -6,13 +6,25 @@ import { Droplets } from "lucide-react"
 type WaterProgressProps = {
   current: number
   goal: number
+  onClick?: () => void
 }
 
-export default function WaterProgress({ current, goal }: WaterProgressProps) {
+export default function WaterProgress({ current, goal, onClick }: WaterProgressProps) {
   const percentage = Math.min((current / goal) * 100, 100)
 
   return (
-    <div className="relative inline-flex items-center justify-center">
+    <div
+      onClick={onClick}
+      className="relative inline-flex items-center justify-center cursor-pointer"
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={event => {
+        if (onClick && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+    >
       {/* Background circle */}
       <div className="w-32 h-32 rounded-full border-8 border-white/10" />
       

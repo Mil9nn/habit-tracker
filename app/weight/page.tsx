@@ -346,205 +346,90 @@ export default function WeightTracker() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          
+
           {/* Header Section */}
           <div className="mb-8">
+            <div className="flex items-center gap-4 justify-between">
+              <h1 className="text-2xl font-semibold text-white tracking-tight">Weight Tracking</h1>
+              <button
+                onClick={() => setShowGoalModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-colors border border-white/20"
+              >
+                <Edit2 className="w-4 h-4" />
+                Goal: <span className="text-emerald-400 font-semibold">{goal?.targetWeight || '--'}</span> {unit}
+              </button>
+            </div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-light text-white tracking-tight">Weight Tracking</h1>
                 <p className="text-sm text-gray-400 mt-1">Monitor your weight progress and goals</p>
               </div>
-              
-              {goal && (
-                <button
-                  onClick={() => setShowGoalModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Goal: <span className="text-emerald-400 font-semibold mr-1">{goal.targetWeight}</span>{unit}
-                </button>
-              )}
             </div>
           </div>
 
           {/* Main Stats Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            
+
             {/* Current Weight */}
             <div className="lg:col-span-1">
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-32 h-32 rounded-full border-8 border-white/10">
-                    <div className="text-center">
-                      <p className="text-2xl font-light text-white">
-                        {currentWeight || '--'}
-                      </p>
-                      <p className="text-sm text-gray-400">{unit}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-1">
-                    <p className="text-sm font-medium text-gray-300">Current Weight</p>
-                    {totalChange && (
-                      <p className={`text-xs ${totalChange < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {totalChange < 0 ? '↓' : '↑'} {Math.abs(totalChange)} {unit} total
-                      </p>
-                    )}
-                  </div>
+              <div className="text-center">
+                <div className="mt-4 space-y-1">
+                  <p className="text-sm font-medium text-gray-300">
+                    Current Weight
+                  </p>
+                  <p className="text-3xl font-light text-white">
+                    {currentWeight || '--'} <span className="text-lg text-gray-400">{unit}</span>
+                  </p>
+                  {totalChange && (
+                    <p className={`text-xs ${totalChange < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {totalChange < 0 ? '↓' : '↑'} {Math.abs(totalChange)} {unit} total
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* Progress Stats */}
-            <div className="lg:col-span-2">
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 className="text-sm font-medium text-gray-300 mb-4">Progress Overview</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-400">Weekly Change</p>
-                    <p className={`text-lg font-light ${changeLastWeek && changeLastWeek < 0 ? 'text-emerald-400' : 'text-white'}`}>
-                      {changeLastWeek ? `${changeLastWeek < 0 ? '' : '+'}${changeLastWeek}` : '--'} {unit}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-400">BMI</p>
-                    <p className="text-lg font-light text-white">
-                      {bmiValue ? bmiValue.toFixed(1) : '--'}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-400">To Goal</p>
-                    <p className="text-lg font-light text-white">
-                      {remainingWeight ? `${remainingWeight} ${unit}` : '--'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Goal Progress */}
-                {goal && current && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">Goal Progress</span>
-                      <span className="text-xs text-gray-400">{progressPercentage}%</span>
-                    </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${progressPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats Bar */}
-          <div className="flex items-center justify-between py-4 border-y border-white/20 mb-6">
-            <div className="flex items-center gap-6">
-              <div>
-                <p className="text-xs text-gray-400">Entries</p>
-                <p className="text-sm font-medium text-white">{entries.length}</p>
-              </div>
-              {projectedWeeks && (
-                <div>
-                  <p className="text-xs text-gray-400">Est. to Goal</p>
-                  <p className="text-sm font-medium text-white">{projectedWeeks} weeks</p>
-                </div>
-              )}
-            </div>
-            
-            {!goal && (
-              <button
-                onClick={() => setShowGoalModal(true)}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-colors"
-              >
-                Set Goal
-              </button>
-            )}
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
             {/* Left Column */}
-            <div className="space-y-6">
-              
-              {/* Weight Input - Hero Section */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 className="text-sm font-medium text-gray-300 mb-4">Log Weight</h3>
-                <WeightLogInput
-                  weight={weight}
-                  setWeight={setWeight}
-                  unit={unit}
-                  setUnit={setUnit}
-                  onLog={handleLog}
-                  logged={logged}
-                />
-              </div>
+            <div className="space-y-2">
+              <WeightLogInput
+                weight={weight}
+                setWeight={setWeight}
+                unit={unit}
+                setUnit={setUnit}
+                onLog={handleLog}
+                logged={logged}
+              />
 
-              {/* BMI Insights */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <BMIInsights
-                  bmi={bmiValue}
-                  height={profile?.height || null}
-                  weight={currentWeight}
-                  unit={unit}
-                />
-              </div>
-
-              {/* Milestones */}
-              {updatedMilestones.length > 0 && (
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                  <h3 className="text-sm font-medium text-gray-300 mb-4">Achievements</h3>
-                  <div className="space-y-2">
-                    {updatedMilestones.map(milestone => (
-                      <div
-                        key={milestone.id}
-                        className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg"
-                      >
-                        <span className="text-lg">🏆</span>
-                        <span className="text-sm text-emerald-300 font-medium">{milestone.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <WeightEntries
+                entries={entries}
+                unit={unit}
+                editingEntry={editingEntry}
+                editWeight={editWeight}
+                onEdit={handleEdit}
+                onSaveEdit={handleSaveEdit}
+                onCancelEdit={handleCancelEdit}
+                onDelete={handleDelete}
+                setEditWeight={setEditWeight}
+              />
             </div>
 
             {/* Right Column */}
             <div className="space-y-6">
-              
-              {/* Weight Chart */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <WeightChart
-                  entries={entries}
-                  unit={unit}
-                  trendView={trendView}
-                  setTrendView={setTrendView}
-                  progressPercentage={progressPercentage}
-                  remainingWeight={remainingWeight}
-                  weeklyChange={weeklyChange}
-                  projectedWeeks={projectedWeeks}
-                />
-              </div>
-
-              {/* Weight Entries */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <WeightEntries
-                  entries={entries}
-                  unit={unit}
-                  editingEntry={editingEntry}
-                  editWeight={editWeight}
-                  onEdit={handleEdit}
-                  onSaveEdit={handleSaveEdit}
-                  onCancelEdit={handleCancelEdit}
-                  onDelete={handleDelete}
-                  setEditWeight={setEditWeight}
-                />
-              </div>
+              <WeightChart
+                entries={entries}
+                unit={unit}
+                trendView={trendView}
+                setTrendView={setTrendView}
+                progressPercentage={progressPercentage}
+                remainingWeight={remainingWeight}
+                weeklyChange={weeklyChange}
+                projectedWeeks={projectedWeeks}
+              />
             </div>
           </div>
         </div>

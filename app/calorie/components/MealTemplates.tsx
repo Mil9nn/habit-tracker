@@ -347,7 +347,7 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
         {list.map(t => (
           <div
             key={t._id}
-            className="group flex items-center justify-between p-4 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer"
+            className="group flex items-center justify-between p-2 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:bg-zinc-800/50 transition-all duration-200 cursor-pointer"
             onClick={() => onTemplateSelect(t)}
           >
             <div className="flex flex-col">
