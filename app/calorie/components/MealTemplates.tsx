@@ -100,7 +100,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
     }
   }
 
-  const updateMeal = async (updated: any) => {
+  const updateMeal = async (updated: CalorieLog) => {
     try {
       const res = await fetch(`/api/calories/log/${updated._id}`, {
         method: 'PUT',

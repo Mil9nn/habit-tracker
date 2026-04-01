@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (!session?.user?.email)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { foodName, calories, mealType, quantity, protein, carbs, fat, isMeal, mealItems } = await req.json()
+  const { foodName, calories, mealType, quantity, protein, carbs, fat, isMeal, mealItems, vitamins, minerals } = await req.json()
 
   if (!foodName || !calories || !mealType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -67,6 +67,14 @@ export async function POST(req: Request) {
   // Add meal items if it's a meal
   if (isMeal && mealItems) {
     logData.mealItems = mealItems
+  }
+
+  // Add micro-nutrients if provided
+  if (vitamins) {
+    logData.vitamins = vitamins
+  }
+  if (minerals) {
+    logData.minerals = minerals
   }
 
   const log = await CalorieLog.create(logData)

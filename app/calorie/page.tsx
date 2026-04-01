@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, TouchEvent } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
 import { Drumstick, Wheat, Droplet } from 'lucide-react'
 import CalorieGauge from './components/CalorieGauge'
 import MacroRing from './components/MacroRing'
@@ -58,6 +56,24 @@ export interface CalorieLog {
   mealItems?: FoodItem[]
 }
 
+interface TrendData {
+  date: string
+  calories: number
+  goal: number
+  dayName: string
+}
+
+interface MealTemplate {
+  _id: string
+  name: string
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  totalCalories: number
+  totalProtein: number
+  totalCarbs: number
+  totalFat: number
+  mealItems: FoodItem[]
+}
+
 export interface CalorieSummary {
   totalCalories: number
   totalProtein?: number
@@ -67,6 +83,31 @@ export interface CalorieSummary {
   progress: number
   entryCount: number
   averageDaily: number
+  totalVitamins?: {
+    vitaminA: number
+    vitaminC: number
+    vitaminD: number
+    vitaminE: number
+    vitaminK: number
+    thiamin: number
+    riboflavin: number
+    niacin: number
+    vitaminB6: number
+    folate: number
+    vitaminB12: number
+  }
+  totalMinerals?: {
+    calcium: number
+    iron: number
+    magnesium: number
+    phosphorus: number
+    potassium: number
+    sodium: number
+    zinc: number
+    copper: number
+    manganese: number
+    selenium: number
+  }
   goalInfo?: {
     currentGoal: number
     calculatedNeeds: number
@@ -81,29 +122,42 @@ export interface CalorieSummary {
 export default function CalorieTracker() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [summary, setSummary] = useState<CalorieSummary | null>(null)
-  const [logs, setLogs] = useState<CalorieLog[]>([])
-  const [heatmapData, setHeatmapData] = useState<{ date: string; count: number }[]>([])
-  const [trendsData, setTrendsData] = useState<any[]>([])
-  const [trendsPeriod, setTrendsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
-  const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  // Get macro goals from store
-  const proteinGoal = useProteinGoal()
-  const carbsGoal = useCarbsGoal()
-  const fatGoal = useFatGoal()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [calendarOpen, setCalendarOpen] = useState(false)
-  const [carouselSlide, setCarouselSlide] = useState(0)
+  
   const touchStartXRef = useRef<number | null>(null)
   const touchEndXRef = useRef<number | null>(null)
   const minSwipeDistance = 50
 
-  const handleTouchStart = (event: any) => {
+  const [carouselSlide, setCarouselSlide] = useState(0)
+  const [trendsData, setTrendsData] = useState<any>([])
+  const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState<CalorieSummary | null>(null)
+  const [logs, setLogs] = useState<CalorieLog[]>([])
+  const [heatmapData, setHeatmapData] = useState<any[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [quickAddForm, setQuickAddForm] = useState<CalorieLogForm>({
+    foodName: '',
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    mealType: 'breakfast',
+    quantity: 1
+  })
+  const [isQuickAddActive, setIsQuickAddActive] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'))
+  const [trendsPeriod, setTrendsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
+  
+  const proteinGoal = useProteinGoal()
+  const carbsGoal = useCarbsGoal()
+  const fatGoal = useFatGoal()
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     touchStartXRef.current = event.touches[0]?.clientX ?? null
   }
 
-  const handleTouchMove = (event: any) => {
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
     touchEndXRef.current = event.touches[0]?.clientX ?? null
   }
 
@@ -116,10 +170,10 @@ export default function CalorieTracker() {
     if (Math.abs(distance) > minSwipeDistance) {
       if (distance > 0) {
         // swipe left -> next
-        setCarouselSlide((prev) => (prev + 1) % 2)
+        setCarouselSlide((prev) => (prev + 1) % 4)
       } else {
         // swipe right -> previous
-        setCarouselSlide((prev) => (prev - 1 + 2) % 2)
+        setCarouselSlide((prev) => (prev - 1 + 2) % 4)
       }
     }
 
@@ -127,7 +181,7 @@ export default function CalorieTracker() {
     touchEndXRef.current = null
   }
 
-  const fetchTrendsData = async (period: 'week' | 'month' | 'quarter' = 'week') => {
+  const fetchTrendsData = useCallback(async (period: 'week' | 'month' | 'quarter' = 'week') => {
     try {
       const response = await fetch(`/api/calories/trends?period=${period}`)
       if (response.ok) {
@@ -137,28 +191,15 @@ export default function CalorieTracker() {
     } catch (error) {
       console.error('Error fetching trends data:', error)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchTrendsData(trendsPeriod)
-  }, [trendsPeriod])
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchData()
-      fetchTrendsData(trendsPeriod)
-    } else if (status === 'unauthenticated') {
-      setLoading(false)
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
     }
-  }, [status, selectedDate])
+  }, [status, router])
 
-  // useEffect(() => {
-  //   if (status === 'unauthenticated') {
-  //     router.push('/auth/signin')
-  //   }
-  // }, [status, router])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const targetDate = selectedDate
 
@@ -204,7 +245,21 @@ export default function CalorieTracker() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedDate])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchData()
+    } else if (status === 'unauthenticated') {
+      setLoading(false)
+    }
+  }, [status, fetchData])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchTrendsData(trendsPeriod)
+    }
+  }, [status, trendsPeriod, fetchTrendsData])
 
   const handleTemplateSelect = async (template: any) => {
     setIsSubmitting(true)
@@ -242,6 +297,7 @@ export default function CalorieTracker() {
 
   const addCalorie = async (data: CalorieLogForm) => {
     setIsSubmitting(true)
+    setErrorMessage(null)
     try {
       const response = await fetch('/api/calories/log', {
         method: 'POST',
@@ -250,14 +306,48 @@ export default function CalorieTracker() {
       })
 
       if (response.ok) {
-        fetchData()
+        await fetchData()
+        return true
       }
+
+      const json = await response.json()
+      setErrorMessage(json?.error || 'Failed to save entry')
+      return false
     } catch (error) {
       console.error('Error adding calorie:', error)
+      setErrorMessage('Network error, please retry.')
+      return false
     } finally {
       setIsSubmitting(false)
     }
   }
+
+  const handleQuickAdd = useCallback(async () => {
+    if (!quickAddForm.foodName.trim()) {
+      setErrorMessage('Enter a food name.')
+      return
+    }
+
+    if (!quickAddForm.calories || quickAddForm.calories <= 0) {
+      setErrorMessage('Calories must be greater than zero.')
+      return
+    }
+
+    const success = await addCalorie(quickAddForm)
+    if (success) {
+      setQuickAddForm({
+        foodName: '',
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        mealType: 'breakfast',
+        quantity: 1
+      })
+      setErrorMessage(null)
+      setIsQuickAddActive(false)
+    }
+  }, [quickAddForm, addCalorie])
 
 
   if (status === 'loading') {
@@ -280,20 +370,21 @@ export default function CalorieTracker() {
         <div className="flex items-center justify-between px-4 py-2">
           <div>
             <h1 className="text-2xl font-semibold text-white tracking-tight">Nutrition</h1>
-            <p className="text-zinc-400 text-sm mt-2">Track your daily calories and macros</p>
+            <p className="text-zinc-400 text-sm">Track your daily calories and macros</p>
           </div>
 
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
-              <button className="px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-200">
+              <button className="text-xs text-zinc-300 hover:text-white transition-all duration-200">
                 {selectedDate ? format(new Date(selectedDate), "MMM do, yyyy") : "Today"}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-zinc-800 border-zinc-700" align="end">
               <Calendar
                 mode="single"
+                required
                 selected={dayjs(selectedDate).toDate()}
-                onSelect={(date) => {
+                onSelect={(date: Date | null) => {
                   if (date) {
                     setSelectedDate(dayjs(date).format('YYYY-MM-DD'))
                     setCalendarOpen(false)
@@ -325,19 +416,19 @@ export default function CalorieTracker() {
                     <h3 className="text-lg font-medium text-zinc-300">Daily Calories</h3>
                     <div className="flex items-center justify-center gap-4">
                       <CalorieGauge
-                      current={summary?.totalCalories || 0}
-                      target={summary?.goal || 2000}
-                      size={140}
-                      strokeWidth={8}
-                    />
-                    <div className="space-y-2 pt-2">
-                      <p className="text-xl font-semibold text-white">
-                        {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
-                      </p>
-                      <p className="text-zinc-400">
-                        {Math.round(((summary?.totalCalories || 0) / (summary?.goal || 2000)) * 100)}% of daily goal
-                      </p>
-                    </div>
+                        current={summary?.totalCalories || 0}
+                        target={summary?.goal || 2000}
+                        size={140}
+                        strokeWidth={8}
+                      />
+                      <div className="space-y-2 pt-2 text-left">
+                        <p className="text-sm font-semibold text-white">
+                          {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
+                        </p>
+                        <p className="text-sm text-zinc-400">
+                          {Math.max((summary?.goal || 2000) - (summary?.totalCalories || 0), 0)} kcal remaining
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -381,12 +472,137 @@ export default function CalorieTracker() {
                   </div>
                 </div>
               </div>
+
+              {/* Slide 3: Vitamins */}
+              <div className="w-full flex-shrink-0">
+                <div className="p-4">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium text-zinc-300">Vitamins</h3>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">A</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminA || 0} IU</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">D</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminD || 0} IU</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">E</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminE || 0} IU</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">K</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminK || 0} mcg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">C</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminC || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">B1</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.thiamin || 0} mg</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">B2</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.riboflavin || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">B3</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.niacin || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">B6</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminB6 || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">B9</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.folate || 0} mcg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">B12</span>
+                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminB12 || 0} mcg</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+
+              {/* Slide 4: Minerals */}
+              <div className="w-full flex-shrink-0">
+                <div className="p-4">
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium text-zinc-300">Minerals</h3>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Major Minerals */}
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-medium text-zinc-400">Major Minerals</h4>
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Calcium</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.calcium || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Phosphorus</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.phosphorus || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Potassium</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.potassium || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Sodium</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.sodium || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Magnesium</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.magnesium || 0} mg</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Trace Minerals */}
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-medium text-zinc-400">Trace Minerals</h4>
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Iron</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.iron || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Zinc</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.zinc || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Copper</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.copper || 0} mcg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Manganese</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.manganese || 0} mg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-300">Selenium</span>
+                            <span className="text-white font-mono">{summary?.totalMinerals?.selenium || 0} mcg</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Navigation Controls */}
             <div className="flex items-center justify-center px-6 py-4">
               <button
-                onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
+                onClick={() => setCarouselSlide((prev) => (prev - 1 + 4) % 4)}
                 className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
                 aria-label="Previous slide"
               >
@@ -397,7 +613,7 @@ export default function CalorieTracker() {
 
               {/* Slide Indicators */}
               <div className="flex gap-2">
-                {[0, 1].map((index) => (
+                {[0, 1, 2, 3].map((index) => (
                   <button
                     key={index}
                     onClick={() => setCarouselSlide(index)}
@@ -411,7 +627,7 @@ export default function CalorieTracker() {
               </div>
 
               <button
-                onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
+                onClick={() => setCarouselSlide((prev) => (prev + 1) % 4)}
                 className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
                 aria-label="Next slide"
               >

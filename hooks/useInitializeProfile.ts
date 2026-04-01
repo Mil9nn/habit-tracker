@@ -11,7 +11,7 @@ import { useProfileStore } from '@/store/useProfileStore'
 export function useInitializeProfile() {
   const { status } = useSession()
   const hasInitialized = useRef(false)
-  
+
   useEffect(() => {
     if (status !== 'authenticated') {
       hasInitialized.current = false
@@ -25,13 +25,13 @@ export function useInitializeProfile() {
 
     const initializeProfile = async () => {
       try {
-        console.log('[useInitializeProfile] Starting profile initialization...')
+
         const response = await fetch('/api/user/profile')
-        console.log('[useInitializeProfile] Fetch response status:', response.status)
+
 
         if (response.ok) {
           const data = await response.json()
-          console.log('[useInitializeProfile] Profile data received:', data)
+
 
           if (data.profile) {
             // Map API response to store schema
@@ -54,18 +54,18 @@ export function useInitializeProfile() {
             setProfile(profileData)
             calculateMetrics()
             setInitialized(true)
-            console.log('[useInitializeProfile] Profile initialized successfully')
+
           } else {
             // No profile data, still mark as initialized
             const { setInitialized } = useProfileStore.getState()
             setInitialized(true)
-            console.log('[useInitializeProfile] No profile data, marked initialized')
+
           }
         } else if (response.status === 404) {
           // Profile not found - this is ok, user just needs to create one
           const { setInitialized } = useProfileStore.getState()
           setInitialized(true)
-          console.log('[useInitializeProfile] Profile not found (404), marked initialized')
+
         } else {
           console.warn('[useInitializeProfile] Response not ok:', response.status)
           // Mark as initialized even if fetch failed
@@ -73,7 +73,7 @@ export function useInitializeProfile() {
           setInitialized(true)
         }
       } catch (error) {
-        console.error('[useInitializeProfile] Error fetching profile:', error)
+
         // Mark as initialized even on error
         const { setInitialized } = useProfileStore.getState()
         setInitialized(true)

@@ -30,7 +30,7 @@ export default function WeightChart({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-700">Weight Trend</h3>
+        <h3 className="text-md font-medium text-gray-300">Weight Trend</h3>
         <div className="flex gap-2">
           {["weekly", "monthly"].map((period) => (
             <button

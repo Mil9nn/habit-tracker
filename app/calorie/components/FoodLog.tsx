@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { CalorieLog } from '../page'
-import { format } from 'date-fns'
-import { Edit2, Trash2, MoreVertical, Bookmark } from 'lucide-react'
+import { Edit2, Trash2, Bookmark } from 'lucide-react'
 import { MealEditForm } from '../../../components/MealEditForm'
 import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
 import { toast } from 'sonner'

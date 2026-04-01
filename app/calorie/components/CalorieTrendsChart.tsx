@@ -26,6 +26,30 @@ interface CalorieTrendsChartProps {
   onPeriodChange?: (period: 'week' | 'month' | 'quarter') => void
 }
 
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: TrendData & { movingAvg?: number } }>
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+  if (!active || !payload?.length) return null
+  const d = payload[0].payload
+
+  return (
+    <div className="bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-white rounded-lg shadow-lg">
+      <div className="text-zinc-300">{d.date}</div>
+      <div className="text-violet-400">Calories: {d.calories}</div>
+      <div className="text-zinc-400">Goal: {d.goal}</div>
+      <div>
+        Diff:{' '}
+        <span className={d.calories > d.goal ? 'text-red-400' : 'text-emerald-400'}>
+          {d.calories - d.goal}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTrendsChartProps) {
 
   // ---------- Helpers ----------
@@ -76,30 +100,6 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
 
   const trendLabel =
     trend > 0.03 ? 'Increasing' : trend < -0.03 ? 'Decreasing' : 'Stable'
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (!active || !payload?.length) return null
-
-    const d = payload[0].payload
-
-    return (
-      <div className="bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-white rounded-lg shadow-lg">
-        <div className="text-zinc-300">{d.date}</div>
-        <div className="text-violet-400">Calories: {d.calories}</div>
-        <div className="text-zinc-400">Goal: {d.goal}</div>
-        <div>
-          Diff:{' '}
-          <span
-            className={
-              d.calories > d.goal ? 'text-red-400' : 'text-emerald-400'
-            }
-          >
-            {d.calories - d.goal}
-          </span>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <motion.div

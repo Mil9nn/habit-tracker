@@ -70,6 +70,44 @@ export async function GET(req: Request) {
   const totalProtein = logs.reduce((sum: number, log: any) => sum + (log.protein || 0), 0)    // ✅ Calculate macros
   const totalCarbs = logs.reduce((sum: number, log: any) => sum + (log.carbs || 0), 0)        // ✅ Calculate macros
   const totalFat = logs.reduce((sum: number, log: any) => sum + (log.fat || 0), 0)            // ✅ Calculate macros
+  
+  // Calculate micro-nutrients
+  const totalVitamins = logs.reduce((totals: any, log: any) => {
+    if (log.vitamins) {
+      return {
+        vitaminA: (totals.vitaminA || 0) + (log.vitamins.vitaminA || 0),
+        vitaminC: (totals.vitaminC || 0) + (log.vitamins.vitaminC || 0),
+        vitaminD: (totals.vitaminD || 0) + (log.vitamins.vitaminD || 0),
+        vitaminE: (totals.vitaminE || 0) + (log.vitamins.vitaminE || 0),
+        vitaminK: (totals.vitaminK || 0) + (log.vitamins.vitaminK || 0),
+        thiamin: (totals.thiamin || 0) + (log.vitamins.thiamin || 0),
+        riboflavin: (totals.riboflavin || 0) + (log.vitamins.riboflavin || 0),
+        niacin: (totals.niacin || 0) + (log.vitamins.niacin || 0),
+        vitaminB6: (totals.vitaminB6 || 0) + (log.vitamins.vitaminB6 || 0),
+        folate: (totals.folate || 0) + (log.vitamins.folate || 0),
+        vitaminB12: (totals.vitaminB12 || 0) + (log.vitamins.vitaminB12 || 0)
+      }
+    }
+    return totals
+  }, {})
+
+  const totalMinerals = logs.reduce((totals: any, log: any) => {
+    if (log.minerals) {
+      return {
+        calcium: (totals.calcium || 0) + (log.minerals.calcium || 0),
+        iron: (totals.iron || 0) + (log.minerals.iron || 0),
+        magnesium: (totals.magnesium || 0) + (log.minerals.magnesium || 0),
+        phosphorus: (totals.phosphorus || 0) + (log.minerals.phosphorus || 0),
+        potassium: (totals.potassium || 0) + (log.minerals.potassium || 0),
+        sodium: (totals.sodium || 0) + (log.minerals.sodium || 0),
+        zinc: (totals.zinc || 0) + (log.minerals.zinc || 0),
+        copper: (totals.copper || 0) + (log.minerals.copper || 0),
+        manganese: (totals.manganese || 0) + (log.minerals.manganese || 0),
+        selenium: (totals.selenium || 0) + (log.minerals.selenium || 0)
+      }
+    }
+    return totals
+  }, {})
   const goal = profile?.dailyCalorieGoal || 2000
   const progress = Math.min((totalCalories / goal) * 100, 100)
   
@@ -100,6 +138,8 @@ export async function GET(req: Request) {
     totalProtein,    // ✅ Return macros
     totalCarbs,      // ✅ Return macros
     totalFat,        // ✅ Return macros
+    totalVitamins: Object.keys(totalVitamins).length > 0 ? totalVitamins : undefined,
+    totalMinerals: Object.keys(totalMinerals).length > 0 ? totalMinerals : undefined,
     goal,
     progress,
     entryCount: logs.length,

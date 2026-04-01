@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from "@/components/ui/button"
 
 interface FoodAnalysis {
   foods: Array<{
@@ -45,44 +44,11 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
 
       if (response.ok) {
         const analysis = await response.json()
-        
-        // Create a single meal entry instead of individual food entries
-        setIsAddingFoods(true)
-        
-        const mealData = {
-          foodName: `${analysis.foods.map((f: any) => `${f.quantity}× ${f.name}`).join(', ')}`,
-          calories: analysis.totalCalories,
-          protein: analysis.totalProtein || 0,
-          carbs: analysis.totalCarbs || 0,
-          fat: analysis.totalFat || 0,
-          mealType: 'breakfast',
-          quantity: 1,
-          isMeal: true,
-          mealItems: analysis.foods.map((food: any) => ({
-            name: food.name,
-            quantity: food.quantity,
-            calories: food.calories,
-            protein: food.protein || 0,
-            carbs: food.carbs || 0,
-            fat: food.fat || 0
-          }))
-        }
 
-        const mealResponse = await fetch('/api/calories/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(mealData)
-        })
-
-        if (mealResponse.ok) {
-          // Clear everything and refresh data
-          setAiAnalysis(null)
-          setAiFoodDescription('')
-          onDataAdded?.()
-        } else {
-          setAiAnalysis(analysis)
-          console.error('Failed to add meal')
-        }
+        // Show parsed analysis for confirmation before adding
+        setAiAnalysis(analysis)
+      } else {
+        console.error('AI analysis request failed')
       }
     } catch (error) {
       console.error('Error analyzing food:', error)
@@ -100,7 +66,7 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
     try {
       // Create a single meal entry instead of individual food entries
       const mealData = {
-        foodName: `${aiAnalysis.foods.map((f: any) => `${f.quantity}× ${f.name}`).join(', ')}`,
+        foodName: `${aiAnalysis.foods.map((f) => `${f.quantity}× ${f.name}`).join(', ')}`,
         calories: aiAnalysis.totalCalories,
         protein: aiAnalysis.totalProtein || 0,
         carbs: aiAnalysis.totalCarbs || 0,
@@ -108,7 +74,7 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         mealType: 'breakfast',
         quantity: 1,
         isMeal: true,
-        mealItems: aiAnalysis.foods.map((food: any) => ({
+        mealItems: aiAnalysis.foods.map((food) => ({
           name: food.name,
           quantity: food.quantity,
           calories: food.calories,

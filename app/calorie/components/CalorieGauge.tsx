@@ -66,8 +66,8 @@ export default function CalorieGauge({
       
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <Flame className="w-6 h-6 text-violet-400 mb-2" />
-        <span className="text-xl font-medium text-white">
+        <Flame className="size-5 text-violet-400 mb-2" />
+        <span className="text-sm font-medium text-white">
           {Math.round(animatedProgress)}%
         </span>
       </div>

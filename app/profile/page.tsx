@@ -32,8 +32,6 @@ function ProfilePageContent() {
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
 
-  console.log("Profile", profile, "Initialized:", isInitialized);
-
   useEffect(() => {
     if (status === 'authenticated') {
       // Fetch today's calories

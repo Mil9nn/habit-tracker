@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import CalendarHeatmap from 'react-calendar-heatmap'
 import 'react-calendar-heatmap/dist/styles.css'
 
@@ -10,24 +10,23 @@ interface CalorieHeatmapProps {
 }
 
 export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
-  const [processedData, setProcessedData] = useState<any[]>([])
+  const processedData = useMemo(() => {
+    // Process data for heatmap with dynamic scaling so light and heavy days are visible
+    const maxValue = Math.max(1, ...data.map(entry => entry.count))
+    const base = goal && goal > 0 ? goal : maxValue
 
-  useEffect(() => {
-    // Process data for heatmap - use simple 5-level coloring based on calorie count
-    const heatmapData = data.map(entry => {
-      // Simple division into 5 levels regardless of goal
-      const level = Math.min(Math.floor(entry.count / 200), 4) // Roughly every 200 calories = 1 level, max 4
+    return data.map(entry => {
+      const ratio = entry.count / base
+      const level = Math.min(4, Math.floor(ratio * 5))
 
       return {
         date: entry.date,
         count: level
       }
     })
+  }, [data, goal])
 
-    setProcessedData(heatmapData)
-  }, [data])
-
-  const classForValue = (value: any) => {
+  const classForValue = (value: { count?: number; date?: string } | null) => {
     const count = value?.count || 0
     if (count === 0) return 'fill-white'
     if (count === 1) return 'fill-green-100'
@@ -37,7 +36,7 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
     return 'fill-green-900'
   }
 
-  const getTooltipDataAttrs = (value: any) => {
+  const getTooltipDataAttrs = (value: { date?: string; count?: number } | null) => {
     if (!value || value.count === 0) {
       return {
         'data-tip': 'No calorie intake recorded'
@@ -49,6 +48,15 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
     return {
       'data-tip': `${calories} calories consumed`
     }
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="w-full p-4">
+        <h3 className="text-lg font-medium text-white">Activity Heatmap</h3>
+        <p className="text-sm text-zinc-400 mt-2">No historical log found yet. Add some entries to view your streak heatmap.</p>
+      </div>
+    )
   }
 
   return (

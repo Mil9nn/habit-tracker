@@ -104,8 +104,6 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
   }, [step, profile, setValue])
 
   const onSubmit = async (data: ProfileFormData) => {
-    console.log('Form submitted with data:', data)
-    console.log('Current step:', step)
     setLoading(true)
 
     try {

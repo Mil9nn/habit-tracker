@@ -68,9 +68,6 @@ export default function WeightTracker() {
   const profileLoading = useProfileLoading()
   const profileInitialized = useProfileInitialized()
 
-  // Debug: Check goal state
-  console.log("Goal state:", goal, "Type:", typeof goal, "Falsy:", !goal)
-
   // Get profile store actions
   const store = useProfileStore()
   const setProfile = store.setProfile
@@ -351,44 +348,58 @@ export default function WeightTracker() {
 
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 justify-between">
-              <h1 className="text-2xl font-semibold text-white tracking-tight">Weight Tracking</h1>
-              <button
-                onClick={() => setShowGoalModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-colors border border-white/20"
-              >
-                <Edit2 className="w-4 h-4" />
-                Goal: <span className="text-emerald-400 font-semibold">{goal?.targetWeight || '--'}</span> {unit}
-              </button>
-            </div>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-sm text-gray-400 mt-1">Monitor your weight progress and goals</p>
-              </div>
-            </div>
+            <h1 className="text-xl font-semibold text-white tracking-tight">Weight Tracking</h1>
+            <p className="text-sm text-gray-400 mt-1">Monitor your weight progress and goals</p>
           </div>
 
           {/* Main Stats Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            {/* Current Weight */}
-            <div className="lg:col-span-1">
-              <div className="text-center">
-                <div className="mt-4 space-y-1">
-                  <p className="text-sm font-medium text-gray-300">
-                    Current Weight
-                  </p>
-                  <p className="text-3xl font-light text-white">
-                    {currentWeight || '--'} <span className="text-lg text-gray-400">{unit}</span>
-                  </p>
-                  {totalChange && (
-                    <p className={`text-xs ${totalChange < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {totalChange < 0 ? '↓' : '↑'} {Math.abs(totalChange)} {unit} total
-                    </p>
-                  )}
-                </div>
+            {/* Current Weight Card */}
+            <div className="relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 hover:bg-white/10 transition-all">
+
+              <p className="text-xs tracking-wide text-gray-400 uppercase">
+                Current Weight
+              </p>
+
+              <div className="mt-2 flex items-end gap-2">
+                <p className="text-3xl font-light text-white">
+                  {currentWeight || '--'}
+                </p>
+                <span className="text-sm text-gray-400 mb-1">{unit}</span>
               </div>
+
+              {totalChange && (
+                <p
+                  className={`mt-2 text-xs font-medium ${totalChange < 0 ? 'text-emerald-400' : 'text-red-400'
+                    }`}
+                >
+                  {totalChange < 0 ? '↓' : '↑'} {Math.abs(totalChange)} {unit} total
+                </p>
+              )}
             </div>
+
+            {/* Goal Card */}
+            <button
+              onClick={() => setShowGoalModal(true)}
+              className="group relative text-left rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 hover:bg-white/10 transition-all"
+            >
+              <p className="text-xs tracking-wide text-gray-400 uppercase flex items-center gap-2">
+                Goal
+              </p>
+
+              <div className="mt-2 flex items-end gap-2">
+                <p className="text-3xl font-light text-emerald-400">
+                  {goal?.targetWeight || '--'}
+                </p>
+                <span className="text-sm text-gray-400 mb-1">{unit}</span>
+              </div>
+
+              <p className="mt-2 text-xs text-gray-500 group-hover:text-gray-300 transition">
+                Click to update goal
+              </p>
+            </button>
+
           </div>
 
           {/* Main Content Grid */}
@@ -418,19 +429,18 @@ export default function WeightTracker() {
               />
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-6">
-              <WeightChart
-                entries={entries}
-                unit={unit}
-                trendView={trendView}
-                setTrendView={setTrendView}
-                progressPercentage={progressPercentage}
-                remainingWeight={remainingWeight}
-                weeklyChange={weeklyChange}
-                projectedWeeks={projectedWeeks}
-              />
-            </div>
+
+            <WeightChart
+              entries={entries}
+              unit={unit}
+              trendView={trendView}
+              setTrendView={setTrendView}
+              progressPercentage={progressPercentage}
+              remainingWeight={remainingWeight}
+              weeklyChange={weeklyChange}
+              projectedWeeks={projectedWeeks}
+            />
+
           </div>
         </div>
       </div>
