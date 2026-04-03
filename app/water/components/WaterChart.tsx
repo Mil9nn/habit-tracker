@@ -32,21 +32,21 @@ export default function WaterChart({ data }: WaterChartProps) {
     (filteredData.length || 1)
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-6">
+    <div className="w-full max-w-xl mx-auto">
       
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-md font-bold text-white">Water Intake</span>
+        <span className="text-md font-bold text-black/80">Water Intake</span>
 
         <div className="flex items-center gap-2">
           {["weekly", "monthly"].map((t) => (
             <button
               key={t}
               onClick={() => setTimePeriod(t as TimePeriod)}
-              className={`text-sm px-2 py-1 transition ${
+              className={`text-sm py-1 transition ${
                 timePeriod === t
-                  ? "text-blue-400"
-                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                  ? "text-blue-500"
+                  : "text-gray-500 hover:text-gray-400 hover:bg-white/5"
               }`}
             >
               {t}
@@ -80,11 +80,11 @@ export default function WaterChart({ data }: WaterChartProps) {
             />
 
             <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.05)" }}
+              cursor={{ fill: "#ffffffaa" }}
               contentStyle={{
                 borderRadius: "8px",
                 border: "1px solid rgba(255,255,255,0.2)",
-                backgroundColor: "rgba(69, 81, 101, 0.95)",
+                backgroundColor: "rgba(142, 163, 200, 0.95)",
                 color: "white",
                 fontSize: "12px",
                 backdropFilter: "blur(8px)"

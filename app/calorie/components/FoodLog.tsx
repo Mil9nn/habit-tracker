@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { CalorieLog } from '../page'
-import { Edit2, Trash2, Bookmark } from 'lucide-react'
+import { Edit2, Trash2, Bookmark, Salad } from 'lucide-react'
 import { MealEditForm } from '../../../components/MealEditForm'
 import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
 import { toast } from 'sonner'
@@ -94,12 +94,14 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
       <div className="space-y-4 p-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-white">
+          <h3 className="text-lg font-medium text-black">
             Food Log
           </h3>
-          <span className="text-sm text-zinc-400">
-            {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
-          </span>
+          {logs.length > 0 && (
+            <span className="text-sm text-zinc-400">
+              {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
+            </span>
+          )}
         </div>
 
         {/* Entries */}
@@ -113,7 +115,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <span className="text-white font-medium truncate">
+                      <span className="text-black font-medium truncate">
                         {log.foodName}
                       </span>
                       <span className="text-violet-400 font-semibold">
@@ -140,7 +142,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                     </button>
                     <button
                       onClick={() => setEditingMeal(log)}
-                      className="p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-zinc-700"
+                      className="p-2 text-zinc-400 hover:text-black transition-colors rounded-lg hover:bg-zinc-700"
                       title="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -170,8 +172,23 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
             ))}
           </div>
         ) : (
-          <div className="py-12 text-center text-zinc-500">
-            No entries for this day
+          <div className="flex flex-col items-center justify-center text-center p-5">
+
+            {/* Icon */}
+            <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100 shadow-sm mb-5">
+              <Salad className="w-6 h-6 text-emerald-500" />
+            </div>
+
+            {/* Title */}
+            <h3 className="text-base font-semibold text-zinc-800">
+              No meals logged yet
+            </h3>
+
+            {/* Subtitle */}
+            <p className="text-sm text-zinc-500 mt-1 max-w-xs">
+              Start tracking your calories and macros by adding your first meal.
+            </p>
+
           </div>
         )}
       </div>

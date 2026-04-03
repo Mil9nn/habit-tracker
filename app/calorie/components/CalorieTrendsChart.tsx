@@ -36,7 +36,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   const d = payload[0].payload
 
   return (
-    <div className="bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-white rounded-lg shadow-lg">
+    <div className="bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-black rounded-lg shadow-lg">
       <div className="text-zinc-300">{d.date}</div>
       <div className="text-violet-400">Calories: {d.calories}</div>
       <div className="text-zinc-400">Goal: {d.goal}</div>
@@ -105,11 +105,11 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full space-y-4 p-4"
+      className="w-full space-y-4"
     >
       {/* Header */}
-      <div className="">
-        <h3 className="text-lg font-medium text-white">Calorie Trends</h3>
+      <div className="px-4">
+        <h3 className="text-lg font-medium text-black">Calorie Trends</h3>
         
         {onPeriodChange && (
           <div className="flex items-center justify-end gap-2 mt-2">
@@ -120,7 +120,7 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
                 className={`text-sm transition-all duration-200 ${
                   period === p 
                     ? 'text-violet-400' 
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                    : 'text-zinc-400 hover:text-black hover:bg-zinc-800'
                 }`}
               >
                 {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -133,7 +133,7 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="text-center">
-          <div className="text-sm font-semibold text-white">{avgCalories}</div>
+          <div className="text-sm font-semibold text-black">{avgCalories}</div>
           <div className="text-xs text-zinc-400">Avg Calories</div>
         </div>
         <div className="text-center">

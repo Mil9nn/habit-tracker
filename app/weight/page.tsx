@@ -344,27 +344,27 @@ export default function WeightTracker() {
   return (
     <MainLayout>
       <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto p-6">
 
           {/* Header Section */}
           <div className="mb-8">
-            <h1 className="text-xl font-semibold text-white tracking-tight">Weight Tracking</h1>
+            <h1 className="text-lg font-semibold text-black tracking-tight">Weight Tracking</h1>
             <p className="text-sm text-gray-400 mt-1">Monitor your weight progress and goals</p>
           </div>
 
           {/* Main Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <section className="grid grid-cols-2 gap-2 mb-10">
 
             {/* Current Weight Card */}
-            <div className="relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 hover:bg-white/10 transition-all">
+            <div className="relative rounded-2xl border border-black/10 bg-white/5 backdrop-blur-md p-5 hover:bg-white/10 transition-all">
 
               <p className="text-xs tracking-wide text-gray-400 uppercase">
                 Current Weight
               </p>
 
               <div className="mt-2 flex items-end gap-2">
-                <p className="text-3xl font-light text-white">
-                  {currentWeight || '--'}
+                <p className="text-3xl font-light text-black">
+                  {currentWeight || '__'}
                 </p>
                 <span className="text-sm text-gray-400 mb-1">{unit}</span>
               </div>
@@ -382,9 +382,9 @@ export default function WeightTracker() {
             {/* Goal Card */}
             <button
               onClick={() => setShowGoalModal(true)}
-              className="group relative text-left rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 hover:bg-white/10 transition-all"
+              className="group relative text-left rounded-2xl border border-black/10 bg-black/5 backdrop-blur-md p-4 hover:bg-white/10 transition-all"
             >
-              <p className="text-xs tracking-wide text-gray-400 uppercase flex items-center gap-2">
+              <p className="text-xs tracking-wide text-gray-500 uppercase flex items-center gap-2">
                 Goal
               </p>
 
@@ -392,21 +392,21 @@ export default function WeightTracker() {
                 <p className="text-3xl font-light text-emerald-400">
                   {goal?.targetWeight || '--'}
                 </p>
-                <span className="text-sm text-gray-400 mb-1">{unit}</span>
+                <span className="text-sm text-gray-500 mb-1">{unit}</span>
               </div>
 
-              <p className="mt-2 text-xs text-gray-500 group-hover:text-gray-300 transition">
+              <p className="mt-2 text-xs text-gray-600 group-hover:text-gray-300 transition">
                 Click to update goal
               </p>
             </button>
 
-          </div>
+          </section>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
 
             {/* Left Column */}
-            <div className="space-y-2">
+            <div className="space-y-10">
               <WeightLogInput
                 weight={weight}
                 setWeight={setWeight}

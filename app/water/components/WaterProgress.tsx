@@ -26,7 +26,7 @@ export default function WaterProgress({ current, goal, onClick }: WaterProgressP
       }}
     >
       {/* Background circle */}
-      <div className="w-32 h-32 rounded-full border-8 border-white/10" />
+      <div className="w-32 h-32 rounded-full border-8 border-black/10" />
       
       {/* Progress circle */}
       <svg className="absolute inset-0 w-32 h-32 transform -rotate-90">
@@ -63,7 +63,7 @@ export default function WaterProgress({ current, goal, onClick }: WaterProgressP
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <Droplets className="w-5 h-5 text-blue-400 mb-1" />
-        <span className="text-lg font-light text-white">
+        <span className="text-lg font-light text-black/80">
           {Math.round(percentage)}%
         </span>
       </div>

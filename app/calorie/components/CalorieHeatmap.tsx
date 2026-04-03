@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import CalendarHeatmap from 'react-calendar-heatmap'
+import { CalendarDays } from 'lucide-react'
 import 'react-calendar-heatmap/dist/styles.css'
 
 interface CalorieHeatmapProps {
@@ -52,16 +53,39 @@ export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
 
   if (data.length === 0) {
     return (
-      <div className="w-full p-4">
-        <h3 className="text-lg font-medium text-white">Activity Heatmap</h3>
-        <p className="text-sm text-zinc-400 mt-2">No historical log found yet. Add some entries to view your streak heatmap.</p>
+      <div className="w-full p-5">
+
+        {/* Header */}
+        <h3 className="text-lg font-semibold text-zinc-800 mb-4">
+          Activity Heatmap
+        </h3>
+
+        {/* Empty State */}
+        <div className="flex flex-col items-center justify-center text-center py-10">
+
+          {/* Icon */}
+          <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 shadow-sm mb-4">
+            <CalendarDays className="w-6 h-6 text-indigo-500" />
+          </div>
+
+          {/* Title */}
+          <p className="text-sm font-medium text-zinc-700">
+            No activity yet
+          </p>
+
+          {/* Description */}
+          <p className="text-xs text-zinc-500 mt-1 max-w-xs">
+            Your daily food logs will appear here as a streak heatmap.
+            Start logging meals to build consistency.
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="w-full p-4">
-      <h3 className="text-lg font-medium text-white">Activity Heatmap</h3>
+      <h3 className="text-lg font-medium text-black">Activity Heatmap</h3>
 
       <div className="overflow-x-auto -mx-4 px-4">
         <div style={{ minWidth: '1000px' }} className="p-2">

@@ -42,10 +42,10 @@ export default function WeightLogInput({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="65.5"
-            className="w-full px-2 text-white border-b-2 border-zinc-500 focus:border-blue-500 transition-colors outline-none text-sm"
+            className="w-full px-2 text-black/80 border-b-2 border-zinc-500 focus:border-blue-500 transition-colors outline-none text-sm"
           />
 
-          <span className="text-sm text-zinc-300">{unit}</span>
+          <span className="text-sm text-zinc-600">{unit}</span>
         </div>
         
         {/* Button */}

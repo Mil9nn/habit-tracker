@@ -232,13 +232,13 @@ export default function WaterTracker() {
 
           {/* Header Section */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Hydration</h1>
+            <h1 className="text-2xl font-semibold text-black tracking-tight">Hydration</h1>
             <p className="text-sm text-gray-400 mt-1">Track your daily water intake</p>
           </div>
 
           {/* Daily Summary - Carousel */}
-          <div className="space-y-6 mb-8">
-            <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+          <section className="space-y-6 mb-10">
+            <div className="relative bg-black/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
               {/* Carousel Container */}
               <div
                 className="flex transition-transform duration-500 ease-in-out"
@@ -261,7 +261,7 @@ export default function WaterTracker() {
                           }}
                         />
                         <div className="space-y-2">
-                          <p className="text-sm font-semibold text-white">
+                          <p className="text-sm font-semibold text-black">
                             <span className="text-blue-400">{todayTotal}</span> / <span className="text-emerald-400">{goal}</span> ml
                           </p>
                           <p className="text-xs text-gray-400">
@@ -287,7 +287,7 @@ export default function WaterTracker() {
               <div className="flex items-center justify-center px-6 py-4">
                 <button
                   onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
-                  className="hidden md:block p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                  className="hidden md:block p-2 hover:bg-black/10 rounded-lg transition-colors text-gray-400 hover:text-black"
                   aria-label="Previous slide"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,8 +302,8 @@ export default function WaterTracker() {
                       key={index}
                       onClick={() => setCarouselSlide(index)}
                       className={`h-2 rounded-full transition-all duration-300 ${carouselSlide === index
-                        ? 'bg-blue-500 w-6'
-                        : 'bg-white/20 w-2 hover:bg-white/30'
+                        ? 'bg-blue-500 w-4'
+                        : 'bg-black/20 w-2 hover:bg-white/30'
                         }`}
                       aria-label={`Go to slide ${index + 1}`}
                     />
@@ -312,7 +312,7 @@ export default function WaterTracker() {
 
                 <button
                   onClick={() => setCarouselSlide(carouselSlide === 0 ? 1 : 0)}
-                  className="hidden md:block p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                  className="hidden md:block p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-black"
                   aria-label="Next slide"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,13 +321,13 @@ export default function WaterTracker() {
                 </button>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
 
             {/* Left Column */}
-            <div className="space-y-4">
+            <section className="space-y-6 mb-10">
               <WaterInput onLog={handleLog} />
 
               <div className="flex flex-wrap gap-2">
@@ -341,18 +341,15 @@ export default function WaterTracker() {
                   <button
                     key={amount}
                     onClick={() => handleQuickLog(amount)}
-                    className="px-4 py-2 text-sm border border-white/20 text-gray-300 hover:border-blue-400/50 hover:text-blue-400 rounded-full transition-colors bg-zinc-950 hover:bg-zinc-900"
+                    className="px-4 py-2 text-sm border border-black/10 text-gray-600 hover:border-blue-400/50 hover:border-2 hover:scale-105 active:scale-95 ease-in-out hover:text-blue-400 rounded-lg shadow-sm transition-all"
                   >
                     {label}
                   </button>
                 ))}
               </div>
-            </div>
+            </section>
 
-            {/* Right Column */}
-            <div className="space-y-6">
-              <WaterChart data={chartData} />
-            </div>
+            <WaterChart data={chartData} />
           </div>
         </div>
       </div>
@@ -374,7 +371,7 @@ export default function WaterTracker() {
               className="bg-slate-800 backdrop-blur-md rounded-2xl p-8 w-[90%] max-w-[400px] border border-white/20"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="text-lg font-medium text-white mb-4">
+              <h3 className="text-lg font-medium text-black mb-4">
                 Set Your Water Goal
               </h3>
               <p className="text-sm text-gray-300 mb-6">
@@ -384,7 +381,7 @@ export default function WaterTracker() {
                 <input
                   type="number"
                   placeholder={goal ? goal.toString() : "e.g. 2000"}
-                  className="flex-1 p-2 border-b-2 border-red-500 text-white placeholder-gray-400 outline-none focus:border-blue-400"
+                  className="flex-1 p-2 border-b-2 border-red-500 text-black placeholder-gray-400 outline-none focus:border-blue-400"
                   value={tempGoal}
                   onChange={e => setTempGoal(e.target.value)}
                 />
@@ -401,7 +398,7 @@ export default function WaterTracker() {
                 </button>
                 <button
                   onClick={handleGoalUpdate}
-                  className="flex-1 p-3 rounded-lg bg-blue-700 text-white font-medium text-sm hover:from-blue-600 hover:to-purple-700 transition-colors"
+                  className="flex-1 p-3 rounded-lg bg-blue-700 text-black font-medium text-sm hover:from-blue-600 hover:to-purple-700 transition-colors"
                 >
                   Set Goal
                 </button>

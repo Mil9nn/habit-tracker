@@ -106,14 +106,14 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
   }
 
   return (
-    <div className="space-y-4 px-4 py-2">
+    <div className="px-4 py-2">
       {/* Input Section */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <textarea
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
           placeholder="Describe your meal (e.g., grilled chicken salad with avocado)"
-          className="w-full rounded-xl bg-zinc-950 border-2 border-zinc-900 shadow-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 px-4 py-3 text-sm resize-none transition-all duration-200"
+          className="w-full rounded-xl bg-zinc-200 border-2 border-zinc-200 shadow-sm text-black placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500/70 px-4 py-3 text-sm resize-none transition-all duration-200"
           rows={3}
         />
 

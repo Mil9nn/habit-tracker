@@ -37,19 +37,31 @@ export default function Header({ title = "CaloMind" }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 fixed top-0 left-0 right-0 z-50">
+      <header className="bg-white border-b border-gray-200/70 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div 
-              className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+          <div className="flex items-center justify-between">
+            <div
+              className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity duration-200"
               onClick={() => setIsSidePanelOpen(true)}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-6 w-6 text-white fill-current">
-                  <path d="M320 176C311.2 176 304 168.8 304 160L304 144C304 99.8 339.8 64 384 64L400 64C408.8 64 416 71.2 416 80L416 96C416 140.2 380.2 176 336 176L320 176zM96 352C96 275.7 131.7 192 208 192C235.3 192 267.7 202.3 290.7 211.3C309.5 218.6 330.6 218.6 349.4 211.3C372.3 202.4 404.8 192 432.1 192C508.4 192 544.1 275.7 544.1 352C544.1 480 464.1 576 384.1 576C367.6 576 346 569.4 332.6 564.7C324.5 561.9 315.7 561.9 307.6 564.7C294.2 569.4 272.6 576 256.1 576C176.1 576 96.1 480 96.1 352z"/>
-                </svg>
+              <div className="">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640"
+                className="h-8 w-8"
+              >
+                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f43f5e" /> {/* rose-500 */}
+                  <stop offset="80%" stopColor="#6366f1" /> {/* indigo-500 */}
+                </linearGradient>
+
+                <path
+                  fill="url(#iconGradient)"
+                  d="M320 176C311.2 176 304 168.8 304 160L304 144C304 99.8 339.8 64 384 64L400 64C408.8 64 416 71.2 416 80L416 96C416 140.2 380.2 176 336 176L320 176zM96 352C96 275.7 131.7 192 208 192C235.3 192 267.7 202.3 290.7 211.3C309.5 218.6 330.6 218.6 349.4 211.3C372.3 202.4 404.8 192 432.1 192C508.4 192 544.1 275.7 544.1 352C544.1 480 464.1 576 384.1 576C367.6 576 346 569.4 332.6 564.7C324.5 561.9 315.7 561.9 307.6 564.7C294.2 569.4 272.6 576 256.1 576C176.1 576 96.1 480 96.1 352z"
+                />
+              </svg>
               </div>
-              <h1 className="text-xl font-semibold text-white tracking-tight">{formatTitle(title)}</h1>
+              <h1 className="flex items-center text-lg font-semibold tracking-tight mt-1">{formatTitle(title)}</h1>
             </div>
 
             {/* Profile Avatar - Smart Link */}

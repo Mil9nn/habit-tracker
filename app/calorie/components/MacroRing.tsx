@@ -86,7 +86,7 @@ export default function MacroRing({
       {/* Label and values */}
       <div className="text-center">
         <p className="text-xs font-medium text-zinc-400">{label}</p>
-        <span className="text-xs font-semibold text-white">
+        <span className="text-xs font-semibold text-black/80">
           {Math.round(current * 10) / 10}g {" "}
         </span>
         <span className="text-xs text-zinc-500">

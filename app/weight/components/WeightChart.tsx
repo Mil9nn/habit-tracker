@@ -30,7 +30,7 @@ export default function WeightChart({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-md font-medium text-gray-300">Weight Trend</h3>
+        <h3 className="text-md font-medium text-gray-600">Weight Trend</h3>
         <div className="flex gap-2">
           {["weekly", "monthly"].map((period) => (
             <button
@@ -42,7 +42,7 @@ export default function WeightChart({
               className={`text-xs px-2 py-1 rounded-md transition-colors ${
                 timePeriod === period
                   ? "bg-blue-100 text-blue-600"
-                  : "text-gray-400 hover:text-gray-600"
+                  : "text-gray-500 hover:text-gray-600"
               }`}
             >
               {period}
@@ -86,7 +86,7 @@ export default function WeightChart({
       </div>
 
       {/* Footer Stats */}
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-gray-600">
         <span>
           {weeklyChange !== null && (
             <>

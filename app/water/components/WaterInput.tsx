@@ -29,10 +29,10 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
           placeholder="Enter amount"
           step="100"
           min="0"
-          className="w-full p-2 border-b-2 max-w-50 border-white shadow-sm text-white placeholder:text-gray-400 outline-none focus:border-blue-400"
+          className="w-full p-2 border-b-2 max-w-50 border-white shadow-sm text-black/80 placeholder:text-gray-400 outline-none focus:border-blue-400"
           disabled={disabled}
         />
-        <span className="absolute right-2 top-1/2 transform -translate-y-1/2">
+        <span className="absolute text-black right-2 top-1/2 transform -translate-y-1/2">
           ml
         </span>
       </div>
@@ -42,7 +42,7 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
         disabled={!waterIntake || isNaN(parseFloat(waterIntake)) || disabled}
         whileTap={{ scale: 0.95 }}
         whileHover={{ scale: 1.02 }}
-        className="px-6 py-3 bg-blue-500 text-white text-sm font-medium rounded-full hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="px-6 py-3 bg-blue-500 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         Add Water
       </motion.button>

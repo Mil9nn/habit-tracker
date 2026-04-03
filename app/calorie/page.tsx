@@ -122,7 +122,7 @@ export interface CalorieSummary {
 export default function CalorieTracker() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   const touchStartXRef = useRef<number | null>(null)
   const touchEndXRef = useRef<number | null>(null)
   const minSwipeDistance = 50
@@ -148,7 +148,7 @@ export default function CalorieTracker() {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [trendsPeriod, setTrendsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
-  
+
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
@@ -193,11 +193,11 @@ export default function CalorieTracker() {
     }
   }, [])
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    }
-  }, [status, router])
+  // useEffect(() => {
+  //   if (status === 'unauthenticated') {
+  //     router.push('/auth/signin')
+  //   }
+  // }, [status, router])
 
   const fetchData = useCallback(async () => {
     try {
@@ -369,13 +369,13 @@ export default function CalorieTracker() {
         {/* Header Section */}
         <div className="flex items-center justify-between px-4 py-2">
           <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Nutrition</h1>
-            <p className="text-zinc-400 text-sm">Track your daily calories and macros</p>
+            <h1 className="text-2xl font-semibold text-black tracking-tight">Nutrition</h1>
+            <p className="text-zinc-500 text-sm">Track your daily calories and macros</p>
           </div>
 
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
-              <button className="text-xs text-zinc-300 hover:text-white transition-all duration-200">
+              <button className="text-xs text-zinc-400 hover:text-black transition-all duration-200">
                 {selectedDate ? format(new Date(selectedDate), "MMM do, yyyy") : "Today"}
               </button>
             </PopoverTrigger>
@@ -392,15 +392,15 @@ export default function CalorieTracker() {
                 }}
                 disabled={(date) => date > new Date()}
                 initialFocus
-                className="text-white"
+                className="text-black"
               />
             </PopoverContent>
           </Popover>
         </div>
 
         {/* Daily Summary - Carousel */}
-        <div className="space-y-6 px-4">
-          <div className="relative bg-zinc-900/50 rounded-2xl border border-zinc-800 overflow-hidden">
+        <section className="space-y-6 px-4 mb-10">
+          <div className="relative bg-zinc-200/50 rounded-2xl border border-zinc-200 overflow-hidden">
             {/* Carousel Container */}
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -413,7 +413,7 @@ export default function CalorieTracker() {
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
                   <div className="text-center space-y-4">
-                    <h3 className="text-lg font-medium text-zinc-300">Daily Calories</h3>
+                    <h3 className="text-lg font-medium text-zinc-500">Daily Calories</h3>
                     <div className="flex items-center justify-center gap-4">
                       <CalorieGauge
                         current={summary?.totalCalories || 0}
@@ -422,7 +422,7 @@ export default function CalorieTracker() {
                         strokeWidth={8}
                       />
                       <div className="space-y-2 pt-2 text-left">
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-black">
                           {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
                         </p>
                         <p className="text-sm text-zinc-400">
@@ -438,9 +438,9 @@ export default function CalorieTracker() {
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
                   <div className="space-y-8">
-                    <h3 className="text-lg font-medium text-zinc-300">Macronutrients</h3>
+                    <h3 className="text-lg font-medium text-zinc-600">Macronutrients</h3>
 
-                    <div className="flex justify-center items-center gap-8">
+                    <div className="flex justify-center items-center gap-6">
                       <MacroRing
                         current={summary?.totalProtein || 0}
                         goal={proteinGoal || 150}
@@ -476,120 +476,120 @@ export default function CalorieTracker() {
               {/* Slide 3: Vitamins */}
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium text-zinc-300">Vitamins</h3>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-zinc-600">Vitamins</h3>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">A</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminA || 0} IU</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">D</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminD || 0} IU</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">E</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminE || 0} IU</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">K</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminK || 0} mcg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">C</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminC || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">B1</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.thiamin || 0} mg</span>
-                          </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">A</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminA || 0} IU</span>
                         </div>
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">B2</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.riboflavin || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">B3</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.niacin || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">B6</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminB6 || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">B9</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.folate || 0} mcg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-300">B12</span>
-                            <span className="text-white font-mono">{summary?.totalVitamins?.vitaminB12 || 0} mcg</span>
-                          </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">D</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminD || 0} IU</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">E</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminE || 0} IU</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">K</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminK || 0} mcg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">C</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminC || 0} mg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">B1</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.thiamin || 0} mg</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">B2</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.riboflavin || 0} mg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">B3</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.niacin || 0} mg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">B6</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminB6 || 0} mg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">B9</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.folate || 0} mcg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">B12</span>
+                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminB12 || 0} mcg</span>
                         </div>
                       </div>
                     </div>
+                  </div>
                 </div>
               </div>
 
               {/* Slide 4: Minerals */}
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-medium text-zinc-300">Minerals</h3>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium text-zinc-600">Minerals</h3>
 
                     <div className="grid grid-cols-2 gap-6">
                       {/* Major Minerals */}
                       <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-zinc-400">Major Minerals</h4>
+                        <h4 className="text-sm font-medium text-zinc-500">Major Minerals</h4>
                         <div className="space-y-1.5 text-xs">
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Calcium</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.calcium || 0} mg</span>
+                            <span className="text-zinc-500">Calcium</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.calcium || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Phosphorus</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.phosphorus || 0} mg</span>
+                            <span className="text-zinc-500">Phosphorus</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.phosphorus || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Potassium</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.potassium || 0} mg</span>
+                            <span className="text-zinc-500">Potassium</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.potassium || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Sodium</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.sodium || 0} mg</span>
+                            <span className="text-zinc-500">Sodium</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.sodium || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Magnesium</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.magnesium || 0} mg</span>
+                            <span className="text-zinc-500">Magnesium</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.magnesium || 0} mg</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Trace Minerals */}
                       <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-zinc-400">Trace Minerals</h4>
+                        <h4 className="text-sm font-medium text-zinc-500">Trace Minerals</h4>
                         <div className="space-y-1.5 text-xs">
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Iron</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.iron || 0} mg</span>
+                            <span className="text-zinc-500">Iron</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.iron || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Zinc</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.zinc || 0} mg</span>
+                            <span className="text-zinc-500">Zinc</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.zinc || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Copper</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.copper || 0} mcg</span>
+                            <span className="text-zinc-500">Copper</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.copper || 0} mcg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Manganese</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.manganese || 0} mg</span>
+                            <span className="text-zinc-500">Manganese</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.manganese || 0} mg</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-300">Selenium</span>
-                            <span className="text-white font-mono">{summary?.totalMinerals?.selenium || 0} mcg</span>
+                            <span className="text-zinc-500">Selenium</span>
+                            <span className="text-black font-mono">{summary?.totalMinerals?.selenium || 0} mcg</span>
                           </div>
                         </div>
                       </div>
@@ -603,7 +603,7 @@ export default function CalorieTracker() {
             <div className="flex items-center justify-center px-6 py-4">
               <button
                 onClick={() => setCarouselSlide((prev) => (prev - 1 + 4) % 4)}
-                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-black"
                 aria-label="Previous slide"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -618,8 +618,8 @@ export default function CalorieTracker() {
                     key={index}
                     onClick={() => setCarouselSlide(index)}
                     className={`h-2 rounded-full transition-all duration-300 ${carouselSlide === index
-                        ? 'bg-violet-500 w-6'
-                        : 'bg-zinc-700 w-2 hover:bg-zinc-600'
+                      ? 'bg-violet-500 w-6'
+                      : 'bg-zinc-500 w-2 hover:bg-zinc-600'
                       }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -628,7 +628,7 @@ export default function CalorieTracker() {
 
               <button
                 onClick={() => setCarouselSlide((prev) => (prev + 1) % 4)}
-                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-600 hover:text-black"
                 aria-label="Next slide"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -637,28 +637,26 @@ export default function CalorieTracker() {
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
 
           {/* Left Column */}
-          <div className="space-y-8">
+          <div className="space-y-10">
 
             <AIFoodAnalysis onDataAdded={fetchData} />
 
-            {/* Meal Templates */}
             <MealTemplatesMinimal
               onTemplateSelect={handleTemplateSelect}
               onDataUpdated={fetchData}
             />
 
-            {/* Food Log */}
             <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
           </div>
 
           {/* Right Column */}
-          <div className="space-y-8">
+          <div className="space-y-10">
 
             {/* Calorie Trends Chart */}
             <CalorieTrendsChart
