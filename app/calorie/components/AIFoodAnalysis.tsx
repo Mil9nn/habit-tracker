@@ -11,11 +11,39 @@ interface FoodAnalysis {
     protein?: number
     carbs?: number
     fat?: number
+    category?: string
+    vitamins?: {
+      vitaminD?: number
+      vitaminB6?: number
+      vitaminB7?: number
+      vitaminB12?: number
+    }
+    minerals?: {
+      iron?: number
+      magnesium?: number
+      zinc?: number
+      calcium?: number
+      potassium?: number
+    }
   }>
   totalCalories: number
   totalProtein?: number
   totalCarbs?: number
   totalFat?: number
+  totalVitamins?: {
+    vitaminA?: number
+    vitaminB6?: number
+    vitaminB12?: number
+  }
+  totalMinerals?: {
+    iron?: number
+    magnesium?: number
+    zinc?: number
+    calcium?: number
+    potassium?: number
+  }
+  confidence?: string
+  method?: string
 }
 
 interface AIFoodAnalysisProps {
@@ -74,13 +102,17 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         mealType: 'breakfast',
         quantity: 1,
         isMeal: true,
+        vitamins: aiAnalysis.totalVitamins,
+        minerals: aiAnalysis.totalMinerals,
         mealItems: aiAnalysis.foods.map((food) => ({
           name: food.name,
           quantity: food.quantity,
           calories: food.calories,
           protein: food.protein || 0,
           carbs: food.carbs || 0,
-          fat: food.fat || 0
+          fat: food.fat || 0,
+          vitamins: food.vitamins,
+          minerals: food.minerals
         }))
       }
 
@@ -126,14 +158,17 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         </button>
       </div>
 
-      {/* Results - Only show if adding failed */}
+      {/* Results - Single slide with minimal micro-nutrients */}
       {aiAnalysis && (
-        <div className="rounded-xl border border-red-800/50 bg-red-900/20 p-4 space-y-4">
+        <div className="rounded-xl border border-violet-500/30 bg-violet-900/10 p-4 space-y-4">
           {/* Top Bar */}
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-red-400">
-              ⚠️ Analysis failed - please try again
+            <h4 className="text-sm font-medium text-violet-300">
+              ✅ AI Analysis Complete
             </h4>
+            <span className="text-xs text-violet-400 bg-violet-800/50 px-2 py-1 rounded">
+              {aiAnalysis.confidence || 'medium'} confidence
+            </span>
           </div>
 
           {/* Food List */}
@@ -164,12 +199,74 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
             ))}
           </div>
 
-          {/* Total */}
-          <div className="flex items-center justify-between pt-3 border-t border-zinc-700">
-            <span className="text-sm font-medium text-zinc-300">
-              Total: {aiAnalysis.totalCalories} kcal
-            </span>
+          {/* Macros Summary */}
+          <div className="grid grid-cols-4 gap-2 pt-3 border-t border-zinc-700">
+            <div className="text-center">
+              <p className="text-xs text-zinc-500">Calories</p>
+              <p className="text-sm font-semibold text-white">{aiAnalysis.totalCalories}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-zinc-500">Protein</p>
+              <p className="text-sm font-semibold text-blue-400">{aiAnalysis.totalProtein || 0}g</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-zinc-500">Carbs</p>
+              <p className="text-sm font-semibold text-amber-400">{aiAnalysis.totalCarbs || 0}g</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-zinc-500">Fat</p>
+              <p className="text-sm font-semibold text-rose-400">{aiAnalysis.totalFat || 0}g</p>
+            </div>
           </div>
+
+          {/* Key Micro-nutrients - Only what API returns */}
+          {(aiAnalysis.totalVitamins || aiAnalysis.totalMinerals) && (
+            <div className="pt-3 border-t border-zinc-700">
+              <p className="text-xs text-zinc-400 mb-2">Key Micro-nutrients</p>
+              <div className="flex flex-wrap gap-2">
+                {aiAnalysis.totalVitamins?.vitaminA && (
+                  <span className="text-xs bg-green-800/30 text-green-400 px-2 py-1 rounded">
+                    A: {aiAnalysis.totalVitamins.vitaminA}
+                  </span>
+                )}
+                {aiAnalysis.totalVitamins?.vitaminB6 && (
+                  <span className="text-xs bg-green-800/30 text-green-400 px-2 py-1 rounded">
+                    B6: {aiAnalysis.totalVitamins.vitaminB6}
+                  </span>
+                )}
+                {aiAnalysis.totalVitamins?.vitaminB12 && (
+                  <span className="text-xs bg-green-800/30 text-green-400 px-2 py-1 rounded">
+                    B12: {aiAnalysis.totalVitamins.vitaminB12}
+                  </span>
+                )}
+                {aiAnalysis.totalMinerals?.iron && (
+                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
+                    Iron: {aiAnalysis.totalMinerals.iron}
+                  </span>
+                )}
+                {aiAnalysis.totalMinerals?.magnesium && (
+                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
+                    Magnesium: {aiAnalysis.totalMinerals.magnesium}
+                  </span>
+                )}
+                {aiAnalysis.totalMinerals?.zinc && (
+                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
+                    Zinc: {aiAnalysis.totalMinerals.zinc}
+                  </span>
+                )}
+                {aiAnalysis.totalMinerals?.calcium && (
+                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
+                    Calcium: {aiAnalysis.totalMinerals.calcium}
+                  </span>
+                )}
+                {aiAnalysis.totalMinerals?.potassium && (
+                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
+                    K: {aiAnalysis.totalMinerals.potassium}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">

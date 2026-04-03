@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Trash2, MoreVertical, UtensilsCrossed } from 'lucide-react'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
 
 interface MealTemplate {
   _id: string
@@ -34,6 +35,11 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
   const [loading, setLoading] = useState(true)
   const [showAll, setShowAll] = useState(false)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; templateId: string; templateName: string }>({
+    open: false,
+    templateId: '',
+    templateName: ''
+  })
 
   useEffect(() => {
     fetchTemplates()
@@ -61,11 +67,21 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
       if (res.ok) {
         setTemplates(prev => prev.filter(t => t._id !== id))
         setActiveMenu(null)
-        toast.success('Deleted')
+        toast.success('Template deleted successfully')
+        onDataUpdated?.()
       }
     } catch (e) {
       console.error(e)
+      toast.error('Failed to delete template')
     }
+  }
+
+  const handleDeleteClick = (templateId: string, templateName: string) => {
+    setDeleteConfirm({
+      open: true,
+      templateId,
+      templateName
+    })
   }
 
   const list = templates
@@ -84,16 +100,16 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
 
         {/* Icon */}
         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-100 border border-zinc-200 shadow-sm mb-4">
-          <UtensilsCrossed className="w-7 h-7 text-zinc-500" />
+          <UtensilsCrossed className="w-7 h-7 text-yellow-500" />
         </div>
 
         {/* Heading */}
-        <h3 className="text-lg font-semibold text-zinc-800 mb-1">
+        <h3 className="text-sm font-medium text-zinc-700">
           No meal templates yet
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-zinc-500 max-w-xs">
+        <p className="text-xs text-zinc-500 mt-1 max-w-xs">
           Start by adding a meal and save it as a template for faster tracking later.
         </p>
       </div>
@@ -149,7 +165,7 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
               {activeMenu === t._id && (
                 <div className="absolute right-0 mt-2 w-32 bg-zinc-800 border border-zinc-700 rounded-xl text-sm z-50 shadow-lg">
                   <button
-                    onClick={() => deleteTemplate(t._id)}
+                    onClick={() => handleDeleteClick(t._id, t.name)}
                     className="flex w-full items-center gap-2 px-3 py-2 text-red-400 hover:bg-zinc-700 rounded-xl transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -162,6 +178,18 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
         ))}
       </div>
     </div>
+
+    <ConfirmDialog
+      open={deleteConfirm.open}
+      onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
+      title="Delete Template"
+      description="Are you sure you want to delete this meal template? This action cannot be undone."
+      confirmText="Delete"
+      cancelText="Cancel"
+      onConfirm={() => deleteTemplate(deleteConfirm.templateId)}
+      type="template"
+      itemName={deleteConfirm.templateName}
+    />
   )
 }
 

@@ -7,16 +7,19 @@ import dayjs from 'dayjs'
 import { format } from 'date-fns'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Drumstick, Wheat, Droplet } from 'lucide-react'
 import CalorieGauge from './components/CalorieGauge'
 import MacroRing from './components/MacroRing'
 import CalorieHeatmap from './components/CalorieHeatmap'
 import { AIFoodAnalysis } from './components/AIFoodAnalysis'
-import { useProteinGoal, useCarbsGoal, useFatGoal } from '@/store/useProfileStore'
+import { useProteinGoal, useCarbsGoal, useFatGoal, useProfile } from '@/store/useProfileStore'
 import MainLayout from '../layout/MainLayout'
 import { FoodLog } from './components/FoodLog'
 import { MealTemplatesMinimal } from './components/MealTemplates'
 import { CalorieTrendsChart } from './components/CalorieTrendsChart'
+import { calculateMicroRDA, calculateRDAPercentage } from '@/lib/microRDA'
+import Loader from '@/components/Loader'
 
 // Define CalorieLogForm interface locally since we removed ManualEntryForm
 export interface CalorieLogForm {
@@ -152,6 +155,28 @@ export default function CalorieTracker() {
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
+  const profile = useProfile()
+
+  // Calculate RDA for micro-nutrients
+  const microRDA = profile ? calculateMicroRDA({
+    age: profile.age,
+    gender: profile.gender,
+    weight: profile.weight,
+    height: profile.height,
+    activityLevel: profile.activityLevel
+  }) : null
+
+  // Calculate micro-nutrient percentages
+  const microPercentages = microRDA && summary ? calculateRDAPercentage({
+    vitaminA: summary.totalVitamins?.vitaminA || 0,
+    vitaminB6: summary.totalVitamins?.vitaminB6 || 0,
+    vitaminB12: summary.totalVitamins?.vitaminB12 || 0,
+    iron: summary.totalMinerals?.iron || 0,
+    magnesium: summary.totalMinerals?.magnesium || 0,
+    zinc: summary.totalMinerals?.zinc || 0,
+    calcium: summary.totalMinerals?.calcium || 0,
+    potassium: summary.totalMinerals?.potassium || 0
+  }, microRDA) : null
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     touchStartXRef.current = event.touches[0]?.clientX ?? null
@@ -170,10 +195,10 @@ export default function CalorieTracker() {
     if (Math.abs(distance) > minSwipeDistance) {
       if (distance > 0) {
         // swipe left -> next
-        setCarouselSlide((prev) => (prev + 1) % 4)
+        setCarouselSlide((prev) => (prev + 1) % 2)
       } else {
         // swipe right -> previous
-        setCarouselSlide((prev) => (prev - 1 + 2) % 4)
+        setCarouselSlide((prev) => (prev - 1 + 2) % 2)
       }
     }
 
@@ -353,11 +378,9 @@ export default function CalorieTracker() {
   if (status === 'loading') {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-pulse">
-            <div className="w-8 h-8 bg-violet-500/20 rounded-full"></div>
+          <div className="flex items-center justify-center h-[calc(100vh-50px)] bg-black">
+            <Loader />
           </div>
-        </div>
       </MainLayout>
     )
   }
@@ -409,187 +432,234 @@ export default function CalorieTracker() {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {/* Slide 1: Calorie Progress */}
+              {/* Slide 1: Daily Summary - Calories & Macros */}
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
-                  <div className="text-center space-y-4">
-                    <h3 className="text-lg font-medium text-zinc-500">Daily Calories</h3>
-                    <div className="flex items-center justify-center gap-4">
-                      <CalorieGauge
-                        current={summary?.totalCalories || 0}
-                        target={summary?.goal || 2000}
-                        size={140}
-                        strokeWidth={8}
-                      />
-                      <div className="space-y-2 pt-2 text-left">
-                        <p className="text-sm font-semibold text-black">
-                          {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
-                        </p>
-                        <p className="text-sm text-zinc-400">
-                          {Math.max((summary?.goal || 2000) - (summary?.totalCalories || 0), 0)} kcal remaining
-                        </p>
+                  <div className="space-y-6">
+                    {/* Calories Section */}
+                    <div className="text-center space-y-4">
+                      <h3 className="text-lg font-medium text-zinc-500">Daily Calories</h3>
+                      <div className="flex items-center justify-center gap-4">
+                        <CalorieGauge
+                          current={summary?.totalCalories || 0}
+                          target={summary?.goal || 2000}
+                          size={140}
+                          strokeWidth={8}
+                        />
+                        <div className="space-y-2 pt-2 text-left">
+                          <p className="text-sm font-semibold text-black">
+                            {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
+                          </p>
+                          <p className="text-sm text-zinc-400">
+                            {Math.max((summary?.goal || 2000) - (summary?.totalCalories || 0), 0)} kcal remaining
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Macros Section */}
+                    <div className="space-y-4">
+                      <div className="flex justify-center items-center gap-6">
+                        <MacroRing
+                          current={summary?.totalProtein || 0}
+                          goal={proteinGoal || 150}
+                          label="Protein"
+                          icon={Drumstick}
+                          color="emerald"
+                          size={70}
+                          strokeWidth={5}
+                        />
+                        <MacroRing
+                          current={summary?.totalCarbs || 0}
+                          goal={carbsGoal || 300}
+                          label="Carbs"
+                          icon={Wheat}
+                          color="blue"
+                          size={70}
+                          strokeWidth={5}
+                        />
+                        <MacroRing
+                          current={summary?.totalFat || 0}
+                          goal={fatGoal || 100}
+                          label="Fats"
+                          icon={Droplet}
+                          color="amber"
+                          size={70}
+                          strokeWidth={5}
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Slide 2: Macronutrients */}
-              <div className="w-full flex-shrink-0">
-                <div className="p-4">
-                  <div className="space-y-8">
-                    <h3 className="text-lg font-medium text-zinc-600">Macronutrients</h3>
-
-                    <div className="flex justify-center items-center gap-6">
-                      <MacroRing
-                        current={summary?.totalProtein || 0}
-                        goal={proteinGoal || 150}
-                        label="Protein"
-                        icon={Drumstick}
-                        color="emerald"
-                        size={70}
-                        strokeWidth={5}
-                      />
-                      <MacroRing
-                        current={summary?.totalCarbs || 0}
-                        goal={carbsGoal || 300}
-                        label="Carbs"
-                        icon={Wheat}
-                        color="blue"
-                        size={70}
-                        strokeWidth={5}
-                      />
-                      <MacroRing
-                        current={summary?.totalFat || 0}
-                        goal={fatGoal || 100}
-                        label="Fats"
-                        icon={Droplet}
-                        color="amber"
-                        size={70}
-                        strokeWidth={5}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Slide 3: Vitamins */}
+              {/* Slide 2: Micro-nutrients with Progress */}
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-zinc-600">Vitamins</h3>
+                    <h3 className="text-lg font-medium text-zinc-600">Micro-nutrients</h3>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">A</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminA || 0} IU</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">D</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminD || 0} IU</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">E</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminE || 0} IU</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">K</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminK || 0} mcg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">C</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminC || 0} mg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">B1</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.thiamin || 0} mg</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">B2</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.riboflavin || 0} mg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">B3</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.niacin || 0} mg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">B6</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminB6 || 0} mg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">B9</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.folate || 0} mcg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">B12</span>
-                          <span className="text-black font-mono">{summary?.totalVitamins?.vitaminB12 || 0} mcg</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    <div className="space-y-6">
+                      {/* Vitamins */}
+                      <div>
+                        <h4 className="text-sm font-medium text-zinc-500 pb-2">Vitamins</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Vitamin A */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">A</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalVitamins?.vitaminA || 0} / {microRDA?.vitaminA || 0} mcg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminA || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.vitaminA || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.vitaminA || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.vitaminA || 0), 100)}%` }}
+                              />
+                            </div>
+                          </div>
 
-              {/* Slide 4: Minerals */}
-              <div className="w-full flex-shrink-0">
-                <div className="p-4">
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium text-zinc-600">Minerals</h3>
+                          {/* Vitamin B6 */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">B6</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalVitamins?.vitaminB6 || 0} / {microRDA?.vitaminB6 || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminB6 || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.vitaminB6 || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.vitaminB6 || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.vitaminB6 || 0), 100)}%` }}
+                              />
+                            </div>
+                          </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                      {/* Major Minerals */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-zinc-500">Major Minerals</h4>
-                        <div className="space-y-1.5 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Calcium</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.calcium || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Phosphorus</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.phosphorus || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Potassium</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.potassium || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Sodium</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.sodium || 0} mg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Magnesium</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.magnesium || 0} mg</span>
+                          {/* Vitamin B12 */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">B12</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalVitamins?.vitaminB12 || 0} / {microRDA?.vitaminB12 || 0} mcg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminB12 || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.vitaminB12 || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.vitaminB12 || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.vitaminB12 || 0), 100)}%` }}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Trace Minerals */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-zinc-500">Trace Minerals</h4>
-                        <div className="space-y-1.5 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Iron</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.iron || 0} mg</span>
+                      {/* Minerals */}
+                      <div>
+                        <h4 className="text-sm font-medium text-zinc-500 pb-2">Minerals</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Iron */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">Iron</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalMinerals?.iron || 0} / {microRDA?.iron || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.iron || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.iron || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.iron || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.iron || 0), 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Zinc</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.zinc || 0} mg</span>
+
+                          {/* Magnesium */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">Magnesium</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalMinerals?.magnesium || 0} / {microRDA?.magnesium || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.magnesium || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.magnesium || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.magnesium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.magnesium || 0), 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Copper</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.copper || 0} mcg</span>
+
+                          {/* Zinc */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">Zinc</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalMinerals?.zinc || 0} / {microRDA?.zinc || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.zinc || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.zinc || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.zinc || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.zinc || 0), 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Manganese</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.manganese || 0} mg</span>
+
+                          {/* Calcium */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">Calcium</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalMinerals?.calcium || 0} / {microRDA?.calcium || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.calcium || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.calcium || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.calcium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.calcium || 0), 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Selenium</span>
-                            <span className="text-black font-mono">{summary?.totalMinerals?.selenium || 0} mcg</span>
+
+                          {/* Potassium */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">Potassium</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalMinerals?.potassium || 0} / {microRDA?.potassium || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.potassium || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.potassium || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.potassium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.potassium || 0), 100)}%` }}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -602,7 +672,7 @@ export default function CalorieTracker() {
             {/* Navigation Controls */}
             <div className="flex items-center justify-center px-6 py-4">
               <button
-                onClick={() => setCarouselSlide((prev) => (prev - 1 + 4) % 4)}
+                onClick={() => setCarouselSlide((prev) => (prev - 1 + 2) % 2)}
                 className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-black"
                 aria-label="Previous slide"
               >
@@ -613,12 +683,12 @@ export default function CalorieTracker() {
 
               {/* Slide Indicators */}
               <div className="flex gap-2">
-                {[0, 1, 2, 3].map((index) => (
+                {[0, 1].map((index) => (
                   <button
                     key={index}
                     onClick={() => setCarouselSlide(index)}
                     className={`h-2 rounded-full transition-all duration-300 ${carouselSlide === index
-                      ? 'bg-violet-500 w-6'
+                      ? 'bg-violet-500 w-4'
                       : 'bg-zinc-500 w-2 hover:bg-zinc-600'
                       }`}
                     aria-label={`Go to slide ${index + 1}`}
@@ -627,7 +697,7 @@ export default function CalorieTracker() {
               </div>
 
               <button
-                onClick={() => setCarouselSlide((prev) => (prev + 1) % 4)}
+                onClick={() => setCarouselSlide((prev) => (prev + 1) % 2)}
                 className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-600 hover:text-black"
                 aria-label="Next slide"
               >
@@ -658,15 +728,14 @@ export default function CalorieTracker() {
           {/* Right Column */}
           <div className="space-y-10">
 
-            {/* Calorie Trends Chart */}
+
             <CalorieTrendsChart
               data={trendsData}
               period={trendsPeriod}
               onPeriodChange={setTrendsPeriod}
             />
 
-            {/* Calorie Heatmap */}
-            <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
+            <CalorieHeatmap data={heatmapData} />
           </div>
         </div>
       </div>

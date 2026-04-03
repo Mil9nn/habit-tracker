@@ -41,29 +41,18 @@ export async function POST(req: Request) {
                   "fat": number,
                   "category": "category",
                   "vitamins": {
-                    "vitaminA": number,
-                    "vitaminC": number,
+                    
                     "vitaminD": number,
-                    "vitaminE": number,
-                    "vitaminK": number,
-                    "thiamin": number,
-                    "riboflavin": number,
-                    "niacin": number,
                     "vitaminB6": number,
-                    "folate": number,
+                    "vitaminB7": number,
                     "vitaminB12": number
                   },
                   "minerals": {
-                    "calcium": number,
                     "iron": number,
                     "magnesium": number,
-                    "phosphorus": number,
-                    "potassium": number,
-                    "sodium": number,
                     "zinc": number,
-                    "copper": number,
-                    "manganese": number,
-                    "selenium": number
+                    "calcium": number,
+                    "potassium": number,
                   }
                 }
               ],
@@ -73,28 +62,15 @@ export async function POST(req: Request) {
               "totalFat": number,
               "totalVitamins": {
                 "vitaminA": number,
-                "vitaminC": number,
-                "vitaminD": number,
-                "vitaminE": number,
-                "vitaminK": number,
-                "thiamin": number,
-                "riboflavin": number,
-                "niacin": number,
                 "vitaminB6": number,
-                "folate": number,
                 "vitaminB12": number
               },
               "totalMinerals": {
-                "calcium": number,
                 "iron": number,
                 "magnesium": number,
-                "phosphorus": number,
-                "potassium": number,
-                "sodium": number,
                 "zinc": number,
-                "copper": number,
-                "manganese": number,
-                "selenium": number
+                "calcium": number,
+                "potassium": number,
               },
               "confidence": "high|medium|low"
             }
@@ -109,9 +85,13 @@ export async function POST(req: Request) {
           }
         ],
         temperature: 0.3,
-        max_tokens: 250
+        max_tokens: 500
       })
     })
+
+    // log the returned data for debugging
+    const debugData = await response.clone().json()
+    console.log('AI Response Debug:', JSON.stringify(debugData, null, 2));
 
     if (!response.ok) {
       return NextResponse.json({ error: 'Failed to analyze food with AI' }, { status: 500 })

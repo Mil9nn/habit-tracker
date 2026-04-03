@@ -57,7 +57,7 @@ export default function MacroRing({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#374151"
+            stroke="#d4d4d8"
             strokeWidth={strokeWidth}
             fill="none"
           />

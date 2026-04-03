@@ -61,27 +61,27 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
         period === 'week'
           ? d.dayName
           : period === 'month'
-          ? d.date.split('-').pop() // day number
-          : d.date.slice(5), // MM-DD
+            ? d.date.split('-').pop() // day number
+            : d.date.slice(5), // MM-DD
       movingAvg:
         i < 6
           ? null
           : (() => {
-              const slice = data.slice(i - 6, i + 1)
-              return slice.length > 0 
-                ? Math.round(slice.reduce((sum, x) => sum + x.calories, 0) / slice.length)
-                : null
-            })()
+            const slice = data.slice(i - 6, i + 1)
+            return slice.length > 0
+              ? Math.round(slice.reduce((sum, x) => sum + x.calories, 0) / slice.length)
+              : null
+          })()
     }))
   }, [data, period])
 
-  const avgCalories = data.length > 0 
+  const avgCalories = data.length > 0
     ? Math.round(data.reduce((sum, d) => sum + d.calories, 0) / data.length)
     : 0
 
   const daysUnderGoal = data.filter(d => d.calories <= d.goal).length
 
-  const successRate = data.length > 0 
+  const successRate = data.length > 0
     ? Math.round((daysUnderGoal / data.length) * 100)
     : 0
 
@@ -101,6 +101,48 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
   const trendLabel =
     trend > 0.03 ? 'Increasing' : trend < -0.03 ? 'Decreasing' : 'Stable'
 
+  if (data.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full space-y-4"
+      >
+        {/* Header */}
+        <div className="px-4">
+          <h3 className="text-lg font-medium text-black">Calorie Trends</h3>
+        </div>
+
+        {/* Empty State */}
+        <div className="flex flex-col items-center justify-center text-center p-5">
+
+          
+            <svg
+              className="w-10 h-10 text-blue-500 mb-2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M3 17l6-6 4 4 8-8" />
+            </svg>
+          
+
+          {/* Title */}
+          <p className="text-sm font-medium text-zinc-700">
+            No trend data yet
+          </p>
+
+          {/* Description */}
+          <p className="text-xs text-zinc-500 mt-1 max-w-xs">
+            Start adding your meals consistently to see calorie trends and insights over time.
+          </p>
+
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -110,18 +152,17 @@ export function CalorieTrendsChart({ data, period, onPeriodChange }: CalorieTren
       {/* Header */}
       <div className="px-4">
         <h3 className="text-lg font-medium text-black">Calorie Trends</h3>
-        
+
         {onPeriodChange && (
           <div className="flex items-center justify-end gap-2 mt-2">
             {(['week', 'month', 'quarter'] as const).map(p => (
               <button
                 key={p}
                 onClick={() => onPeriodChange(p)}
-                className={`text-sm transition-all duration-200 ${
-                  period === p 
-                    ? 'text-violet-400' 
+                className={`text-sm transition-all duration-200 ${period === p
+                    ? 'text-violet-400'
                     : 'text-zinc-400 hover:text-black hover:bg-zinc-800'
-                }`}
+                  }`}
               >
                 {p.charAt(0).toUpperCase() + p.slice(1)}
               </button>

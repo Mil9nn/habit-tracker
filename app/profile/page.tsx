@@ -10,8 +10,8 @@ import { Progress } from "@/components/ui/progress"
 import { motion } from 'framer-motion'
 import { ChevronLeft, Edit, Flame, Target, TrendingUp, Droplets, Home, LogOut } from 'lucide-react'
 import { useProfile, useCalorieGoal, useProteinGoal, useCarbsGoal, useFatGoal, useProfileInitialized } from '@/store/useProfileStore'
-import Image from 'next/image'
 import dynamic from 'next/dynamic'
+import Loader from '@/components/Loader'
 
 const ProfileForm = dynamic(() => import('@/components/ProfileForm'), {
   ssr: false,
@@ -103,15 +103,15 @@ function ProfilePageContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-pulse text-center text-white">Loading...</div>
+      <div className="flex items-center justify-center h-[calc(100vh-50px)] bg-black">
+        <Loader />
       </div>
     )
   }
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-r from-zinc-900 to-zinc-800 flex items-center justify-center">
         <div className="animate-pulse text-center text-white">Initializing profile...</div>
       </div>
     )
@@ -119,7 +119,7 @@ function ProfilePageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-r from-zinc-900 to-zinc-800 flex items-center justify-center">
         <div className="animate-pulse text-center text-white">Loading profile...</div>
       </div>
     )
@@ -129,13 +129,13 @@ function ProfilePageContent() {
     <MainLayout>
       <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          
+
           {/* Header Section */}
           <div className="mb-8">
             <h1 className="text-3xl font-light text-white tracking-tight">Profile</h1>
             <div className="flex items-center justify-between mb-6">
-                <p className="text-sm text-gray-400 mt-1">Manage your personal information and goals</p>
-              
+              <p className="text-sm text-gray-400 mt-1">Manage your personal information and goals</p>
+
               <button
                 onClick={handleProfileUpdate}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
@@ -148,9 +148,9 @@ function ProfilePageContent() {
 
           {/* Main Content */}
           {profile ? (
-            
-              <ProfileDisplay dailyCalories={calories.consumed} />
-            
+
+            <ProfileDisplay dailyCalories={calories.consumed} />
+
           ) : (
             <div className="flex items-center justify-center min-h-[50vh]">
               <p className="text-gray-400">Loading profile...</p>

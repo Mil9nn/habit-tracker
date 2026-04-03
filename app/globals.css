@@ -125,9 +125,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -137,18 +139,80 @@
   .mobile-input {
     @apply flex-col sm:flex-row;
   }
-  
+
   .mobile-stats {
     @apply grid-cols-1 sm:grid-cols-3;
   }
-  
+
   .text-12 {
     font-size: 0.75rem;
   }
-  
+
   .text-44 {
     font-size: 2.75rem;
   }
+
+  .react-calendar-heatmap .color-empty {
+    fill: #f4f4f5;
+    /* zinc-100 */
+  }
+
+  .react-calendar-heatmap rect {
+    rx: 3px;
+    ry: 3px;
+    width: 12px;
+    height: 12px;
+  }
+
+  .react-calendar-heatmap .react-calendar-heatmap-week {
+    margin-right: 4px;
+  }
+}
+
+/* FLOATING MOTION */
+@keyframes float {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-6px) scale(1.03); }
+  100% { transform: translateY(0px) scale(1); }
+}
+
+/* GRADIENT SHIFT */
+@keyframes gradientShift {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* GLOW PULSE */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* ROTATING AURA */
+@keyframes spinSlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* MAIN SVG */
+.loader-svg {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+/* PATH EFFECT */
+.loader-path {
+  animation: gradientShift 6s linear infinite, glowPulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* OUTER RING */
+.loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #de5959;
+  animation: spinSlow 3s linear infinite;
 }
 
 /* Custom shimmer animation */
@@ -156,6 +220,7 @@
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(200%);
   }

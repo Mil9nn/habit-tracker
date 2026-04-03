@@ -44,7 +44,7 @@ export default function CalorieGauge({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#374151"
+          stroke="#d4d4d8"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -54,7 +54,7 @@ export default function CalorieGauge({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#8b5cf6"
+          stroke="#818cf8"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}

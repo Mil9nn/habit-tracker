@@ -5,6 +5,7 @@ import { CalorieLog } from '../page'
 import { Edit2, Trash2, Bookmark, Salad } from 'lucide-react'
 import { MealEditForm } from '../../../components/MealEditForm'
 import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { toast } from 'sonner'
 
 interface FoodLogProps {
@@ -18,6 +19,11 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
   const [duplicateTemplateName, setDuplicateTemplateName] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; logId: string; itemName: string }>({
+    open: false,
+    logId: '',
+    itemName: ''
+  })
 
   // ---------- Actions ----------
 
@@ -63,10 +69,12 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
       })
 
       if (response.ok) {
+        toast.success('Food log deleted successfully')
         onDataUpdated?.()
       }
     } catch (error) {
       console.error('Error deleting log:', error)
+      toast.error('Failed to delete food log')
     }
   }
 
@@ -85,6 +93,14 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
     } catch (error) {
       console.error('Error updating meal:', error)
     }
+  }
+
+  const handleDeleteClick = (logId: string, itemName: string) => {
+    setDeleteConfirm({
+      open: true,
+      logId,
+      itemName
+    })
   }
 
   // ---------- UI ----------
@@ -148,7 +164,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => deleteLog(log._id)}
+                      onClick={() => handleDeleteClick(log._id, log.foodName)}
                       className="p-2 text-zinc-400 hover:text-red-400 transition-colors rounded-lg hover:bg-zinc-700"
                       title="Delete"
                     >
@@ -173,19 +189,14 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center p-5">
+            <Salad className="size-10 text-emerald-500 mb-2" />
 
-            {/* Icon */}
-            <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100 shadow-sm mb-5">
-              <Salad className="w-6 h-6 text-emerald-500" />
-            </div>
-
-            {/* Title */}
-            <h3 className="text-base font-semibold text-zinc-800">
+            <h3 className="text-sm font-medium text-zinc-700">
               No meals logged yet
             </h3>
 
             {/* Subtitle */}
-            <p className="text-sm text-zinc-500 mt-1 max-w-xs">
+            <p className="text-xs text-zinc-500 mt-1 max-w-xs">
               Start tracking your calories and macros by adding your first meal.
             </p>
 
@@ -225,6 +236,18 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
         open={showDuplicateDialog}
         onOpenChange={setShowDuplicateDialog}
         templateName={duplicateTemplateName}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
+        title="Delete Food Log"
+        description="Are you sure you want to delete this food log? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={() => deleteLog(deleteConfirm.logId)}
+        type="delete"
+        itemName={deleteConfirm.itemName}
       />
     </>
   )

@@ -1,117 +1,112 @@
 'use client'
 
 import { useMemo } from 'react'
-import CalendarHeatmap from 'react-calendar-heatmap'
-import { CalendarDays } from 'lucide-react'
-import 'react-calendar-heatmap/dist/styles.css'
 
-interface CalorieHeatmapProps {
-  data: { date: string; count: number }[]
-  goal?: number // Made goal optional since we're not using it for coloring
+interface HeatmapData {
+  date: string
+  count: number
 }
 
-export default function CalorieHeatmap({ data, goal }: CalorieHeatmapProps) {
-  const processedData = useMemo(() => {
-    // Process data for heatmap with dynamic scaling so light and heavy days are visible
-    const maxValue = Math.max(1, ...data.map(entry => entry.count))
-    const base = goal && goal > 0 ? goal : maxValue
+function getMonthGrid(year: number, month: number) {
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
 
-    return data.map(entry => {
-      const ratio = entry.count / base
-      const level = Math.min(4, Math.floor(ratio * 5))
+  const daysInMonth = lastDay.getDate()
+  const startOffset = firstDay.getDay() // 0 = Sunday
 
-      return {
-        date: entry.date,
-        count: level
-      }
-    })
-  }, [data, goal])
+  const cells: (Date | null)[] = []
 
-  const classForValue = (value: { count?: number; date?: string } | null) => {
-    const count = value?.count || 0
-    if (count === 0) return 'fill-white'
-    if (count === 1) return 'fill-green-100'
-    if (count === 2) return 'fill-green-300'
-    if (count === 3) return 'fill-green-500'
-    if (count === 4) return 'fill-green-700'
-    return 'fill-green-900'
+  // empty cells before month starts
+  for (let i = 0; i < startOffset; i++) {
+    cells.push(null)
   }
 
-  const getTooltipDataAttrs = (value: { date?: string; count?: number } | null) => {
-    if (!value || value.count === 0) {
-      return {
-        'data-tip': 'No calorie intake recorded'
-      }
-    }
-    // Find the original data entry to get actual calorie value
-    const originalEntry = data.find(entry => entry.date === value.date)
-    const calories = originalEntry?.count || 0
-    return {
-      'data-tip': `${calories} calories consumed`
-    }
+  // actual days
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push(new Date(year, month, d))
   }
 
-  if (data.length === 0) {
-    return (
-      <div className="w-full p-5">
+  return cells
+}
 
-        {/* Header */}
-        <h3 className="text-lg font-semibold text-zinc-800 mb-4">
-          Activity Heatmap
-        </h3>
 
-        {/* Empty State */}
-        <div className="flex flex-col items-center justify-center text-center py-10">
+export default function CalorieHeatmap({ data }: { data: HeatmapData[] }) {
+  const dataMap = useMemo(() => {
+    const map = new Map<string, number>()
+    data.forEach(d => map.set(d.date, d.count))
+    return map
+  }, [data])
 
-          {/* Icon */}
-          <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 shadow-sm mb-4">
-            <CalendarDays className="w-6 h-6 text-indigo-500" />
-          </div>
+  const year = new Date().getFullYear()
 
-          {/* Title */}
-          <p className="text-sm font-medium text-zinc-700">
-            No activity yet
-          </p>
+  const months = useMemo(() => {
+    return Array.from({ length: 12 }, (_, m) => ({
+      month: m,
+      cells: getMonthGrid(year, m),
+    }))
+  }, [year])
 
-          {/* Description */}
-          <p className="text-xs text-zinc-500 mt-1 max-w-xs">
-            Your daily food logs will appear here as a streak heatmap.
-            Start logging meals to build consistency.
-          </p>
-        </div>
-      </div>
-    )
+  const getLevel = (count: number) => {
+    if (count === 0) return 'bg-zinc-200'
+    if (count < 500) return 'bg-green-200'
+    if (count < 1000) return 'bg-green-400'
+    if (count < 2000) return 'bg-green-600'
+    return 'bg-green-800'
   }
 
   return (
-    <div className="w-full p-4">
-      <h3 className="text-lg font-medium text-black">Activity Heatmap</h3>
+  <div className="space-y-4 p-4">
 
-      <div className="overflow-x-auto -mx-4 px-4">
-        <div style={{ minWidth: '1000px' }} className="p-2">
-          <CalendarHeatmap
-            startDate={new Date(new Date().getFullYear(), 0, 1)}
-            endDate={new Date(new Date().getFullYear(), 11, 31)}
-            values={processedData}
-            classForValue={classForValue}
-            tooltipDataAttrs={getTooltipDataAttrs}
-            showMonthLabels={true}
-            gutterSize={4}
-          />
-        </div>
+    <h3 className="text-lg font-semibold text-zinc-800">
+      Calorie Heatmap
+    </h3>
+
+    <div className="flex gap-3">
+
+      {/* Weekday labels (LEFT SIDE, aligned) */}
+      <div className="flex flex-col gap-1 text-[10px] text-zinc-400 pt-6">
+        {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+          <div key={d} className="h-3.5 flex items-center">
+            {d}
+          </div>
+        ))}
       </div>
 
-      <div className="flex items-center gap-2 text-sm text-zinc-400">
-        <span>Less</span>
-        <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-white border border-zinc-400" />
-          <div className="w-3 h-3 rounded-sm bg-green-100" />
-          <div className="w-3 h-3 rounded-sm bg-green-300" />
-          <div className="w-3 h-3 rounded-sm bg-green-500" />
-          <div className="w-3 h-3 rounded-sm bg-green-700" />
-        </div>
-        <span>More</span>
+      {/* Months */}
+      <div className="flex gap-6 overflow-x-auto pb-2">
+        {months.map(({ month, cells }) => (
+          <div key={month} className="flex flex-col">
+
+            {/* Month label */}
+            <span className="text-xs text-zinc-500 mb-2 text-center">
+              {new Date(year, month).toLocaleString('default', { month: 'short' })}
+            </span>
+
+            {/* Grid */}
+            <div className="grid grid-rows-7 grid-flow-col gap-1">
+              {cells.map((date, i) => {
+                const key = date
+                  ? date.toISOString().split('T')[0]
+                  : `empty-${i}`
+
+                const count = date
+                  ? dataMap.get(key) || 0
+                  : 0
+
+                return (
+                  <div
+                    key={key}
+                    className={`w-3.5 h-3.5 rounded-[3px] ${date ? getLevel(count) : 'bg-transparent'}`}
+                    title={date ? `${key} → ${count}` : ''}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
+
     </div>
-  )
+  </div>
+)
 }
