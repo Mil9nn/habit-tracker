@@ -423,7 +423,7 @@ export default function CalorieTracker() {
 
         {/* Daily Summary - Carousel */}
         <section className="space-y-6 px-4 mb-10">
-          <div className="relative bg-zinc-200/50 rounded-2xl border border-zinc-200 overflow-hidden">
+          <div className="relative shadow-sm rounded-2xl border border-zinc-200 overflow-hidden">
             {/* Carousel Container */}
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -435,7 +435,7 @@ export default function CalorieTracker() {
               {/* Slide 1: Daily Summary - Calories & Macros */}
               <div className="w-full flex-shrink-0">
                 <div className="p-4">
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {/* Calories Section */}
                     <div className="text-center space-y-4">
                       <h3 className="text-lg font-medium text-zinc-500">Daily Calories</h3>
@@ -448,7 +448,7 @@ export default function CalorieTracker() {
                         />
                         <div className="space-y-2 pt-2 text-left">
                           <p className="text-sm font-semibold text-black">
-                            {summary?.totalCalories || 0} / {summary?.goal || 2000} kcal
+                            <span className="text-blue-600">{summary?.totalCalories || 0}</span> / <span className="text-green-600">{summary?.goal || 2000}</span> kcal
                           </p>
                           <p className="text-sm text-zinc-400">
                             {Math.max((summary?.goal || 2000) - (summary?.totalCalories || 0), 0)} kcal remaining

@@ -52,34 +52,6 @@ export default function ProfileDisplay({ dailyCalories }: Props) {
           <h2 className="text-lg font-medium text-white">{profile?.name}</h2>
           <p className="text-sm text-gray-400">{profile?.email}</p>
         </div>
-        <button
-          onClick={() => router.push('/')}
-          className="
-            group
-            p-3
-            rounded-full
-            bg-blue-600/70
-            backdrop-blur-md
-            border border-blue-500/50
-            text-white
-
-            hover:bg-blue-500/80
-            hover:text-white
-            hover:scale-110
-
-            active:scale-95
-
-            transition-all duration-200 ease-out
-            shadow-md hover:shadow-lg
-
-            cursor-pointer
-          "
-        >
-          <Home
-            size={18}
-            className="transition-transform duration-200 group-hover:rotate-6"
-          />
-        </button>
       </div>
 
       {/* Main Stats Grid */}

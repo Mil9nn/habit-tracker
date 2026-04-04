@@ -69,24 +69,21 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader className="text-center space-y-3">
-          <div className={`mx-auto w-16 h-16 rounded-full bg-gradient-to-br ${getGradient()} border-2 flex items-center justify-center`}>
-            {getIcon()}
-          </div>
-          <DialogTitle className="text-xl font-semibold text-zinc-900">
+        <DialogHeader className="text-center space-y-2">
+          <DialogTitle className="text-xl font-semibold text-zinc-900 pt-4">
             {title}
           </DialogTitle>
           <DialogDescription className="text-zinc-600 leading-relaxed">
             {description}
             {itemName && (
-              <span className="block mt-2 font-medium text-zinc-700 bg-zinc-100 px-3 py-2 rounded-lg text-sm">
+              <span className="block mt-2 font-medium text-zinc-700 bg-zinc-200 px-3 py-2 rounded-lg text-sm">
                 "{itemName}"
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="flex gap-3 sm:justify-center">
+        <DialogFooter className="flex gap-4 sm:justify-center">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -99,7 +96,6 @@ export function ConfirmDialog({
             onClick={handleConfirm}
             className="px-6 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
           >
-            <AlertTriangle className="h-4 w-4 mr-2" />
             {confirmText}
           </Button>
         </DialogFooter>
