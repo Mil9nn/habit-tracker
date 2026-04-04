@@ -8,42 +8,66 @@ interface FoodAnalysis {
     quantity: number
     unit: string
     calories: number
-    protein?: number
-    carbs?: number
-    fat?: number
-    category?: string
-    vitamins?: {
-      vitaminD?: number
-      vitaminB6?: number
-      vitaminB7?: number
-      vitaminB12?: number
+    macros: { 
+      protein: number
+      carbs: number
+      fat: number
+      fiber: number
     }
-    minerals?: {
-      iron?: number
-      magnesium?: number
-      zinc?: number
-      calcium?: number
-      potassium?: number
+    micros: {
+      vitamins: {
+        vitaminA: number
+        vitaminC: number
+        vitaminD: number
+        vitaminB6: number
+        vitaminB7: number
+        vitaminB12: number
+      }
+      minerals: {
+        iron: number
+        magnesium: number
+        zinc: number
+        calcium: number
+        potassium: number
+        sodium: number
+      }
+      other: { 
+        cholesterol: number
+        sugar: number
+      }
     }
   }>
-  totalCalories: number
-  totalProtein?: number
-  totalCarbs?: number
-  totalFat?: number
-  totalVitamins?: {
-    vitaminA?: number
-    vitaminB6?: number
-    vitaminB12?: number
+  totals: {
+    calories: number
+    macros: { 
+      protein: number
+      carbs: number
+      fat: number
+      fiber: number
+    }
+    micros: {
+      vitamins: {
+        vitaminA: number
+        vitaminC: number
+        vitaminD: number
+        vitaminB6: number
+        vitaminB7: number
+        vitaminB12: number
+      }
+      minerals: {
+        iron: number
+        magnesium: number
+        zinc: number
+        calcium: number
+        potassium: number
+        sodium: number
+      }
+      other: { 
+        cholesterol: number
+        sugar: number
+      }
+    }
   }
-  totalMinerals?: {
-    iron?: number
-    magnesium?: number
-    zinc?: number
-    calcium?: number
-    potassium?: number
-  }
-  confidence?: string
-  method?: string
 }
 
 interface AIFoodAnalysisProps {
@@ -58,77 +82,62 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
 
   const analyzeFoodWithAI = async () => {
     if (!aiFoodDescription.trim()) return
-
     setIsAnalyzing(true)
     try {
       const response = await fetch('/api/ai/analyze-food', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          foodDescription: aiFoodDescription,
-          mealType: 'breakfast'
-        })
+        body: JSON.stringify({ foodDescription: aiFoodDescription, mealType: 'breakfast' })
       })
-
-      if (response.ok) {
-        const analysis = await response.json()
-
-        // Show parsed analysis for confirmation before adding
-        setAiAnalysis(analysis)
-      } else {
-        console.error('AI analysis request failed')
-      }
+      if (response.ok) setAiAnalysis(await response.json())
     } catch (error) {
       console.error('Error analyzing food:', error)
     } finally {
       setIsAnalyzing(false)
-      setIsAddingFoods(false)
     }
   }
 
   const addAnalyzedFoods = async () => {
     if (!aiAnalysis?.foods) return
-
     setIsAddingFoods(true)
-
     try {
-      // Create a single meal entry instead of individual food entries
+      const { macros, micros } = aiAnalysis.totals
       const mealData = {
-        foodName: `${aiAnalysis.foods.map((f) => `${f.quantity}× ${f.name}`).join(', ')}`,
-        calories: aiAnalysis.totalCalories,
-        protein: aiAnalysis.totalProtein || 0,
-        carbs: aiAnalysis.totalCarbs || 0,
-        fat: aiAnalysis.totalFat || 0,
+        foodName: aiAnalysis.foods.map((f) => `${f.quantity}× ${f.name}`).join(', '),
+        calories: aiAnalysis.totals.calories,
+        protein: macros.protein,
+        carbs: macros.carbs,
+        fat: macros.fat,
+        fiber: macros.fiber,
         mealType: 'breakfast',
         quantity: 1,
-        isMeal: true,
-        vitamins: aiAnalysis.totalVitamins,
-        minerals: aiAnalysis.totalMinerals,
+        vitamins: micros.vitamins,
+        minerals: micros.minerals,
+        cholesterol: micros.other.cholesterol,
+        sugar: micros.other.sugar,
         mealItems: aiAnalysis.foods.map((food) => ({
           name: food.name,
           quantity: food.quantity,
           calories: food.calories,
-          protein: food.protein || 0,
-          carbs: food.carbs || 0,
-          fat: food.fat || 0,
-          vitamins: food.vitamins,
-          minerals: food.minerals
+          protein: food.macros.protein,
+          carbs: food.macros.carbs,
+          fat: food.macros.fat,
+          fiber: food.macros.fiber,
+          vitamins: food.micros.vitamins,
+          minerals: food.micros.minerals,
+          cholesterol: food.micros.other.cholesterol,
+          sugar: food.micros.other.sugar
         }))
       }
-
-      const mealResponse = await fetch('/api/calories/log', {
+      const res = await fetch('/api/calories/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mealData)
       })
-
-      if (mealResponse.ok) {
-        // Clear AI analysis and refresh data
+      if (res.ok) {
         setAiAnalysis(null)
         setAiFoodDescription('')
-        onDataAdded?.() // Notify parent component
-      } else {
-        console.error('Failed to add meal')
+        onDataAdded?.()
       }
     } catch (error) {
       console.error('Error adding analyzed foods:', error)
@@ -137,156 +146,242 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
     }
   }
 
+  const totalVitamins = aiAnalysis?.totals.micros.vitamins
+  const totalMinerals = aiAnalysis?.totals.micros.minerals
+  const totalOther = aiAnalysis?.totals.micros.other
+
+  const microEntries = [
+    ...[
+      { label: 'Vit A', val: totalVitamins?.vitaminA },
+      { label: 'B6', val: totalVitamins?.vitaminB6 },
+      { label: 'B12', val: totalVitamins?.vitaminB12 },
+      { label: 'Vit C', val: totalVitamins?.vitaminC },
+      { label: 'Vit D', val: totalVitamins?.vitaminD },
+      { label: 'B7', val: totalVitamins?.vitaminB7 },
+    ].filter(x => x.val).map(x => ({ ...x, color: '#16a34a' })),
+    ...[
+      { label: 'Iron', val: totalMinerals?.iron },
+      { label: 'Mg', val: totalMinerals?.magnesium },
+      { label: 'Zn', val: totalMinerals?.zinc },
+      { label: 'Ca', val: totalMinerals?.calcium },
+      { label: 'K', val: totalMinerals?.potassium },
+      { label: 'Na', val: totalMinerals?.sodium },
+    ].filter(x => x.val).map(x => ({ ...x, color: '#d97706' })),
+    ...[
+      { label: 'Chol', val: totalOther?.cholesterol },
+      { label: 'Sugar', val: totalOther?.sugar },
+    ].filter(x => x.val).map(x => ({ ...x, color: '#dc2626' })),
+  ]
+
   return (
-    <div className="px-4 py-2">
-      {/* Input Section */}
-      <div className="space-y-2">
+    <div
+      style={{ fontFamily: "'DM Sans', 'Outfit', 'Sora', system-ui, sans-serif" }}
+      className="px-3 py-3 max-w-sm mx-auto"
+    >
+      {/* ── Input Card ── */}
+      <div
+        className="relative bg-white rounded-2xl p-4"
+        style={{ boxShadow: '0 4px 24px -4px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06)' }}
+      >
+        {/* Floating label on border */}
+        <span
+          className="absolute -top-[9px] left-4 bg-white px-2 text-[9px] font-bold tracking-[0.18em] uppercase"
+          style={{ color: '#a1a1aa' }}
+        >
+          Add Meal
+        </span>
+
         <textarea
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
-          placeholder="Describe your meal (e.g., grilled chicken salad with avocado)"
-          className="w-full rounded-xl bg-zinc-200 border-2 border-zinc-200 shadow-sm text-black placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500/70 px-4 py-3 text-sm resize-none transition-all duration-200"
+          placeholder="e.g. 2 eggs, toast with butter, black coffee…"
           rows={3}
+          className="w-full resize-none text-sm bg-zinc-50 rounded-xl px-3 py-2.5 text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 mb-3 leading-relaxed"
+          style={{ border: '1.5px solid #f0f0f0' }}
         />
 
         <button
           onClick={analyzeFoodWithAI}
           disabled={isAnalyzing || !aiFoodDescription.trim()}
-          className="w-full text-sm bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 disabled:from-zinc-700 disabled:to-zinc-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: isAnalyzing
+              ? '#3f3f46'
+              : 'linear-gradient(135deg, #18181b 0%, #3f3f46 100%)',
+            letterSpacing: '0.02em',
+            boxShadow: '0 2px 12px rgba(24,24,27,0.18)'
+          }}
         >
-          {isAnalyzing ? "Analyzing..." : "Add Meal"}
+          {isAnalyzing ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-3.5 w-3.5 text-white/60" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Analyzing…
+            </span>
+          ) : (
+            'Analyze Meal'
+          )}
         </button>
       </div>
 
-      {/* Results - Single slide with minimal micro-nutrients */}
+      {/* ── Results Card ── */}
       {aiAnalysis && (
-        <div className="rounded-xl border border-violet-500/30 bg-violet-900/10 p-4 space-y-4">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-violet-300">
-              ✅ AI Analysis Complete
-            </h4>
-            <span className="text-xs text-violet-400 bg-violet-800/50 px-2 py-1 rounded">
-              {aiAnalysis.confidence || 'medium'} confidence
-            </span>
+        <div className="relative mt-6">
+
+          {/* Floating total kcal badge — overlaps top border */}
+          <div
+            className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white text-xs font-bold"
+            style={{
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)',
+              boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+              letterSpacing: '0.03em',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343M12 3v1m6.364 1.636l-.707.707M21 12h-1M17.657 5.343l-.707.707" />
+            </svg>
+            {aiAnalysis.totals.calories} kcal total
           </div>
 
-          {/* Food List */}
-          <div className="space-y-2">
-            {aiAnalysis.foods.map((food, index: number) => (
-              <div
-                key={index}
-                className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white truncate">
-                    <span className="text-zinc-400 mr-2">
-                      {food.quantity}×
+          <div
+            className="bg-white rounded-2xl overflow-hidden"
+            style={{ boxShadow: '0 4px 28px -4px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)' }}
+          >
+            {/* Header strip */}
+            <div
+              className="px-4 pt-6 pb-3 flex items-center justify-between"
+              style={{ borderBottom: '1px solid #f4f4f5' }}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="block w-1 h-4 rounded-full"
+                  style={{ background: 'linear-gradient(180deg, #0ea5e9, #6366f1)' }}
+                />
+                <span className="text-xs font-semibold text-zinc-700" style={{ letterSpacing: '0.04em' }}>
+                  ANALYSIS COMPLETE
+                </span>
+              </div>
+              <span className="text-[10px] text-zinc-400 font-medium">
+                {aiAnalysis.foods.length} item{aiAnalysis.foods.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {/* Food items */}
+            <div className="px-3 py-2 space-y-1">
+              {aiAnalysis.foods.map((food, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors"
+                  style={{ background: i % 2 === 0 ? '#fafafa' : '#ffffff' }}
+                >
+                  <div className="min-w-0 flex-1 flex items-center gap-2">
+                    <span
+                      className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white"
+                      style={{ background: 'linear-gradient(135deg, #0ea5e9, #6366f1)' }}
+                    >
+                      {food.quantity}
                     </span>
-                    {food.name}
-                  </p>
-                  <p className="text-xs text-zinc-500">
-                    {food.unit}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-sm font-semibold text-violet-400">
-                    {food.calories} kcal
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-zinc-800 truncate leading-tight">{food.name}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight">{food.unit}</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-bold text-zinc-700 shrink-0 ml-2">
+                    {food.calories}
+                    <span className="text-[10px] font-normal text-zinc-400 ml-0.5">kcal</span>
                   </span>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Macros Summary */}
-          <div className="grid grid-cols-4 gap-2 pt-3 border-t border-zinc-700">
-            <div className="text-center">
-              <p className="text-xs text-zinc-500">Calories</p>
-              <p className="text-sm font-semibold text-white">{aiAnalysis.totalCalories}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-zinc-500">Protein</p>
-              <p className="text-sm font-semibold text-blue-400">{aiAnalysis.totalProtein || 0}g</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-zinc-500">Carbs</p>
-              <p className="text-sm font-semibold text-amber-400">{aiAnalysis.totalCarbs || 0}g</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-zinc-500">Fat</p>
-              <p className="text-sm font-semibold text-rose-400">{aiAnalysis.totalFat || 0}g</p>
-            </div>
-          </div>
-
-          {/* Key Micro-nutrients - Only what API returns */}
-          {(aiAnalysis.totalVitamins || aiAnalysis.totalMinerals) && (
-            <div className="pt-3 border-t border-zinc-700">
-              <p className="text-xs text-zinc-400 mb-2">Key Micro-nutrients</p>
-              <div className="flex flex-wrap gap-2">
-                {aiAnalysis.totalVitamins?.vitaminA && (
-                  <span className="text-xs bg-green-800/30 text-green-400 px-2 py-1 rounded">
-                    A: {aiAnalysis.totalVitamins.vitaminA}
-                  </span>
-                )}
-                {aiAnalysis.totalVitamins?.vitaminB6 && (
-                  <span className="text-xs bg-green-800/30 text-green-400 px-2 py-1 rounded">
-                    B6: {aiAnalysis.totalVitamins.vitaminB6}
-                  </span>
-                )}
-                {aiAnalysis.totalVitamins?.vitaminB12 && (
-                  <span className="text-xs bg-green-800/30 text-green-400 px-2 py-1 rounded">
-                    B12: {aiAnalysis.totalVitamins.vitaminB12}
-                  </span>
-                )}
-                {aiAnalysis.totalMinerals?.iron && (
-                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
-                    Iron: {aiAnalysis.totalMinerals.iron}
-                  </span>
-                )}
-                {aiAnalysis.totalMinerals?.magnesium && (
-                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
-                    Magnesium: {aiAnalysis.totalMinerals.magnesium}
-                  </span>
-                )}
-                {aiAnalysis.totalMinerals?.zinc && (
-                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
-                    Zinc: {aiAnalysis.totalMinerals.zinc}
-                  </span>
-                )}
-                {aiAnalysis.totalMinerals?.calcium && (
-                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
-                    Calcium: {aiAnalysis.totalMinerals.calcium}
-                  </span>
-                )}
-                {aiAnalysis.totalMinerals?.potassium && (
-                  <span className="text-xs bg-orange-800/30 text-orange-400 px-2 py-1 rounded">
-                    K: {aiAnalysis.totalMinerals.potassium}
-                  </span>
-                )}
+            {/* Macros strip — dark floating panel overlapping food/micro boundary */}
+            <div className="px-3 pb-1">
+              <div
+                className="relative -mb-2 rounded-xl px-4 py-3 grid grid-cols-4 gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)',
+                  boxShadow: '0 8px 20px -4px rgba(0,0,0,0.25)'
+                }}
+              >
+                <div className="text-center">
+                  <p className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Protein</p>
+                  <p className="text-sm font-bold text-sky-400">
+                    {aiAnalysis.totals.macros.protein}
+                    <span className="text-[10px] font-normal text-zinc-500">g</span>
+                  </p>
+                </div>
+                <div className="text-center" style={{ borderLeft: '1px solid #3f3f46' }}>
+                  <p className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Carbs</p>
+                  <p className="text-sm font-bold text-amber-400">
+                    {aiAnalysis.totals.macros.carbs}
+                    <span className="text-[10px] font-normal text-zinc-500">g</span>
+                  </p>
+                </div>
+                <div className="text-center" style={{ borderLeft: '1px solid #3f3f46' }}>
+                  <p className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Fat</p>
+                  <p className="text-sm font-bold text-rose-400">
+                    {aiAnalysis.totals.macros.fat}
+                    <span className="text-[10px] font-normal text-zinc-500">g</span>
+                  </p>
+                </div>
+                <div className="text-center" style={{ borderLeft: '1px solid #3f3f46' }}>
+                  <p className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Fiber</p>
+                  <p className="text-sm font-bold text-emerald-400">
+                    {aiAnalysis.totals.macros.fiber}
+                    <span className="text-[10px] font-normal text-zinc-500">g</span>
+                  </p>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={addAnalyzedFoods}
-              disabled={isAddingFoods}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200"
-            >
-              {isAddingFoods ? "Adding..." : "Add Meal"}
-            </button>
+            {/* Micro-nutrients */}
+            {microEntries.length > 0 && (
+              <div className="px-4 pt-5 pb-3" style={{ borderTop: '0px' }}>
+                <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-2">Micronutrients</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {microEntries.map(({ label, val, color }) => (
+                    <span
+                      key={label}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{
+                        background: `${color}15`,
+                        color,
+                        border: `1px solid ${color}30`
+                      }}
+                    >
+                      {label} · {val}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            <button
-              onClick={() => {
-                setAiAnalysis(null);
-                setAiFoodDescription("");
-              }}
-              className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 font-medium px-4 py-2 rounded-xl transition-all duration-200"
+            {/* Actions */}
+            <div
+              className="flex gap-2 px-3 py-3 mt-1"
+              style={{ borderTop: '1px solid #f4f4f5' }}
             >
-              Cancel
-            </button>
+              <button
+                onClick={addAnalyzedFoods}
+                disabled={isAddingFoods}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-95 disabled:opacity-40"
+                style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                  boxShadow: '0 2px 10px rgba(16,185,129,0.25)'
+                }}
+              >
+                {isAddingFoods ? 'Adding…' : '+ Confirm Meal'}
+              </button>
+              <button
+                onClick={() => { setAiAnalysis(null); setAiFoodDescription('') }}
+                className="px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-500 bg-zinc-100 hover:bg-zinc-200 transition-all duration-200 active:scale-95"
+              >
+                Discard
+              </button>
+            </div>
           </div>
         </div>
       )}

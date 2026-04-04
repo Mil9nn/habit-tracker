@@ -99,7 +99,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">

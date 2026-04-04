@@ -92,7 +92,7 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
                               type="number"
                               value={editAmount}
                               onChange={(e) => setEditAmount(e.target.value)}
-                              className="w-16 bg-white/10 border-b border-white/20 outline-none text-sm text-white rounded px-1"
+                              className="w-16 bg-white/10 border-b border-white/20 outline-none text-sm text-black rounded px-1"
                             />
                           ) : (
                             `${entry.amount} ml`

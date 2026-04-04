@@ -36,12 +36,53 @@ export async function POST(req: Request) {
                   "quantity": number,
                   "unit": "serving unit",
                   "calories": number,
+
+                  "macros": {
+                    "protein": number,
+                    "carbs": number,
+                    "fat": number,
+                    "fiber": number,
+                  },
+
+                  "micros": {
+                    "vitamins": {
+                      "vitaminA": number,
+                      "vitaminC": number,
+                      "vitaminD": number,
+                      "vitaminB6": number,
+                      "vitaminB7": number,
+                      "vitaminB12": number
+                    },
+                    "minerals": {
+                      "iron": number,
+                      "magnesium": number,
+                      "zinc": number,
+                      "calcium": number,
+                      "potassium": number,
+                      "sodium": number,
+                    },
+                    "other": {
+                      "cholesterol": number,
+                      "sugar": number,
+                    },
+                  }
+                }
+              ],
+
+              "totals": {
+                "calories": number,
+
+                "macros": {
                   "protein": number,
                   "carbs": number,
                   "fat": number,
-                  "category": "category",
+                  "fiber": number,
+                },
+
+                "micros": {
                   "vitamins": {
-                    
+                    "vitaminA": number,
+                    "vitaminC": number,
                     "vitaminD": number,
                     "vitaminB6": number,
                     "vitaminB7": number,
@@ -53,26 +94,14 @@ export async function POST(req: Request) {
                     "zinc": number,
                     "calcium": number,
                     "potassium": number,
-                  }
+                    "sodium": number,
+                  },
+                  "other": {
+                    "cholesterol": number,
+                    "sugar": number,
+                  },
                 }
-              ],
-              "totalCalories": number,
-              "totalProtein": number,
-              "totalCarbs": number,
-              "totalFat": number,
-              "totalVitamins": {
-                "vitaminA": number,
-                "vitaminB6": number,
-                "vitaminB12": number
-              },
-              "totalMinerals": {
-                "iron": number,
-                "magnesium": number,
-                "zinc": number,
-                "calcium": number,
-                "potassium": number,
-              },
-              "confidence": "high|medium|low"
+              }
             }
 
             Be accurate and realistic. Use standard nutritional values.
@@ -81,11 +110,11 @@ export async function POST(req: Request) {
           },
           {
             role: 'user',
-            content: `Analyze this meal and calculate calories, macronutrients (protein, carbs, fat), and key micro-nutrients (vitamins and minerals): "${foodDescription}"`
+            content: `Analyze this meal and calculate calories, macronutrients, and key micro-nutrients: "${foodDescription}"`
           }
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: 700
       })
     })
 

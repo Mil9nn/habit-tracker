@@ -70,6 +70,11 @@ export async function GET(req: Request) {
   const totalProtein = logs.reduce((sum: number, log: any) => sum + (log.protein || 0), 0)    // ✅ Calculate macros
   const totalCarbs = logs.reduce((sum: number, log: any) => sum + (log.carbs || 0), 0)        // ✅ Calculate macros
   const totalFat = logs.reduce((sum: number, log: any) => sum + (log.fat || 0), 0)            // ✅ Calculate macros
+  const totalFiber = logs.reduce((sum: number, log: any) => sum + (log.fiber || 0), 0)          // ✅ Calculate fiber
+  
+  // Calculate other nutrients
+  const totalCholesterol = logs.reduce((sum: number, log: any) => sum + (log.cholesterol || 0), 0)
+  const totalSugar = logs.reduce((sum: number, log: any) => sum + (log.sugar || 0), 0)
   
   // Calculate micro-nutrients
   const totalVitamins = logs.reduce((totals: any, log: any) => {
@@ -138,6 +143,9 @@ export async function GET(req: Request) {
     totalProtein,    // ✅ Return macros
     totalCarbs,      // ✅ Return macros
     totalFat,        // ✅ Return macros
+    totalFiber,      // ✅ Return fiber
+    totalCholesterol, // ✅ Return cholesterol
+    totalSugar,       // ✅ Return sugar
     totalVitamins: Object.keys(totalVitamins).length > 0 ? totalVitamins : undefined,
     totalMinerals: Object.keys(totalMinerals).length > 0 ? totalMinerals : undefined,
     goal,

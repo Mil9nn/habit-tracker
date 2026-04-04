@@ -33,12 +33,31 @@ export interface CalorieLogForm {
 }
 
 export interface FoodItem {
-  name: string;
-  quantity: number;
-  calories: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
+  name: string
+  quantity: number
+  calories: number
+  protein?: number
+  carbs?: number
+  fat?: number
+  fiber?: number
+  vitamins?: {
+    vitaminA?: number
+    vitaminC?: number
+    vitaminD?: number
+    vitaminB6?: number
+    vitaminB7?: number
+    vitaminB12?: number
+  }
+  minerals?: {
+    iron?: number
+    magnesium?: number
+    zinc?: number
+    calcium?: number
+    potassium?: number
+    sodium?: number
+  }
+  cholesterol?: number
+  sugar?: number
 }
 
 export interface CalorieLog {
@@ -48,6 +67,9 @@ export interface CalorieLog {
   protein?: number
   carbs?: number
   fat?: number
+  fiber?: number
+  cholesterol?: number
+  sugar?: number
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   quantity?: number
   timestamp: string
@@ -57,6 +79,32 @@ export interface CalorieLog {
   // New fields for meal support
   isMeal: boolean
   mealItems?: FoodItem[]
+  // Micro-nutrients
+  vitamins?: {
+    vitaminA?: number
+    vitaminC?: number
+    vitaminD?: number
+    vitaminE?: number
+    vitaminK?: number
+    thiamin?: number
+    riboflavin?: number
+    niacin?: number
+    vitaminB6?: number
+    folate?: number
+    vitaminB12?: number
+  }
+  minerals?: {
+    calcium?: number
+    iron?: number
+    magnesium?: number
+    phosphorus?: number
+    potassium?: number
+    sodium?: number
+    zinc?: number
+    copper?: number
+    manganese?: number
+    selenium?: number
+  }
 }
 
 interface TrendData {
@@ -82,6 +130,9 @@ export interface CalorieSummary {
   totalProtein?: number
   totalCarbs?: number
   totalFat?: number
+  totalFiber?: number
+  totalCholesterol?: number
+  totalSugar?: number
   goal: number
   progress: number
   entryCount: number
@@ -171,11 +222,14 @@ export default function CalorieTracker() {
     vitaminA: summary.totalVitamins?.vitaminA || 0,
     vitaminB6: summary.totalVitamins?.vitaminB6 || 0,
     vitaminB12: summary.totalVitamins?.vitaminB12 || 0,
+    vitaminC: summary.totalVitamins?.vitaminC || 0,
+    vitaminD: summary.totalVitamins?.vitaminD || 0,
     iron: summary.totalMinerals?.iron || 0,
     magnesium: summary.totalMinerals?.magnesium || 0,
     zinc: summary.totalMinerals?.zinc || 0,
     calcium: summary.totalMinerals?.calcium || 0,
-    potassium: summary.totalMinerals?.potassium || 0
+    potassium: summary.totalMinerals?.potassium || 0,
+    sodium: summary.totalMinerals?.sodium || 0
   }, microRDA) : null
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -523,6 +577,44 @@ export default function CalorieTracker() {
                             </div>
                           </div>
 
+                          {/* Vitamin C */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">C</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalVitamins?.vitaminC || 0} / {microRDA?.vitaminC || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminC || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.vitaminC || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.vitaminC || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.vitaminC || 0), 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Vitamin D */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">D</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalVitamins?.vitaminD || 0} / {microRDA?.vitaminD || 0} mcg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminD || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.vitaminD || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.vitaminD || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.vitaminD || 0), 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
                           {/* Vitamin B6 */}
                           <div className="space-y-1">
                             <div className="flex justify-between items-center">
@@ -661,6 +753,25 @@ export default function CalorieTracker() {
                               />
                             </div>
                           </div>
+
+                          {/* Sodium */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-zinc-600">Sodium</span>
+                              <span className="text-xs text-black font-mono">
+                                {summary?.totalMinerals?.sodium || 0} / {microRDA?.sodium || 0} mg
+                              </span>
+                            </div>
+                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${(microPercentages?.sodium || 0) >= 100 ? 'bg-green-500' :
+                                    (microPercentages?.sodium || 0) >= 80 ? 'bg-blue-500' :
+                                      (microPercentages?.sodium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
+                                style={{ width: `${Math.min((microPercentages?.sodium || 0), 100)}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -735,7 +846,7 @@ export default function CalorieTracker() {
               onPeriodChange={setTrendsPeriod}
             />
 
-            <CalorieHeatmap data={heatmapData} />
+            <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
           </div>
         </div>
       </div>

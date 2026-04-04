@@ -30,7 +30,7 @@ function getMonthGrid(year: number, month: number) {
 }
 
 
-export default function CalorieHeatmap({ data }: { data: HeatmapData[] }) {
+export default function CalorieHeatmap({ data, goal }: { data: HeatmapData[]; goal: number }) {
   const dataMap = useMemo(() => {
     const map = new Map<string, number>()
     data.forEach(d => map.set(d.date, d.count))
@@ -48,65 +48,66 @@ export default function CalorieHeatmap({ data }: { data: HeatmapData[] }) {
 
   const getLevel = (count: number) => {
     if (count === 0) return 'bg-zinc-200'
-    if (count < 500) return 'bg-green-200'
-    if (count < 1000) return 'bg-green-400'
-    if (count < 2000) return 'bg-green-600'
-    return 'bg-green-800'
+    const ratio = count / goal
+    if (ratio < 0.25) return 'bg-green-200'
+    if (ratio < 0.5) return 'bg-green-400'   // < 50% of goal (light day / underreported)
+    if (ratio < 0.75) return 'bg-green-600'   // 50–75% — under goal
+    if (ratio <= 1.1) return 'bg-green-800'   // 85–110% — on target ✓
+    if (ratio <= 1.3) return 'bg-amber-400'   // 10–30% over
+    return 'bg-red-400'                        // 30%+ over goal
   }
 
   return (
-  <div className="space-y-4 p-4">
+    <div className="space-y-4 p-4">
 
-    <h3 className="text-lg font-semibold text-zinc-800">
-      Calorie Heatmap
-    </h3>
+      <h3 className="text-lg font-semibold text-zinc-800">
+        Calorie Heatmap
+      </h3>
 
-    <div className="flex gap-3">
+      <div className="flex gap-3">
 
-      {/* Weekday labels (LEFT SIDE, aligned) */}
-      <div className="flex flex-col gap-1 text-[10px] text-zinc-400 pt-6">
-        {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-          <div key={d} className="h-3.5 flex items-center">
-            {d}
-          </div>
-        ))}
-      </div>
-
-      {/* Months */}
-      <div className="flex gap-6 overflow-x-auto pb-2">
-        {months.map(({ month, cells }) => (
-          <div key={month} className="flex flex-col">
-
-            {/* Month label */}
-            <span className="text-xs text-zinc-500 mb-2 text-center">
-              {new Date(year, month).toLocaleString('default', { month: 'short' })}
-            </span>
-
-            {/* Grid */}
-            <div className="grid grid-rows-7 grid-flow-col gap-1">
-              {cells.map((date, i) => {
-                const key = date
-                  ? date.toISOString().split('T')[0]
-                  : `empty-${i}`
-
-                const count = date
-                  ? dataMap.get(key) || 0
-                  : 0
-
-                return (
-                  <div
-                    key={key}
-                    className={`w-3.5 h-3.5 rounded-[3px] ${date ? getLevel(count) : 'bg-transparent'}`}
-                    title={date ? `${key} → ${count}` : ''}
-                  />
-                )
-              })}
+        {/* Weekday labels (LEFT SIDE, aligned) */}
+        <div className="flex flex-col gap-1 text-[10px] text-zinc-400 pt-6">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className="h-3.5 flex items-center">
+              {d}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
+        {/* Months */}
+        <div className="flex gap-6 overflow-x-auto pb-2">
+          {months.map(({ month, cells }) => (
+            <div key={month} className="flex flex-col">
+
+              {/* Month label */}
+              <span className="text-xs text-zinc-500 mb-2 text-center">
+                {new Date(year, month).toLocaleString('default', { month: 'short' })}
+              </span>
+
+              {/* Grid */}
+              <div className="grid grid-rows-7 grid-flow-col gap-1">
+                {cells.map((date, i) => {
+                  const key = date
+                    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+                    : `empty-${i}`
+
+                  const count = date ? dataMap.get(key) ?? 0 : 0
+
+                  return (
+                    <div
+                      key={key}
+                      className={`w-3.5 h-3.5 rounded-[3px] ${date ? getLevel(count) : 'bg-transparent'}`}
+                      title={date ? `${key} → ${count}` : ''}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
     </div>
-  </div>
-)
+  )
 }

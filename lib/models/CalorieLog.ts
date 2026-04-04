@@ -7,6 +7,25 @@ export interface FoodItem {
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
+  vitamins?: {
+    vitaminA?: number;
+    vitaminC?: number;
+    vitaminD?: number;
+    vitaminB6?: number;
+    vitaminB7?: number;
+    vitaminB12?: number;
+  };
+  minerals?: {
+    iron?: number;
+    magnesium?: number;
+    zinc?: number;
+    calcium?: number;
+    potassium?: number;
+    sodium?: number;
+  };
+  cholesterol?: number;
+  sugar?: number;
 }
 
 export interface ICalorieLog extends Document {
@@ -17,6 +36,7 @@ export interface ICalorieLog extends Document {
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
   quantity?: number;
   timestamp: Date;
   createdAt: Date;
@@ -50,6 +70,8 @@ export interface ICalorieLog extends Document {
     manganese?: number;
     selenium?: number;
   };
+  cholesterol?: number;
+  sugar?: number;
 }
 
 export const CalorieLogSchema: Schema = new Schema(
@@ -60,6 +82,7 @@ export const CalorieLogSchema: Schema = new Schema(
     protein: { type: Number },        // ✅ Add macro fields
     carbs: { type: Number },         // ✅ Add macro fields
     fat: { type: Number },           // ✅ Add macro fields
+    fiber: { type: Number },         // ✅ Add fiber field
     mealType: { type: String, enum: ['breakfast', 'lunch', 'dinner', 'snack'], required: true },
     quantity: { type: Number },
     timestamp: { type: Date, required: true },
@@ -71,7 +94,26 @@ export const CalorieLogSchema: Schema = new Schema(
       calories: { type: Number, required: true },
       protein: { type: Number },
       carbs: { type: Number },
-      fat: { type: Number }
+      fat: { type: Number },
+      fiber: { type: Number },
+      vitamins: {
+        vitaminA: { type: Number },
+        vitaminC: { type: Number },
+        vitaminD: { type: Number },
+        vitaminB6: { type: Number },
+        vitaminB7: { type: Number },
+        vitaminB12: { type: Number }
+      },
+      minerals: {
+        iron: { type: Number },
+        magnesium: { type: Number },
+        zinc: { type: Number },
+        calcium: { type: Number },
+        potassium: { type: Number },
+        sodium: { type: Number }
+      },
+      cholesterol: { type: Number },
+      sugar: { type: Number }
     }],
     // Micro-nutrients
     vitamins: {
@@ -98,7 +140,9 @@ export const CalorieLogSchema: Schema = new Schema(
       copper: { type: Number },
       manganese: { type: Number },
       selenium: { type: Number }
-    }
+    },
+    cholesterol: { type: Number },
+    sugar: { type: Number }
   },
   {
     timestamps: true,

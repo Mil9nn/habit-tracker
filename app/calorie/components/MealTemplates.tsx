@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Trash2, MoreVertical, UtensilsCrossed, ChevronDown } from 'lucide-react'
+import { Trash2, MoreVertical, UtensilsCrossed, ChevronDown, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 
@@ -123,36 +123,47 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
               {list.map(t => (
                 <div
                   key={t._id}
-                  className="group flex items-center justify-between p-2 px-4 bg-zinc-200/30 border-b border-zinc-200/50 last:border-b-0 hover:bg-zinc-300/50 transition-all duration-200 cursor-pointer"
-                  onClick={() => onTemplateSelect(t)}
+                  className="group flex items-center justify-between p-2 px-4 bg-zinc-200/30 border-b border-zinc-200/50 last:border-b-0 hover:bg-zinc-300/50 transition-all duration-200"
                 >
                   <div className="flex flex-col">
                     <span className="text-sm text-black/70 font-medium">{t.name}</span>
                     <span className="text-sm text-yellow-500 font-medium">{t.totalCalories} kcal</span>
                   </div>
 
-                  <div
-                    className="relative opacity-0 group-hover:opacity-100"
-                    onClick={e => e.stopPropagation()}
-                  >
+                  <div className="flex items-center gap-2">
+                    {/* Plus button to add template */}
                     <button
-                      onClick={() => setActiveMenu(activeMenu === t._id ? null : t._id)}
-                      className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-700 transition-colors"
+                      onClick={() => onTemplateSelect(t)}
+                      className="p-2 text-zinc-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Add this template"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                     </button>
 
-                    {activeMenu === t._id && (
-                      <div className="absolute right-0 mt-2 w-32 bg-zinc-800 border border-zinc-700 rounded-xl text-sm z-50 shadow-lg">
-                        <button
-                          onClick={() => handleDeleteClick(t._id, t.name)}
-                          className="flex w-full items-center gap-2 px-3 py-2 text-red-400 hover:bg-zinc-700 rounded-xl transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                    {/* More options menu */}
+                    <div
+                      className="relative opacity-0 group-hover:opacity-100"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => setActiveMenu(activeMenu === t._id ? null : t._id)}
+                        className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-700 transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+
+                      {activeMenu === t._id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-zinc-800 border border-zinc-700 rounded-xl text-sm z-50 shadow-lg">
+                          <button
+                            onClick={() => handleDeleteClick(t._id, t.name)}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-red-400 hover:bg-zinc-700 rounded-xl transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
