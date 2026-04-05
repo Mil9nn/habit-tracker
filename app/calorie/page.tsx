@@ -5,12 +5,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import { format } from 'date-fns'
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Drumstick, Wheat, Droplet } from 'lucide-react'
-import CalorieGauge from './components/CalorieGauge'
-import MacroRing from './components/MacroRing'
+import { HorizontalCalendar } from './components/HorizontalCalendar'
+import { Carousel } from './components/Carousel'
 import CalorieHeatmap from './components/CalorieHeatmap'
 import { AIFoodAnalysis } from './components/AIFoodAnalysis'
 import { useProteinGoal, useCarbsGoal, useFatGoal, useProfile } from '@/store/useProfileStore'
@@ -107,24 +103,6 @@ export interface CalorieLog {
   }
 }
 
-interface TrendData {
-  date: string
-  calories: number
-  goal: number
-  dayName: string
-}
-
-interface MealTemplate {
-  _id: string
-  name: string
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  totalCalories: number
-  totalProtein: number
-  totalCarbs: number
-  totalFat: number
-  mealItems: FoodItem[]
-}
-
 export interface CalorieSummary {
   totalCalories: number
   totalProtein?: number
@@ -177,11 +155,6 @@ export default function CalorieTracker() {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  const touchStartXRef = useRef<number | null>(null)
-  const touchEndXRef = useRef<number | null>(null)
-  const minSwipeDistance = 50
-
-  const [carouselSlide, setCarouselSlide] = useState(0)
   const [trendsData, setTrendsData] = useState<any>([])
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState<CalorieSummary | null>(null)
@@ -199,14 +172,13 @@ export default function CalorieTracker() {
     quantity: 1
   })
   const [isQuickAddActive, setIsQuickAddActive] = useState(false)
-  const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [trendsPeriod, setTrendsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
 
+  const profile = useProfile()
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
-  const profile = useProfile()
 
   // Calculate RDA for micro-nutrients
   const microRDA = profile ? calculateMicroRDA({
@@ -231,34 +203,6 @@ export default function CalorieTracker() {
     potassium: summary.totalMinerals?.potassium || 0,
     sodium: summary.totalMinerals?.sodium || 0
   }, microRDA) : null
-
-  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    touchStartXRef.current = event.touches[0]?.clientX ?? null
-  }
-
-  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
-    touchEndXRef.current = event.touches[0]?.clientX ?? null
-  }
-
-  const handleTouchEnd = () => {
-    if (touchStartXRef.current === null || touchEndXRef.current === null) {
-      return
-    }
-
-    const distance = touchStartXRef.current - touchEndXRef.current
-    if (Math.abs(distance) > minSwipeDistance) {
-      if (distance > 0) {
-        // swipe left -> next
-        setCarouselSlide((prev) => (prev + 1) % 2)
-      } else {
-        // swipe right -> previous
-        setCarouselSlide((prev) => (prev - 1 + 2) % 2)
-      }
-    }
-
-    touchStartXRef.current = null
-    touchEndXRef.current = null
-  }
 
   const fetchTrendsData = useCallback(async (period: 'week' | 'month' | 'quarter' = 'week') => {
     try {
@@ -432,9 +376,9 @@ export default function CalorieTracker() {
   if (status === 'loading') {
     return (
       <MainLayout>
-          <div className="flex items-center justify-center h-[calc(100vh-50px)]">
-            <Loader />
-          </div>
+        <div className="flex items-center justify-center h-[calc(100vh-50px)]">
+          <Loader />
+        </div>
       </MainLayout>
     )
   }
@@ -442,414 +386,50 @@ export default function CalorieTracker() {
   return (
     <MainLayout>
       <div className="space-y-4">
+        <HorizontalCalendar 
+          selectedDate={selectedDate}
+          onDateSelect={(date) => setSelectedDate(date)}
+        />
+        <Carousel
+          summary={summary}
+          microRDA={microRDA}
+          microPercentages={microPercentages}
+          proteinGoal={proteinGoal}
+          carbsGoal={carbsGoal}
+          fatGoal={fatGoal}
+        />
+      </div>
 
-        {/* Header Section */}
-        <div className="flex items-center justify-between px-4 py-2">
-          <div>
-            <h1 className="text-2xl font-semibold text-black tracking-tight">Nutrition</h1>
-            <p className="text-zinc-500 text-sm">Track your daily calories and macros</p>
-          </div>
+      {/* Main Content */}
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
 
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger asChild>
-              <button className="text-xs text-zinc-400 hover:text-black transition-all duration-200">
-                {selectedDate ? format(new Date(selectedDate), "MMM do, yyyy") : "Today"}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-zinc-800 border-zinc-700" align="end">
-              <Calendar
-                mode="single"
-                required
-                selected={dayjs(selectedDate).toDate()}
-                onSelect={(date: Date | null) => {
-                  if (date) {
-                    setSelectedDate(dayjs(date).format('YYYY-MM-DD'))
-                    setCalendarOpen(false)
-                  }
-                }}
-                disabled={(date) => date > new Date()}
-                initialFocus
-                className="text-black"
-              />
-            </PopoverContent>
-          </Popover>
+        {/* Left Column */}
+        <div className="space-y-10">
+
+          <AIFoodAnalysis onDataAdded={fetchData} />
+
+          <MealTemplatesMinimal
+            onTemplateSelect={handleTemplateSelect}
+            onDataUpdated={fetchData}
+          />
+
+          <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
         </div>
 
-        {/* Daily Summary - Carousel */}
-        <section className="space-y-6 px-4 mb-10">
-          <div className="relative shadow-sm rounded-2xl border border-zinc-200 overflow-hidden">
-            {/* Carousel Container */}
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${carouselSlide * 100}%)` }}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              {/* Slide 1: Daily Summary - Calories & Macros */}
-              <div className="w-full flex-shrink-0">
-                <div className="p-4">
-                  <div className="space-y-4">
-                    {/* Calories Section */}
-                    <div className="text-center space-y-4">
-                      <h3 className="text-lg font-medium text-zinc-500">Daily Calories</h3>
-                      <div className="flex items-center justify-center gap-4">
-                        <CalorieGauge
-                          current={summary?.totalCalories || 0}
-                          target={summary?.goal || 2000}
-                          size={140}
-                          strokeWidth={8}
-                        />
-                        <div className="space-y-2 pt-2 text-left">
-                          <p className="text-sm font-semibold text-black">
-                            <span className="text-blue-600">{summary?.totalCalories || 0}</span> / <span className="text-green-600">{summary?.goal || 2000}</span> kcal
-                          </p>
-                          <p className="text-sm text-zinc-400">
-                            {Math.max((summary?.goal || 2000) - (summary?.totalCalories || 0), 0)} kcal remaining
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Macros Section */}
-                    <div className="space-y-4">
-                      <div className="flex justify-center items-center gap-6">
-                        <MacroRing
-                          current={summary?.totalProtein || 0}
-                          goal={proteinGoal || 150}
-                          label="Protein"
-                          icon={Drumstick}
-                          color="emerald"
-                          size={70}
-                          strokeWidth={5}
-                        />
-                        <MacroRing
-                          current={summary?.totalCarbs || 0}
-                          goal={carbsGoal || 300}
-                          label="Carbs"
-                          icon={Wheat}
-                          color="blue"
-                          size={70}
-                          strokeWidth={5}
-                        />
-                        <MacroRing
-                          current={summary?.totalFat || 0}
-                          goal={fatGoal || 100}
-                          label="Fats"
-                          icon={Droplet}
-                          color="amber"
-                          size={70}
-                          strokeWidth={5}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Slide 2: Micro-nutrients with Progress */}
-              <div className="w-full flex-shrink-0">
-                <div className="p-4">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-zinc-600">Micro-nutrients</h3>
-
-                    <div className="space-y-6">
-                      {/* Vitamins */}
-                      <div>
-                        <h4 className="text-sm font-medium text-zinc-500 pb-2">Vitamins</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Vitamin A */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">A</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalVitamins?.vitaminA || 0} / {microRDA?.vitaminA || 0} mcg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminA || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.vitaminA || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.vitaminA || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.vitaminA || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Vitamin C */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">C</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalVitamins?.vitaminC || 0} / {microRDA?.vitaminC || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminC || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.vitaminC || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.vitaminC || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.vitaminC || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Vitamin D */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">D</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalVitamins?.vitaminD || 0} / {microRDA?.vitaminD || 0} mcg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminD || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.vitaminD || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.vitaminD || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.vitaminD || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Vitamin B6 */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">B6</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalVitamins?.vitaminB6 || 0} / {microRDA?.vitaminB6 || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminB6 || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.vitaminB6 || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.vitaminB6 || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.vitaminB6 || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Vitamin B12 */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">B12</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalVitamins?.vitaminB12 || 0} / {microRDA?.vitaminB12 || 0} mcg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.vitaminB12 || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.vitaminB12 || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.vitaminB12 || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.vitaminB12 || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Minerals */}
-                      <div>
-                        <h4 className="text-sm font-medium text-zinc-500 pb-2">Minerals</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Iron */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">Iron</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalMinerals?.iron || 0} / {microRDA?.iron || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.iron || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.iron || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.iron || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.iron || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Magnesium */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">Magnesium</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalMinerals?.magnesium || 0} / {microRDA?.magnesium || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.magnesium || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.magnesium || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.magnesium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.magnesium || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Zinc */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">Zinc</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalMinerals?.zinc || 0} / {microRDA?.zinc || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.zinc || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.zinc || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.zinc || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.zinc || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Calcium */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">Calcium</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalMinerals?.calcium || 0} / {microRDA?.calcium || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.calcium || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.calcium || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.calcium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.calcium || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Potassium */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">Potassium</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalMinerals?.potassium || 0} / {microRDA?.potassium || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.potassium || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.potassium || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.potassium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.potassium || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Sodium */}
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-zinc-600">Sodium</span>
-                              <span className="text-xs text-black font-mono">
-                                {summary?.totalMinerals?.sodium || 0} / {microRDA?.sodium || 0} mg
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${(microPercentages?.sodium || 0) >= 100 ? 'bg-green-500' :
-                                    (microPercentages?.sodium || 0) >= 80 ? 'bg-blue-500' :
-                                      (microPercentages?.sodium || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
-                                style={{ width: `${Math.min((microPercentages?.sodium || 0), 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation Controls */}
-            <div className="flex items-center justify-center px-6 py-4">
-              <button
-                onClick={() => setCarouselSlide((prev) => (prev - 1 + 2) % 2)}
-                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-black"
-                aria-label="Previous slide"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              {/* Slide Indicators */}
-              <div className="flex gap-2">
-                {[0, 1].map((index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCarouselSlide(index)}
-                    className={`h-2 rounded-full transition-all duration-300 ${carouselSlide === index
-                      ? 'bg-violet-500 w-4'
-                      : 'bg-zinc-500 w-2 hover:bg-zinc-600'
-                      }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCarouselSlide((prev) => (prev + 1) % 2)}
-                className="hidden md:block p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-600 hover:text-black"
-                aria-label="Next slide"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-
-          {/* Left Column */}
-          <div className="space-y-10">
-
-            <AIFoodAnalysis onDataAdded={fetchData} />
-
-            <MealTemplatesMinimal
-              onTemplateSelect={handleTemplateSelect}
-              onDataUpdated={fetchData}
-            />
-
-            <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-10">
+        {/* Right Column */}
+        <div className="space-y-10">
 
 
-            <CalorieTrendsChart
-              data={trendsData}
-              period={trendsPeriod}
-              onPeriodChange={setTrendsPeriod}
-            />
+          <CalorieTrendsChart
+            data={trendsData}
+            period={trendsPeriod}
+            onPeriodChange={setTrendsPeriod}
+          />
 
-            <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
-          </div>
+          <CalorieHeatmap data={heatmapData} goal={summary?.goal || 2000} />
         </div>
       </div>
-    </MainLayout>
+
+    </MainLayout >
   )
 }

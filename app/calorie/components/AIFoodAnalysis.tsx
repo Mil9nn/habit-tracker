@@ -193,24 +193,16 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
     >
       {/* ── Input Card ── */}
       <div
-        className="relative bg-white rounded-2xl p-4"
+        className="bg-white rounded-2xl p-4 space-y-2"
         style={{ boxShadow: '0 4px 24px -4px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06)' }}
       >
-        {/* Floating label on border */}
-        <span
-          className="absolute -top-[9px] left-4 bg-white px-2 text-[9px] font-bold tracking-[0.18em] uppercase"
-          style={{ color: '#a1a1aa' }}
-        >
-          Add Meal
-        </span>
 
         <textarea
           value={aiFoodDescription}
           onChange={(e) => setAiFoodDescription(e.target.value)}
           placeholder="e.g. 2 eggs, toast with butter, black coffee…"
           rows={3}
-          className="w-full resize-none text-sm bg-zinc-50 rounded-xl px-3 py-2.5 text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 mb-3 leading-relaxed"
-          style={{ border: '1.5px solid #f0f0f0' }}
+          className="w-full resize-none text-sm bg-zinc-50 rounded-xl px-3 py-2.5 text-zinc-800 placeholder:text-zinc-400 focus:outline-none leading-relaxed"
         />
 
         <button

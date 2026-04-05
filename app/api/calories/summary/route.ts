@@ -8,6 +8,11 @@ import { connectDB } from '@/lib/mongoose'
 import { getCalorieLogModel, getUserProfileModel } from '@/lib/models'
 import { calculateDailyCalorieNeeds, getCalorieGoalInfo } from '@/lib/calorieCalculator'
 
+// Helper function to round numbers to avoid floating point precision issues
+const roundNumber = (num: number, decimals: number = 1): number => {
+  return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}
+
 export async function GET(req: Request) {
   const session = await getServerSession()
   if (!session?.user?.email)
@@ -80,17 +85,17 @@ export async function GET(req: Request) {
   const totalVitamins = logs.reduce((totals: any, log: any) => {
     if (log.vitamins) {
       return {
-        vitaminA: (totals.vitaminA || 0) + (log.vitamins.vitaminA || 0),
-        vitaminC: (totals.vitaminC || 0) + (log.vitamins.vitaminC || 0),
-        vitaminD: (totals.vitaminD || 0) + (log.vitamins.vitaminD || 0),
-        vitaminE: (totals.vitaminE || 0) + (log.vitamins.vitaminE || 0),
-        vitaminK: (totals.vitaminK || 0) + (log.vitamins.vitaminK || 0),
-        thiamin: (totals.thiamin || 0) + (log.vitamins.thiamin || 0),
-        riboflavin: (totals.riboflavin || 0) + (log.vitamins.riboflavin || 0),
-        niacin: (totals.niacin || 0) + (log.vitamins.niacin || 0),
-        vitaminB6: (totals.vitaminB6 || 0) + (log.vitamins.vitaminB6 || 0),
-        folate: (totals.folate || 0) + (log.vitamins.folate || 0),
-        vitaminB12: (totals.vitaminB12 || 0) + (log.vitamins.vitaminB12 || 0)
+        vitaminA: roundNumber((totals.vitaminA || 0) + (log.vitamins.vitaminA || 0)),
+        vitaminC: roundNumber((totals.vitaminC || 0) + (log.vitamins.vitaminC || 0)),
+        vitaminD: roundNumber((totals.vitaminD || 0) + (log.vitamins.vitaminD || 0)),
+        vitaminE: roundNumber((totals.vitaminE || 0) + (log.vitamins.vitaminE || 0)),
+        vitaminK: roundNumber((totals.vitaminK || 0) + (log.vitamins.vitaminK || 0)),
+        thiamin: roundNumber((totals.thiamin || 0) + (log.vitamins.thiamin || 0)),
+        riboflavin: roundNumber((totals.riboflavin || 0) + (log.vitamins.riboflavin || 0)),
+        niacin: roundNumber((totals.niacin || 0) + (log.vitamins.niacin || 0)),
+        vitaminB6: roundNumber((totals.vitaminB6 || 0) + (log.vitamins.vitaminB6 || 0)),
+        folate: roundNumber((totals.folate || 0) + (log.vitamins.folate || 0)),
+        vitaminB12: roundNumber((totals.vitaminB12 || 0) + (log.vitamins.vitaminB12 || 0))
       }
     }
     return totals
@@ -99,16 +104,16 @@ export async function GET(req: Request) {
   const totalMinerals = logs.reduce((totals: any, log: any) => {
     if (log.minerals) {
       return {
-        calcium: (totals.calcium || 0) + (log.minerals.calcium || 0),
-        iron: (totals.iron || 0) + (log.minerals.iron || 0),
-        magnesium: (totals.magnesium || 0) + (log.minerals.magnesium || 0),
-        phosphorus: (totals.phosphorus || 0) + (log.minerals.phosphorus || 0),
-        potassium: (totals.potassium || 0) + (log.minerals.potassium || 0),
-        sodium: (totals.sodium || 0) + (log.minerals.sodium || 0),
-        zinc: (totals.zinc || 0) + (log.minerals.zinc || 0),
-        copper: (totals.copper || 0) + (log.minerals.copper || 0),
-        manganese: (totals.manganese || 0) + (log.minerals.manganese || 0),
-        selenium: (totals.selenium || 0) + (log.minerals.selenium || 0)
+        calcium: roundNumber((totals.calcium || 0) + (log.minerals.calcium || 0)),
+        iron: roundNumber((totals.iron || 0) + (log.minerals.iron || 0)),
+        magnesium: roundNumber((totals.magnesium || 0) + (log.minerals.magnesium || 0)),
+        phosphorus: roundNumber((totals.phosphorus || 0) + (log.minerals.phosphorus || 0)),
+        potassium: roundNumber((totals.potassium || 0) + (log.minerals.potassium || 0)),
+        sodium: roundNumber((totals.sodium || 0) + (log.minerals.sodium || 0)),
+        zinc: roundNumber((totals.zinc || 0) + (log.minerals.zinc || 0)),
+        copper: roundNumber((totals.copper || 0) + (log.minerals.copper || 0)),
+        manganese: roundNumber((totals.manganese || 0) + (log.minerals.manganese || 0)),
+        selenium: roundNumber((totals.selenium || 0) + (log.minerals.selenium || 0))
       }
     }
     return totals

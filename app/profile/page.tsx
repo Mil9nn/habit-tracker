@@ -5,14 +5,14 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import MainLayout from '../layout/MainLayout'
 import ProfileDisplay from '@/components/ProfileDisplay'
-import { Edit, Flame, Target, TrendingUp, Droplets, LogOut } from 'lucide-react'
+import { Edit, LogOut } from 'lucide-react'
 import { useProfile, useCalorieGoal, useProteinGoal, useCarbsGoal, useFatGoal, useProfileInitialized } from '@/store/useProfileStore'
 import dynamic from 'next/dynamic'
 import Loader from '@/components/Loader'
+import Link from 'next/link'
 
 const ProfileForm = dynamic(() => import('@/components/ProfileForm'), {
   ssr: false,
-  loading: () => <div className="animate-pulse">Loading profile form...</div>
 })
 
 function ProfilePageContent() {
@@ -62,41 +62,9 @@ function ProfilePageContent() {
     }
   }
 
-  const handleProfileUpdate = () => {
-    router.push('/profile/edit')
-  }
-
-  const handleProfileSaved = () => {
-    router.push('/')
-  }
-
-  const handleCancelEdit = () => {
-    router.push('/')
-  }
-
   const handleLogout = () => {
     signOut({ callbackUrl: '/auth/signin' })
   }
-
-  // Animation variants
-  const fadeUp = (delay = 0) => ({
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.4, delay, ease: "easeOut" },
-  })
-
-  const stats = [
-    { label: "Daily Calories", value: calories.consumed || 0, icon: Flame, color: "text-orange-400", bg: "bg-orange-400/10" },
-    { label: "Protein Goal", value: `${proteinGoal}g`, icon: Target, color: "text-blue-400", bg: "bg-blue-400/10" },
-    { label: "Carbs Goal", value: `${carbsGoal}g`, icon: TrendingUp, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-    { label: "Fat Goal", value: `${fatGoal}g`, icon: Droplets, color: "text-cyan-400", bg: "bg-cyan-400/10" },
-  ]
-
-  const badges = [
-    { label: "Profile Complete", icon: "🎯" },
-    { label: "7-Day Streak", icon: "🔥" },
-    { label: "Macro Master", icon: "🏆" },
-  ]
 
   if (status === 'loading') {
     return (
@@ -109,7 +77,7 @@ function ProfilePageContent() {
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center text-white">Initializing profile...</div>
+        <div className="animate-pulse text-center text-black">Initializing profile...</div>
       </div>
     )
   }
@@ -117,7 +85,7 @@ function ProfilePageContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-zinc-900 to-zinc-800 flex items-center justify-center">
-        <div className="animate-pulse text-center text-white">Loading profile...</div>
+        <div className="animate-pulse text-center text-black">Loading profile...</div>
       </div>
     )
   }
@@ -129,17 +97,17 @@ function ProfilePageContent() {
 
           {/* Header Section */}
           <div className="mb-8">
-            <h1 className="text-3xl font-light text-white tracking-tight">Profile</h1>
+            <h1 className="text-3xl font-light text-black tracking-tight">Profile</h1>
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-gray-800 mt-1">Manage your personal information and goals</p>
 
-              <button
-                onClick={handleProfileUpdate}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
+              <Link
+                href="/profile/edit"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-black hover:bg-white/10 rounded-lg transition-colors border border-white/20"
               >
                 <Edit className="w-4 h-4" />
                 Edit
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -176,7 +144,7 @@ export default function ProfilePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-pulse text-center text-white">Loading...</div>
+        <div className="animate-pulse text-center text-black">Loading...</div>
       </div>
     }>
       <ProfilePageContent />

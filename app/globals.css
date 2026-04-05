@@ -305,4 +305,4 @@ body::before {
 
 ::selection { background: rgba(0,245,160,0.2); }
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }

@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { CalorieLog } from '../page'
-import { Edit2, Trash2, Bookmark, Salad, ChevronDown } from 'lucide-react'
-import { MealEditForm } from '../../../components/MealEditForm'
+import { Trash2, Bookmark, ChevronDown, Salad } from 'lucide-react'
 import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { format } from 'date-fns'
@@ -38,7 +37,6 @@ function MacroPill({ label, value, color }: { label: string; value?: number; col
 }
 
 export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
-  const [editingMeal, setEditingMeal] = useState<CalorieLog | null>(null)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
   const [duplicateTemplateName, setDuplicateTemplateName] = useState('')
@@ -55,27 +53,82 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
   }
 
   const saveAsTemplate = async (log: CalorieLog) => {
+    console.log('saveAsTemplate called with log:', log)
+    console.log('log.foodName:', log.foodName)
+    console.log('log.mealType:', log.mealType)
+    console.log('log.mealItems:', log.mealItems)
+    console.log('log.quantity:', log.quantity)
+    console.log('log.calories:', log.calories)
+    console.log('log.protein:', log.protein)
+    console.log('log.carbs:', log.carbs)
+    console.log('log.fat:', log.fat)
+    
     try {
+      const templateData = {
+        name: log.foodName,
+        mealType: log.mealType,
+        mealItems: log.mealItems && log.mealItems.length > 0 ? log.mealItems : [{
+          name: log.foodName, 
+          quantity: log.quantity || 1,
+          calories: log.calories, 
+          protein: log.protein || 0,
+          carbs: log.carbs || 0, 
+          fat: log.fat || 0,
+          fiber: log.fiber || 0,
+          vitamins: {
+            vitaminA: log.vitamins?.vitaminA || 0,
+            vitaminC: log.vitamins?.vitaminC || 0,
+            vitaminD: log.vitamins?.vitaminD || 0,
+            vitaminE: log.vitamins?.vitaminE || 0,
+            vitaminK: log.vitamins?.vitaminK || 0,
+            thiamin: log.vitamins?.thiamin || 0,
+            riboflavin: log.vitamins?.riboflavin || 0,
+            niacin: log.vitamins?.niacin || 0,
+            vitaminB6: log.vitamins?.vitaminB6 || 0,
+            folate: log.vitamins?.folate || 0,
+            vitaminB12: log.vitamins?.vitaminB12 || 0
+          },
+          minerals: {
+            calcium: log.minerals?.calcium || 0,
+            iron: log.minerals?.iron || 0,
+            magnesium: log.minerals?.magnesium || 0,
+            phosphorus: log.minerals?.phosphorus || 0,
+            potassium: log.minerals?.potassium || 0,
+            sodium: log.minerals?.sodium || 0,
+            zinc: log.minerals?.zinc || 0,
+            copper: log.minerals?.copper || 0,
+            manganese: log.minerals?.manganese || 0,
+            selenium: log.minerals?.selenium || 0
+          },
+          cholesterol: log.cholesterol || 0,
+          sugar: log.sugar || 0
+        }]
+      }
+      console.log('Sending template data:', templateData)
+      
       const res = await fetch('/api/calories/templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: log.foodName,
-          mealType: log.mealType,
-          mealItems: log.mealItems || [{
-            name: log.foodName, quantity: log.quantity || 1,
-            calories: log.calories, protein: log.protein || 0,
-            carbs: log.carbs || 0, fat: log.fat || 0
-          }]
-        })
+        body: JSON.stringify(templateData)
       })
+      
+      console.log('Response status:', res.status)
+      console.log('Response ok:', res.ok)
+      
       if (res.status === 409) {
         setDuplicateTemplateName(log.foodName)
         setShowDuplicateDialog(true)
       } else if (res.ok) {
         toast.success(`"${log.foodName}" saved as template`)
+      } else {
+        const errorData = await res.json()
+        console.error('Error response:', errorData)
+        toast.error('Failed to save template: ' + (errorData?.error || 'Unknown error'))
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { 
+      console.error('Exception in saveAsTemplate:', e) 
+      toast.error('Failed to save template') 
+    }
   }
 
   const deleteLog = async (logId: string) => {
@@ -85,25 +138,15 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
     } catch (e) { console.error(e); toast.error('Failed to delete') }
   }
 
-  const updateMeal = async (updatedMeal: CalorieLog) => {
-    try {
-      const res = await fetch(`/api/calories/log/${updatedMeal._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedMeal)
-      })
-      if (res.ok) { setEditingMeal(null); onDataUpdated?.() }
-    } catch (e) { console.error(e) }
-  }
 
   const totalCalories = logs.reduce((sum, l) => sum + l.calories, 0)
 
   return (
     <>
-      <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="bg-white overflow-hidden p-4">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-zinc-800 tracking-tight">Food Log</h3>
             {logs.length > 0 && (
@@ -183,13 +226,6 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                         <Bookmark className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => setEditingMeal(log)}
-                        className="p-1.5 text-zinc-300 hover:text-zinc-600 rounded-lg hover:bg-zinc-100 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
                         onClick={() => setDeleteConfirm({ open: true, logId: log._id, itemName: log.foodName })}
                         className="p-1.5 text-zinc-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
                         title="Delete"
@@ -253,23 +289,6 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
         )}
       </div>
 
-      {editingMeal && (
-        <MealEditForm
-          meal={{
-            _id: editingMeal._id,
-            foodName: editingMeal.foodName,
-            mealItems: editingMeal.mealItems || [{
-              name: editingMeal.foodName, quantity: editingMeal.quantity || 1,
-              calories: editingMeal.calories, protein: editingMeal.protein || 0,
-              carbs: editingMeal.carbs || 0, fat: editingMeal.fat || 0
-            }],
-            calories: editingMeal.calories, protein: editingMeal.protein,
-            carbs: editingMeal.carbs, fat: editingMeal.fat, mealType: editingMeal.mealType
-          }}
-          onSave={updateMeal}
-          onCancel={() => setEditingMeal(null)}
-        />
-      )}
 
       <TemplateExistsDialog
         open={showDuplicateDialog}

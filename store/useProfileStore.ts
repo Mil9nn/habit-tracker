@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist, devtools } from 'zustand/middleware'
 import { calculateBMR, calculateDailyCalorieNeeds } from '@/lib/calorieCalculator'
 
-// Macro calculation functions
 const calculateMacroGoals = (calorieGoal: number, activityLevel: ActivityLevel, weight: number) => {
   // Protein: 1.6-2.2g per kg body weight for active individuals
   // Higher for very active, lower for sedentary
@@ -75,6 +74,7 @@ export interface ProfileState {
   setLoading: (loading: boolean) => void
   setInitialized: (initialized: boolean) => void
   clearProfile: () => void
+  recalculateMacroGoals: () => void
 }
 
 // Default profile values (empty state, no dummy data)
@@ -218,6 +218,29 @@ export const useProfileStore = create<ProfileState>()(
             false,
             'setInitialized'
           ),
+
+        recalculateMacroGoals: () => {
+          const { profile } = get()
+          
+          if (!profile || !profile.calorieGoal) return
+          
+          // Recalculate macro goals based on current profile data
+          const { proteinGoal, carbsGoal, fatGoal } = calculateMacroGoals(profile.calorieGoal, profile.activityLevel, profile.weight)
+          
+          set(
+            {
+              profile: {
+                ...profile,
+                proteinGoal,
+                carbsGoal,
+                fatGoal,
+              },
+              lastCalculated: new Date(),
+            },
+            false,
+            'recalculateMacroGoals'
+          )
+        },
       }),
       {
         name: 'profile-store',
@@ -235,6 +258,7 @@ export const useProteinGoal = () => useProfileStore((state) => state.profile?.pr
 export const useCarbsGoal = () => useProfileStore((state) => state.profile?.carbsGoal || 0)
 export const useFatGoal = () => useProfileStore((state) => state.profile?.fatGoal || 0)
 export const useActivityLevel = () => useProfileStore((state) => state.profile?.activityLevel || 'moderately_active')
+export const useRecalculateMacroGoals = () => useProfileStore((state) => state.recalculateMacroGoals)
 export const useDailyCalories = () => {
   // This would need to be calculated from API calls
   // For now, return a placeholder or 0
