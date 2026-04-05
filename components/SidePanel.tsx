@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Home, ChartBar, Droplets } from 'lucide-react'
+import { X, Home, ChartBar, Droplets, UserRound } from 'lucide-react'
 import Link from 'next/link'
 
 interface SidePanelProps {
@@ -52,6 +52,16 @@ export default function SidePanel({ isOpen, onClose }: SidePanelProps) {
 
         {/* Navigation */}
         <nav className="p-4 space-y-1">
+          <Link
+            href="/profile"
+            onClick={onClose}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-colors duration-200 text-zinc-300 hover:text-white"
+          >
+            <UserRound className="h-5 w-5" />
+            <span className="font-medium">Profile</span>
+          </Link>
+
+
           <Link
             href="/calorie"
             onClick={onClose}

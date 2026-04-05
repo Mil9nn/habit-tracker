@@ -432,7 +432,7 @@ export default function CalorieTracker() {
   if (status === 'loading') {
     return (
       <MainLayout>
-          <div className="flex items-center justify-center h-[calc(100vh-50px)] bg-black">
+          <div className="flex items-center justify-center h-[calc(100vh-50px)]">
             <Loader />
           </div>
       </MainLayout>

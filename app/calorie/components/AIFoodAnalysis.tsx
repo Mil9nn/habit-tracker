@@ -80,14 +80,25 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isAddingFoods, setIsAddingFoods] = useState(false)
 
+  // Smart meal categorization based on time of day
+  const categorizeMeal = (time: Date): 'breakfast' | 'lunch' | 'dinner' | 'snack' => {
+    const hour = time.getHours()
+    if (hour < 11) return 'breakfast'  // 5:00 AM - 10:59 AM
+    if (hour < 16) return 'lunch'      // 11:00 AM - 3:59 PM  
+    if (hour < 22) return 'dinner'     // 4:00 PM - 9:59 PM
+    return 'snack'                       // 10:00 PM - 4:59 AM
+  }
+
   const analyzeFoodWithAI = async () => {
     if (!aiFoodDescription.trim()) return
     setIsAnalyzing(true)
     try {
+      // Use smart time-based meal categorization instead of hardcoded 'breakfast'
+      const currentMealType = categorizeMeal(new Date())
       const response = await fetch('/api/ai/analyze-food', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ foodDescription: aiFoodDescription, mealType: 'breakfast' })
+        body: JSON.stringify({ foodDescription: aiFoodDescription, mealType: currentMealType })
       })
       if (response.ok) setAiAnalysis(await response.json())
     } catch (error) {
@@ -102,6 +113,8 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
     setIsAddingFoods(true)
     try {
       const { macros, micros } = aiAnalysis.totals
+      // Use smart time-based meal categorization for the logged meal
+      const currentMealType = categorizeMeal(new Date())
       const mealData = {
         foodName: aiAnalysis.foods.map((f) => `${f.quantity}× ${f.name}`).join(', '),
         calories: aiAnalysis.totals.calories,
@@ -109,7 +122,7 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         carbs: macros.carbs,
         fat: macros.fat,
         fiber: macros.fiber,
-        mealType: 'breakfast',
+        mealType: currentMealType, // Use time-based categorization
         quantity: 1,
         vitamins: micros.vitamins,
         minerals: micros.minerals,

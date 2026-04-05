@@ -97,33 +97,6 @@ export default function Header({ title = "CaloMind" }: HeaderProps) {
                   className="transition-transform duration-200 group-hover:rotate-6"
                 />
               </button>
-
-              {/* Profile Avatar - Smart Link */}
-              <a
-                href={profileLink}
-                className="
-                        group
-                        p-2
-                        rounded-full
-                        bg-red-600/70
-                        backdrop-blur-md
-                        border border-red-500/50
-                        text-white
-            
-                        hover:bg-red-500/80
-                        hover:text-white
-                        hover:scale-110
-            
-                        active:scale-95
-            
-                        transition-all duration-200 ease-out
-                        shadow-md hover:shadow-lg
-            
-                        cursor-pointer
-                      "
-              >
-                <UserRound strokeWidth={3} size={18} className="text-white" />
-              </a>
             </div>
           </div>
         </div>

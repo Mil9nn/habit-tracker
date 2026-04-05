@@ -65,7 +65,10 @@
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: #00F5A0;
+  --accent-dim: rgba(0, 245, 160, 0.1);
+   --coral: #FF6B6B;
+  --coral-dim: rgba(255, 107, 107, 0.1);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
@@ -85,6 +88,35 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --bg: #F7F9F8;
+  --surface: rgba(255, 255, 255, 0.68);
+  --border: rgba(255, 255, 255, 0.88);
+  --border-subtle: rgba(0, 0, 0, 0.065);
+  --text-1: #090D0B;
+  --text-2: #4A5568;
+  --text-3: #9CA3AF;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.027;
+  pointer-events: none;
+  z-index: 9998;
+  mix-blend-mode: overlay;
 }
 
 .dark {
@@ -229,3 +261,48 @@
 .animate-shimmer {
   animation: shimmer 1s ease-in-out infinite;
 }
+
+/***********************************************************/
+/*********** Custom styles for the landing page ***********/
+/*********************************************************/
+
+/* Grid background for hero */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(0,245,160,0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,160,0.065) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+
+/* Glassmorphism */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+}
+
+/* Animated gradient for CTA */
+@keyframes gradientFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-bg {
+  background: linear-gradient(135deg, #edfff7 0%, #f5fffb 20%, #fafffe 40%, #fff5f5 60%, #f0fff9 80%, #edfff7 100%);
+  background-size: 400% 400%;
+  animation: gradientFlow 10s ease infinite;
+}
+
+/* Tab scrollable on mobile */
+.tabs-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs-scroll::-webkit-scrollbar { display: none; }
+
+::selection { background: rgba(0,245,160,0.2); }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }

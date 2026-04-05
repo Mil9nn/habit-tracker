@@ -2,13 +2,10 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { redirect } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import MainLayout from '../layout/MainLayout'
 import ProfileDisplay from '@/components/ProfileDisplay'
-import { Progress } from "@/components/ui/progress"
-import { motion } from 'framer-motion'
-import { ChevronLeft, Edit, Flame, Target, TrendingUp, Droplets, Home, LogOut } from 'lucide-react'
+import { Edit, Flame, Target, TrendingUp, Droplets, LogOut } from 'lucide-react'
 import { useProfile, useCalorieGoal, useProteinGoal, useCarbsGoal, useFatGoal, useProfileInitialized } from '@/store/useProfileStore'
 import dynamic from 'next/dynamic'
 import Loader from '@/components/Loader'
@@ -103,7 +100,7 @@ function ProfilePageContent() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-50px)] bg-black">
+      <div className="flex items-center justify-center h-[calc(100vh-50px)]">
         <Loader />
       </div>
     )
@@ -111,7 +108,7 @@ function ProfilePageContent() {
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-zinc-900 to-zinc-800 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-center text-white">Initializing profile...</div>
       </div>
     )
@@ -134,11 +131,11 @@ function ProfilePageContent() {
           <div className="mb-8">
             <h1 className="text-3xl font-light text-white tracking-tight">Profile</h1>
             <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-gray-400 mt-1">Manage your personal information and goals</p>
+              <p className="text-sm text-gray-800 mt-1">Manage your personal information and goals</p>
 
               <button
                 onClick={handleProfileUpdate}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/20"
               >
                 <Edit className="w-4 h-4" />
                 Edit
@@ -149,7 +146,7 @@ function ProfilePageContent() {
           {/* Main Content */}
           {profile ? (
 
-            <ProfileDisplay dailyCalories={calories.consumed} />
+            <ProfileDisplay />
 
           ) : (
             <div className="flex items-center justify-center min-h-[50vh]">
@@ -162,7 +159,7 @@ function ProfilePageContent() {
             <div className="flex justify-end">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-6 py-3 bg-zinc-950 border-2 border-zinc-900 text-sm text-red-400 hover:text-red-500 rounded-xl transition-colors hover:border-red-400"
+                className="flex items-center gap-2 px-6 py-3 bg-zinc-200 border-2 border-zinc-200 text-sm text-red-400 hover:text-red-500 rounded-xl transition-colors hover:border-red-400"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out

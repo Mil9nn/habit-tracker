@@ -83,18 +83,18 @@ export function ConfirmDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="flex gap-4 sm:justify-center">
+        <DialogFooter className="flex gap-2 sm:justify-center">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="px-6 py-2 border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+            className="px-6 py-4 h-12 border-zinc-300 text-zinc-700 hover:bg-zinc-50"
           >
             {cancelText}
           </Button>
           <Button
             variant={getConfirmButtonVariant()}
             onClick={handleConfirm}
-            className="px-6 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+            className="px-6 py-4 h-12 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
           >
             {confirmText}
           </Button>

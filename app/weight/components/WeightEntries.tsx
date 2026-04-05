@@ -36,9 +36,9 @@ export default function WeightEntries({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.4 }}
-      className="p-4"
+      className="mb-10"
     >
-      <p className="text-sm font-semibold text-gray-900 mb-4">Recent</p>
+      <p className="text-lg font-semibold text-gray-900 mb-4">Recent</p>
       <div className="flex flex-col gap-2">
         <AnimatePresence>
           {[...entries].reverse().slice(0, 8).map((e, i) => {
@@ -52,7 +52,7 @@ export default function WeightEntries({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 12 }}
                 transition={{ delay: i * 0.03 }}
-                className={`flex justify-between items-center px-4 rounded-md ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-800'}`}
+                className={`flex justify-between items-center px-4 rounded-md ${i === 0 ? 'bg-zinc-100' : 'bg-slate-100'}`}
               >
                 <span className="text-sm text-gray-600 font-medium">{e.date}</span>
                 <div className="flex items-center gap-6 p-3">
@@ -75,7 +75,7 @@ export default function WeightEntries({
                       />
                     ) : (
                       <>
-                        <span className="text-white">{e.weight}</span> <span className="text-xs font-normal text-gray-400">{unit}</span>
+                        <span className="text-black">{e.weight}</span> <span className="text-xs font-normal text-gray-500">{unit}</span>
                       </>
                     )}
                   </span>

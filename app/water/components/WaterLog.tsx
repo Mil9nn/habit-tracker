@@ -82,11 +82,11 @@ export default function WaterLog({ entries, onEntryUpdate, onEntryDelete }: any)
                       key={entry._id}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between py-2 group hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors"
+                      className="flex items-center justify-between group hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors"
                     >
                       {/* Left */}
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-white font-medium">
+                        <span className="text-sm text-black font-medium">
                           {editingEntry === entry._id ? (
                             <input
                               type="number"

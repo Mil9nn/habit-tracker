@@ -6,6 +6,7 @@ import { Edit2, Trash2, Bookmark, Salad, ChevronDown } from 'lucide-react'
 import { MealEditForm } from '../../../components/MealEditForm'
 import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
+import { format } from 'date-fns'
 import { toast } from 'sonner'
 
 interface FoodLogProps {
@@ -147,6 +148,9 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                             style={{ background: config.bg, color: config.color }}
                           >
                             {config.label}
+                          </span>
+                          <span className="text-[10px] text-zinc-400 ml-2">
+                            {format(new Date(log.timestamp), 'h:mm a')}
                           </span>
                         </div>
 
