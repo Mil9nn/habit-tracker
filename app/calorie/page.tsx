@@ -216,11 +216,11 @@ export default function CalorieTracker() {
     }
   }, [])
 
-  // useEffect(() => {
-  //   if (status === 'unauthenticated') {
-  //     router.push('/auth/signin')
-  //   }
-  // }, [status, router])
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
 
   const fetchData = useCallback(async () => {
     try {
