@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, memo } from 'react'
 import { X, Home, ChartBar, Droplets, UserRound, Activity } from 'lucide-react'
 import Link from 'next/link'
 
@@ -9,7 +9,55 @@ interface SidePanelProps {
   onClose: () => void
 }
 
+// Navigation items configuration
+const navigationItems = [
+  { href: '/profile', label: 'Profile', icon: UserRound },
+  { href: '/calorie', label: 'Nutrition', icon: Activity },
+  { href: '/weight', label: 'Weight', icon: ChartBar },
+  { href: '/water', label: 'Water', icon: Droplets }
+] as const
+
+// Memoized navigation link component
+const NavigationLink = memo(({ 
+  href, 
+  label, 
+  icon: Icon, 
+  onClose 
+}: {
+  href: string
+  label: string
+  icon: React.ComponentType<{ className?: string; size?: number }>
+  onClose: () => void
+}) => {
+  const handleClick = useCallback(() => {
+    onClose()
+  }, [onClose])
+
+  return (
+    <Link
+      href={href}
+      onClick={handleClick}
+      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-colors duration-200 text-zinc-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:ring-offset-2 focus:ring-offset-zinc-900"
+    >
+      <Icon className="h-5 w-5" />
+      <span className="font-medium">{label}</span>
+    </Link>
+  )
+})
+
+NavigationLink.displayName = 'NavigationLink'
+
 export default function SidePanel({ isOpen, onClose }: SidePanelProps) {
+  // Memoize backdrop click handler
+  const handleBackdropClick = useCallback(() => {
+    onClose()
+  }, [onClose])
+
+  // Memoize close button handler
+  const handleCloseClick = useCallback(() => {
+    onClose()
+  }, [onClose])
+
   return (
     <>
       {/* Backdrop */}
@@ -17,7 +65,8 @@ export default function SidePanel({ isOpen, onClose }: SidePanelProps) {
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-all duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={onClose}
+        onClick={handleBackdropClick}
+        aria-hidden={isOpen}
       />
 
       {/* Side Panel */}
@@ -25,12 +74,20 @@ export default function SidePanel({ isOpen, onClose }: SidePanelProps) {
         className={`fixed top-0 left-0 h-full w-80 bg-zinc-900 border-r border-zinc-800 shadow-2xl z-50 transform transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sidepanel-title"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-6 w-6 text-white fill-current">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 640 640" 
+                className="h-6 w-6 text-white fill-current"
+                aria-hidden="true"
+              >
                 <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#f43f5e" />
                   <stop offset="80%" stopColor="#6366f1" />
@@ -42,7 +99,7 @@ export default function SidePanel({ isOpen, onClose }: SidePanelProps) {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white">
+              <h2 id="sidepanel-title" className="text-xl font-semibold text-white">
                 <><span className="text-blue-600">Calo</span><span className="text-red-600">Mind</span></>
               </h2>
               <p className="text-sm text-zinc-400">Track your journey</p>
@@ -50,51 +107,25 @@ export default function SidePanel({ isOpen, onClose }: SidePanelProps) {
           </div>
           
           <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors duration-200"
+            onClick={handleCloseClick}
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:ring-offset-2 focus:ring-offset-zinc-900"
+            aria-label="Close side panel"
           >
             <X className="h-5 w-5 text-zinc-400" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
-          <Link
-            href="/profile"
-            onClick={onClose}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-colors duration-200 text-zinc-300 hover:text-white"
-          >
-            <UserRound className="h-5 w-5" />
-            <span className="font-medium">Profile</span>
-          </Link>
-
-
-          <Link
-            href="/calorie"
-            onClick={onClose}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-colors duration-200 text-zinc-300 hover:text-white"
-          >
-            <Activity className="h-5 w-5" />
-            <span className="font-medium">Nutrition</span>
-          </Link>
-
-          <Link
-            href="/weight"
-            onClick={onClose}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-colors duration-200 text-zinc-300 hover:text-white"
-          >
-            <ChartBar className="h-5 w-5" />
-            <span className="font-medium">Weight</span>
-          </Link>
-
-          <Link
-            href="/water"
-            onClick={onClose}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-colors duration-200 text-zinc-300 hover:text-white"
-          >
-            <Droplets className="h-5 w-5" />
-            <span className="font-medium">Water</span>
-          </Link>
+        <nav className="p-4 space-y-1" role="navigation" aria-label="Main navigation">
+          {navigationItems.map((item) => (
+            <NavigationLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              onClose={onClose}
+            />
+          ))}
         </nav>
       </div>
     </>

@@ -1,41 +1,100 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isValid } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface HorizontalCalendarProps {
   selectedDate: string
   onDateSelect: (date: string) => void
 }
 
+const WEEK_START = 1 // Monday
+const MIN_SWIPE_DISTANCE = 50
+
 export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCalendarProps) {
+  // Validate and parse selected date
+  const parsedSelectedDate = useMemo(() => {
+    const date = new Date(selectedDate)
+    return isValid(date) ? date : new Date()
+  }, [selectedDate])
+
   const [currentWeekStart, setCurrentWeekStart] = useState(() => 
-    startOfWeek(new Date(selectedDate), { weekStartsOn: 1 }) // Monday as week start
+    startOfWeek(parsedSelectedDate, { weekStartsOn: WEEK_START })
   )
 
-  // Generate week days
-  const weekDays = eachDayOfInterval({
-    start: currentWeekStart,
-    end: endOfWeek(currentWeekStart, { weekStartsOn: 1 })
-  })
-
-  // Navigate to previous/next week
-  const navigateWeek = (direction: 'prev' | 'next') => {
-    const newWeekStart = direction === 'prev' 
-      ? subDays(currentWeekStart, 7)
-      : addDays(currentWeekStart, 7)
-    setCurrentWeekStart(newWeekStart)
-  }
-
-  // Auto-scroll to selected date
-  useEffect(() => {
-    const selectedDayElement = document.getElementById(`day-${format(new Date(selectedDate), 'yyyy-MM-dd')}`)
-    if (selectedDayElement) {
-      selectedDayElement.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  // Memoize week days to prevent unnecessary recalculations
+  const weekDays = useMemo(() => {
+    try {
+      return eachDayOfInterval({
+        start: currentWeekStart,
+        end: endOfWeek(currentWeekStart, { weekStartsOn: WEEK_START })
+      })
+    } catch (error) {
+      console.error('Error generating week days:', error)
+      return []
     }
-  }, [selectedDate, currentWeekStart])
+  }, [currentWeekStart])
+
+  // Memoize navigation function
+  const navigateWeek = useCallback((direction: 'prev' | 'next') => {
+    setCurrentWeekStart(prev => 
+      direction === 'prev' ? subDays(prev, 7) : addDays(prev, 7)
+    )
+  }, [])
+
+  // Memoize date selection handler
+  const handleDateSelect = useCallback((dateStr: string) => {
+    try {
+      const date = new Date(dateStr)
+      if (isValid(date)) {
+        onDateSelect(dateStr)
+      }
+    } catch (error) {
+      console.error('Invalid date selected:', dateStr)
+    }
+  }, [onDateSelect])
+
+  // Auto-scroll to selected date with error handling
+  useEffect(() => {
+    try {
+      const dayId = `day-${format(parsedSelectedDate, 'yyyy-MM-dd')}`
+      const selectedDayElement = document.getElementById(dayId)
+      
+      if (selectedDayElement) {
+        selectedDayElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          inline: 'center', 
+          block: 'nearest' 
+        })
+      }
+    } catch (error) {
+      console.error('Error scrolling to selected date:', error)
+    }
+  }, [parsedSelectedDate, currentWeekStart])
+
+  // Memoize button styles to prevent recreation
+  const getButtonStyles = useCallback((isSelected: boolean, isCurrentDay: boolean) => {
+    const baseStyles = 'flex flex-col items-center justify-center min-w-[40px] sm:min-w-[48px] p-2 px-4 sm:p-3 transition-all flex-shrink-0 border border-transparent'
+    
+    if (isSelected) {
+      return `${baseStyles} bg-violet-500 text-white shadow-md scale-105 border-violet-500`
+    }
+    
+    if (isCurrentDay) {
+      return `${baseStyles} bg-zinc-100 text-black hover:bg-zinc-200 border-zinc-200`
+    }
+    
+    return `${baseStyles} text-zinc-600 hover:bg-zinc-50 border-zinc-100`
+  }, [])
+
+  const getDayLabelStyles = useCallback((isSelected: boolean) => {
+    return `text-[10px] sm:text-xs font-medium mb-1 ${isSelected ? 'text-white' : 'text-zinc-500'}`
+  }, [])
+
+  const getDayNumberStyles = useCallback((isSelected: boolean) => {
+    return `text-xs sm:text-sm font-semibold ${isSelected ? 'text-white' : 'text-zinc-700'}`
+  }, [])
 
   return (
     <div className="w-full bg-white border-b border-zinc-200">
@@ -43,7 +102,8 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
         {/* Previous Week Button */}
         <button
           onClick={() => navigateWeek('prev')}
-          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0"
+          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+          aria-label="Previous week"
         >
           <ChevronLeft className="w-5 h-5 text-zinc-600" />
         </button>
@@ -54,34 +114,22 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
             <div className="flex justify-center min-w-max py-1">
               {weekDays.map((day) => {
                 const dayStr = format(day, 'yyyy-MM-dd')
-                const isSelected = isSameDay(day, new Date(selectedDate))
+                const isSelected = isSameDay(day, parsedSelectedDate)
                 const isCurrentDay = isToday(day)
                 
                 return (
                   <button
                     key={dayStr}
                     id={`day-${dayStr}`}
-                    onClick={() => onDateSelect(dayStr)}
-                    className={`
-                      flex flex-col items-center justify-center min-w-[40px] sm:min-w-[48px] p-2 px-4 sm:p-3 transition-all flex-shrink-0 border border-transparent
-                      ${isSelected 
-                        ? 'bg-violet-500 text-white shadow-md scale-105 border-violet-500' 
-                        : isCurrentDay 
-                          ? 'bg-zinc-100 text-black hover:bg-zinc-200 border-zinc-200' 
-                          : 'text-zinc-600 hover:bg-zinc-50 border-zinc-100'
-                      }
-                    `}
+                    onClick={() => handleDateSelect(dayStr)}
+                    className={getButtonStyles(isSelected, isCurrentDay)}
+                    aria-label={`Select ${format(day, 'EEEE, MMMM d, yyyy')}`}
+                    aria-pressed={isSelected}
                   >
-                    <span className={`
-                      text-[10px] sm:text-xs font-medium mb-1
-                      ${isSelected ? 'text-white' : 'text-zinc-500'}
-                    `}>
+                    <span className={getDayLabelStyles(isSelected)}>
                       {format(day, 'EEE').toUpperCase().slice(0, 2)}
                     </span>
-                    <span className={`
-                      text-xs sm:text-sm font-semibold
-                      ${isSelected ? 'text-white' : 'text-zinc-700'}
-                    `}>
+                    <span className={getDayNumberStyles(isSelected)}>
                       {format(day, 'd')}
                     </span>
                   </button>
@@ -94,7 +142,8 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
         {/* Next Week Button */}
         <button
           onClick={() => navigateWeek('next')}
-          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0"
+          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+          aria-label="Next week"
         >
           <ChevronRight className="w-5 h-5 text-zinc-600" />
         </button>

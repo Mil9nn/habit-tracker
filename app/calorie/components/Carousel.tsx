@@ -1,62 +1,221 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo, useCallback, memo } from 'react'
 import { Drumstick, Wheat, Droplet } from 'lucide-react'
 import CalorieGauge from './CalorieGauge'
 import MacroRing from './MacroRing'
 
+// Type definitions for better type safety
+interface MicroNutrient {
+  vitaminA?: number
+  vitaminC?: number
+  vitaminD?: number
+  vitaminB6?: number
+  vitaminB12?: number
+}
+
+interface Mineral {
+  iron?: number
+  magnesium?: number
+  zinc?: number
+  calcium?: number
+  potassium?: number
+  sodium?: number
+}
+
+interface Summary {
+  totalCalories?: number
+  goal?: number
+  totalProtein?: number
+  totalCarbs?: number
+  totalFat?: number
+  totalVitamins?: MicroNutrient
+  totalMinerals?: Mineral
+  cholesterol?: number
+  sugar?: number
+}
+
 interface CarouselProps {
-  summary?: any
-  microRDA?: any
-  microPercentages?: any
+  summary?: Summary | null
+  microRDA?: (MicroNutrient & Mineral) | null
+  microPercentages?: Record<string, number> | null
   proteinGoal?: number
   carbsGoal?: number
   fatGoal?: number
 }
 
+// Constants
+const DEFAULT_GOALS = {
+  protein: 150,
+  carbs: 200,
+  fat: 70,
+  calories: 2000
+}
+
+const MIN_SWIPE_DISTANCE = 50
+const SLIDES_COUNT = 2
+
+// Helper function to format numbers for display
+const formatNumber = (num: number | undefined, decimals: number = 1): string => {
+  if (num === undefined || num === null || isNaN(num)) return '0'
+  return num.toFixed(decimals).replace(/\.0$/, '')
+}
+
+// Memoized micro-nutrient bar color function
+const getMicroBarColor = useCallback((pct: number): string => {
+  if (pct >= 100) return 'bg-green-500'
+  if (pct >= 80) return 'bg-blue-500'
+  if (pct >= 50) return 'bg-amber-500'
+  return 'bg-red-500'
+}, [])
+
+// Memoized vitamin data
+const vitaminData = [
+  { label: 'A', key: 'vitaminA', unit: 'mcg' },
+  { label: 'C', key: 'vitaminC', unit: 'mg' },
+  { label: 'D', key: 'vitaminD', unit: 'mcg' },
+  { label: 'B6', key: 'vitaminB6', unit: 'mg' },
+  { label: 'B12', key: 'vitaminB12', unit: 'mcg' }
+] as const
+
+// Memoized mineral data
+const mineralData = [
+  { label: 'Iron', key: 'iron' },
+  { label: 'Magnesium', key: 'magnesium' },
+  { label: 'Zinc', key: 'zinc' },
+  { label: 'Calcium', key: 'calcium' },
+  { label: 'Potassium', key: 'potassium' },
+  { label: 'Sodium', key: 'sodium' }
+] as const
+
+// Memoized component for vitamin item
+const VitaminItem = memo(({ 
+  label, 
+  key, 
+  val, 
+  rda, 
+  unit, 
+  percentage 
+}: {
+  label: string
+  key: string
+  val?: number
+  rda?: number
+  unit: string
+  percentage?: number
+}) => {
+  const barColor = useMemo(() => getMicroBarColor(percentage || 0), [percentage])
+  
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between items-center">
+        <span className="text-[10px] text-zinc-600">{label}</span>
+        <span className="text-[10px] text-black font-mono">
+          {formatNumber(val)} / {formatNumber(rda)} {unit}
+        </span>
+      </div>
+      <div className="w-full bg-zinc-200 rounded-full h-1">
+        <div 
+          className={`h-1 rounded-full ${barColor}`}
+          style={{ width: `${Math.min(percentage || 0, 100)}%` }} 
+        />
+      </div>
+    </div>
+  )
+})
+
+// Memoized component for mineral item
+const MineralItem = memo(({ 
+  label, 
+  key, 
+  val, 
+  rda, 
+  percentage 
+}: {
+  label: string
+  key: string
+  val?: number
+  rda?: number
+  percentage?: number
+}) => {
+  const barColor = useMemo(() => getMicroBarColor(percentage || 0), [percentage])
+  
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between items-center">
+        <span className="text-[10px] text-zinc-600">{label}</span>
+        <span className="text-[10px] text-black font-mono">
+          {formatNumber(val)} / {formatNumber(rda)} mg
+        </span>
+      </div>
+      <div className="w-full bg-zinc-200 rounded-full h-1">
+        <div 
+          className={`h-1 rounded-full ${barColor}`}
+          style={{ width: `${Math.min(percentage || 0, 100)}%` }} 
+        />
+      </div>
+    </div>
+  )
+})
+
 export function Carousel({
   summary,
   microRDA,
   microPercentages,
-  proteinGoal = 150,
-  carbsGoal = 200,
-  fatGoal = 70
+  proteinGoal = DEFAULT_GOALS.protein,
+  carbsGoal = DEFAULT_GOALS.carbs,
+  fatGoal = DEFAULT_GOALS.fat
 }: CarouselProps) {
   const [carouselSlide, setCarouselSlide] = useState(0)
   const touchStartXRef = useRef<number | null>(null)
   const touchEndXRef = useRef<number | null>(null)
-  const minSwipeDistance = 50
 
-  // Helper function to format numbers for display
-  const formatNumber = (num: number | undefined, decimals: number = 1): string => {
-    if (num === undefined || num === null) return '0'
-    return num.toFixed(decimals).replace(/\.0$/, '')
-  }
+  // Memoize calculated values
+  const caloriesRemaining = useMemo(() => {
+    const goal = summary?.goal ?? DEFAULT_GOALS.calories
+    const current = summary?.totalCalories ?? 0
+    return Math.max(goal - current, 0)
+  }, [summary])
 
-  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+  // Memoize touch handlers
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     touchStartXRef.current = event.touches[0]?.clientX ?? null
-  }
+  }, [])
 
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     touchEndXRef.current = event.touches[0]?.clientX ?? null
-  }
+  }, [])
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     if (touchStartXRef.current === null || touchEndXRef.current === null) return
+    
     const distance = touchStartXRef.current - touchEndXRef.current
-    if (Math.abs(distance) > minSwipeDistance) {
-      if (distance > 0) {
-        setCarouselSlide((prev) => (prev + 1) % 2)
-      } else {
-        setCarouselSlide((prev) => (prev - 1 + 2) % 2)
-      }
+    if (Math.abs(distance) > MIN_SWIPE_DISTANCE) {
+      setCarouselSlide(prev => {
+        if (distance > 0) {
+          return (prev + 1) % SLIDES_COUNT
+        } else {
+          return (prev - 1 + SLIDES_COUNT) % SLIDES_COUNT
+        }
+      })
     }
+    
     touchStartXRef.current = null
     touchEndXRef.current = null
-  }
+  }, [])
 
-  const microBar = (pct: number) =>
-    pct >= 100 ? 'bg-green-500' : pct >= 80 ? 'bg-blue-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'
+  // Memoize navigation handlers
+  const goToSlide = useCallback((slideIndex: number) => {
+    setCarouselSlide(slideIndex % SLIDES_COUNT)
+  }, [])
+
+  const goToNextSlide = useCallback(() => {
+    setCarouselSlide(prev => (prev + 1) % SLIDES_COUNT)
+  }, [])
+
+  const goToPrevSlide = useCallback(() => {
+    setCarouselSlide(prev => (prev - 1 + SLIDES_COUNT) % SLIDES_COUNT)
+  }, [])
 
   return (
     <section className="space-y-6 px-4 mb-10">
@@ -76,17 +235,17 @@ export function Carousel({
                 <div className="flex items-center justify-center gap-4">
                   <CalorieGauge
                     current={summary?.totalCalories || 0}
-                    target={summary?.goal || 2000}
+                    target={summary?.goal || DEFAULT_GOALS.calories}
                     size={140}
                     strokeWidth={8}
                   />
                   <div className="space-y-2 pt-2 text-left">
                     <p className="text-sm font-semibold text-black">
-                      <span className="text-blue-600">{summary?.totalCalories || 0}</span> /{' '}
-                      <span className="text-green-600">{summary?.goal || 2000}</span> kcal
+                      <span className="text-blue-600">{formatNumber(summary?.totalCalories)}</span> /{' '}
+                      <span className="text-green-600">{formatNumber(summary?.goal)}</span> kcal
                     </p>
                     <p className="text-sm text-zinc-400">
-                      {Math.max((summary?.goal || 2000) - (summary?.totalCalories || 0), 0)} kcal remaining
+                      {formatNumber(caloriesRemaining)} kcal remaining
                     </p>
                   </div>
                 </div>
@@ -108,23 +267,15 @@ export function Carousel({
               <div>
                 <h4 className="text-sm font-medium text-zinc-500 pb-2">Vitamins</h4>
                 <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'A', key: 'vitaminA', val: summary?.totalVitamins?.vitaminA, rda: microRDA?.vitaminA, unit: 'mcg' },
-                    { label: 'C', key: 'vitaminC', val: summary?.totalVitamins?.vitaminC, rda: microRDA?.vitaminC, unit: 'mg' },
-                    { label: 'D', key: 'vitaminD', val: summary?.totalVitamins?.vitaminD, rda: microRDA?.vitaminD, unit: 'mcg' },
-                    { label: 'B6', key: 'vitaminB6', val: summary?.totalVitamins?.vitaminB6, rda: microRDA?.vitaminB6, unit: 'mg' },
-                    { label: 'B12', key: 'vitaminB12', val: summary?.totalVitamins?.vitaminB12, rda: microRDA?.vitaminB12, unit: 'mcg' },
-                  ].map(({ label, key, val, rda, unit }) => (
-                    <div key={key} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-zinc-600">{label}</span>
-                        <span className="text-[10px] text-black font-mono">{formatNumber(val)} / {formatNumber(rda)} {unit}</span>
-                      </div>
-                      <div className="w-full bg-zinc-200 rounded-full h-1">
-                        <div className={`h-1 rounded-full ${microBar(microPercentages?.[key] || 0)}`}
-                          style={{ width: `${Math.min(microPercentages?.[key] || 0, 100)}%` }} />
-                      </div>
-                    </div>
+                  {vitaminData.map(({ label, key, unit }) => (
+                    <VitaminItem
+                      key={key}
+                      label={label}
+                      val={summary?.totalVitamins?.[key as keyof MicroNutrient]}
+                      rda={microRDA?.[key as keyof MicroNutrient]}
+                      unit={unit}
+                      percentage={microPercentages?.[key]}
+                    />
                   ))}
                 </div>
               </div>
@@ -133,24 +284,14 @@ export function Carousel({
               <div>
                 <h4 className="text-sm font-medium text-zinc-500 pb-2">Minerals</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Iron', key: 'iron', val: summary?.totalMinerals?.iron, rda: microRDA?.iron },
-                    { label: 'Magnesium', key: 'magnesium', val: summary?.totalMinerals?.magnesium, rda: microRDA?.magnesium },
-                    { label: 'Zinc', key: 'zinc', val: summary?.totalMinerals?.zinc, rda: microRDA?.zinc },
-                    { label: 'Calcium', key: 'calcium', val: summary?.totalMinerals?.calcium, rda: microRDA?.calcium },
-                    { label: 'Potassium', key: 'potassium', val: summary?.totalMinerals?.potassium, rda: microRDA?.potassium },
-                    { label: 'Sodium', key: 'sodium', val: summary?.totalMinerals?.sodium, rda: microRDA?.sodium },
-                  ].map(({ label, key, val, rda }) => (
-                    <div key={key} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-zinc-600">{label}</span>
-                        <span className="text-[10px] text-black font-mono">{formatNumber(val)} / {formatNumber(rda)} mg</span>
-                      </div>
-                      <div className="w-full bg-zinc-200 rounded-full h-1">
-                        <div className={`h-1 rounded-full ${microBar(microPercentages?.[key] || 0)}`}
-                          style={{ width: `${Math.min(microPercentages?.[key] || 0, 100)}%` }} />
-                      </div>
-                    </div>
+                  {mineralData.map(({ label, key }) => (
+                    <MineralItem
+                      key={key}
+                      label={label}
+                      val={summary?.totalMinerals?.[key as keyof Mineral]}
+                      rda={microRDA?.[key as keyof Mineral]}
+                      percentage={microPercentages?.[key]}
+                    />
                   ))}
                 </div>
               </div>
@@ -192,25 +333,29 @@ export function Carousel({
         {/* Navigation Controls */}
         <div className="flex items-center justify-center px-6 py-4">
           <button
-            onClick={() => setCarouselSlide((prev) => (prev - 1 + 2) % 2)}
-            className="hidden md:block p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-black"
+            onClick={goToPrevSlide}
+            className="hidden md:block p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-black focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+            aria-label="Previous slide"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div className="flex gap-2">
-            {[0, 1].map((index) => (
+            {Array.from({ length: SLIDES_COUNT }, (_, index) => (
               <button
                 key={index}
-                onClick={() => setCarouselSlide(index)}
-                className={`h-2 rounded-full transition-all duration-200 ${carouselSlide === index ? 'bg-violet-500 w-4' : 'bg-zinc-300 w-2 hover:bg-zinc-400'}`}
+                onClick={() => goToSlide(index)}
+                className={`h-2 rounded-full transition-all duration-200 ${carouselSlide === index ? 'bg-violet-500 w-4' : 'bg-zinc-300 w-2 hover:bg-zinc-400'} focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2`}
+                aria-label={`Go to slide ${index + 1}`}
+                aria-current={carouselSlide === index}
               />
             ))}
           </div>
           <button
-            onClick={() => setCarouselSlide((prev) => (prev + 1) % 2)}
-            className="hidden md:block p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-black"
+            onClick={goToNextSlide}
+            className="hidden md:block p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-black focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+            aria-label="Next slide"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
