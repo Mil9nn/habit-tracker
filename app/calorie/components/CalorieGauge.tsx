@@ -19,7 +19,9 @@ export default function CalorieGauge({
   className 
 }: CalorieGaugeProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0)
-  const percentage = Math.min((current / target) * 100, 100)
+  
+  // Handle division by zero - if target is 0, show 0 progress
+  const percentage = target > 0 ? Math.min((current / target) * 100, 100) : 0
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -31,6 +33,36 @@ export default function CalorieGauge({
   const radius = (size - strokeWidth) / 2
   const circumference = radius * 2 * Math.PI
   const strokeDashoffset = circumference - (animatedProgress / 100) * circumference
+
+  if (target === 0) {
+    return (
+      <div className={`relative inline-flex items-center justify-center ${className}`}>
+        <svg
+          width={size}
+          height={size}
+          className="transform -rotate-90"
+        >
+          {/* Background circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#d4d4d8"
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+        </svg>
+        
+        {/* Center content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <Flame className="size-5 text-violet-400 mb-2" />
+          <span className="text-sm font-medium text-black/70">
+            0%
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`relative inline-flex items-center justify-center ${className}`}>

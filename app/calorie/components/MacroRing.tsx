@@ -23,7 +23,9 @@ export default function MacroRing({
   strokeWidth = 5,
 }: MacroRingProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0)
-  const percentage = Math.min((current / goal) * 100, 100)
+  
+  // Handle division by zero - if goal is 0, show 0 progress
+  const percentage = goal > 0 ? Math.min((current / goal) * 100, 100) : 0
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -86,12 +88,20 @@ export default function MacroRing({
       {/* Label and values */}
       <div className="text-center">
         <p className="text-xs font-medium text-zinc-400">{label}</p>
-        <span className="text-xs font-semibold text-black/80">
-          {Math.round(current * 10) / 10}g {" "}
-        </span>
-        <span className="text-xs text-zinc-500">
-           / {goal}g
-        </span>
+        {goal > 0 ? (
+          <>
+            <span className="text-xs font-semibold text-black/80">
+              {Math.round(current * 10) / 10}g {" "}
+            </span>
+            <span className="text-xs text-zinc-500">
+               / {goal}g
+            </span>
+          </>
+        ) : (
+          <span className="text-xs text-zinc-400">
+            Loading...
+          </span>
+        )}
       </div>
     </div>
   )

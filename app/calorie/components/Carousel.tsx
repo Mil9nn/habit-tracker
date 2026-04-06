@@ -61,13 +61,13 @@ const formatNumber = (num: number | undefined, decimals: number = 1): string => 
   return num.toFixed(decimals).replace(/\.0$/, '')
 }
 
-// Memoized micro-nutrient bar color function
-const getMicroBarColor = useCallback((pct: number): string => {
+// Helper function for micro-nutrient bar color (no useCallback needed)
+const getMicroBarColor = (pct: number): string => {
   if (pct >= 100) return 'bg-green-500'
   if (pct >= 80) return 'bg-blue-500'
   if (pct >= 50) return 'bg-amber-500'
   return 'bg-red-500'
-}, [])
+}
 
 // Memoized vitamin data
 const vitaminData = [
@@ -104,7 +104,7 @@ const VitaminItem = memo(({
   unit: string
   percentage?: number
 }) => {
-  const barColor = useMemo(() => getMicroBarColor(percentage || 0), [percentage])
+  const barColor = getMicroBarColor(percentage || 0)
   
   return (
     <div className="space-y-1">
@@ -138,7 +138,7 @@ const MineralItem = memo(({
   rda?: number
   percentage?: number
 }) => {
-  const barColor = useMemo(() => getMicroBarColor(percentage || 0), [percentage])
+  const barColor = getMicroBarColor(percentage || 0)
   
   return (
     <div className="space-y-1">
@@ -240,13 +240,26 @@ export function Carousel({
                     strokeWidth={8}
                   />
                   <div className="space-y-2 pt-2 text-left">
-                    <p className="text-sm font-semibold text-black">
-                      <span className="text-blue-600">{formatNumber(summary?.totalCalories)}</span> /{' '}
-                      <span className="text-green-600">{formatNumber(summary?.goal)}</span> kcal
-                    </p>
-                    <p className="text-sm text-zinc-400">
-                      {formatNumber(caloriesRemaining)} kcal remaining
-                    </p>
+                    {(summary?.goal || 0) > 0 ? (
+                      <>
+                        <p className="text-sm font-semibold text-black">
+                          <span className="text-blue-600">{formatNumber(summary?.totalCalories)}</span> /{' '}
+                          <span className="text-green-600">{formatNumber(summary?.goal)}</span> kcal
+                        </p>
+                        <p className="text-sm text-zinc-400">
+                          {formatNumber(caloriesRemaining)} kcal remaining
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-black">
+                          Loading...
+                        </p>
+                        <p className="text-sm text-zinc-400">
+                          Calculating goals...
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

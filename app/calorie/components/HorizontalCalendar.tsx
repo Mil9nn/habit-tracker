@@ -75,7 +75,7 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
 
   // Memoize button styles to prevent recreation
   const getButtonStyles = useCallback((isSelected: boolean, isCurrentDay: boolean) => {
-    const baseStyles = 'flex flex-col items-center justify-center min-w-[40px] sm:min-w-[48px] p-2 px-4 sm:p-3 transition-all flex-shrink-0 border border-transparent'
+    const baseStyles = 'flex flex-col items-center justify-center min-w-[40px] sm:min-w-[48px] sm:p-3 transition-all flex-shrink-0'
     
     if (isSelected) {
       return `${baseStyles} bg-violet-500 text-white shadow-md scale-105 border-violet-500`
@@ -102,7 +102,7 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
         {/* Previous Week Button */}
         <button
           onClick={() => navigateWeek('prev')}
-          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+          className="hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
           aria-label="Previous week"
         >
           <ChevronLeft className="w-5 h-5 text-zinc-600" />
@@ -142,7 +142,7 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
         {/* Next Week Button */}
         <button
           onClick={() => navigateWeek('next')}
-          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+          className="hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
           aria-label="Next week"
         >
           <ChevronRight className="w-5 h-5 text-zinc-600" />
