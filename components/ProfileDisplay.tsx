@@ -3,13 +3,15 @@
 import { Activity, Flame, ChevronLeft, Edit, Home } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   useProfile,
   useBMR,
   useCalorieGoal,
   useProteinGoal,
   useCarbsGoal,
-  useFatGoal
+  useFatGoal,
+  useWaterGoal
 } from '@/store/useProfileStore'
 import { Button } from './ui/button'
 
@@ -24,6 +26,7 @@ export default function ProfileDisplay() {
   const proteinGoal = useProteinGoal()
   const carbsGoal = useCarbsGoal()
   const fatGoal = useFatGoal()
+  const waterGoal = useWaterGoal()
 
   const format = (num: number) => Number(num.toFixed(1))
 
@@ -47,6 +50,21 @@ export default function ProfileDisplay() {
 
       {/* Profile Overview */}
       <div className="flex items-center gap-4 pb-6 border-b border-white/20">
+        {profile?.image ? (
+          <Image
+            src={profile.image}
+            alt="Profile"
+            width={50}
+            height={50}
+            className='rounded-full'
+          />
+        ) : (
+          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <span className="text-gray-600 font-medium">
+              {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+            </span>
+          </div>
+        )}
         <div className="flex-1">
           <h2 className="text-lg font-medium text-black">{profile?.name}</h2>
           <p className="text-sm text-gray-500">{profile?.email}</p>
@@ -83,13 +101,11 @@ export default function ProfileDisplay() {
           </div>
 
           {/* Activity Level */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-600">Activity Level</h3>
-            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex  items-center gap-2">
+            <h3 className="text-sm font-medium text-gray-600">Activity Level:</h3>
               <p className="text-sm font-medium text-emerald-400">
                 {getActivityLabel(profile.activityLevel)}
               </p>
-            </div>
           </div>
         </div>
 
@@ -126,6 +142,10 @@ export default function ProfileDisplay() {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">Fats</span>
                 <span className="text-sm font-medium text-rose-400">{format(fatGoal || 0)} g</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">Water</span>
+                <span className="text-sm font-medium text-cyan-400">{format(waterGoal || 0)} ml</span>
               </div>
             </div>
           </div>

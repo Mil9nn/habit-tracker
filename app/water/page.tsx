@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useWaterGoal } from '@/store/useProfileStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import MainLayout from '../layout/MainLayout'
 import { Droplets, Plus, Edit2 } from 'lucide-react'
@@ -21,11 +22,9 @@ interface WaterEntry {
 
 export default function WaterTracker() {
   const [waterIntake, setWaterIntake] = useState('')
-  const [goal, setGoal] = useState(2000) // ml default
   const [logged, setLogged] = useState(false)
   const [editingGoal, setEditingGoal] = useState(false)
   const [tempGoal, setTempGoal] = useState('')
-  const [profile, setProfile] = useState<any>(null)
   const [entries, setEntries] = useState<WaterEntry[]>([])
   const [allEntries, setAllEntries] = useState<WaterEntry[]>([])
   const [showGoalModal, setShowGoalModal] = useState(false)
@@ -34,24 +33,10 @@ export default function WaterTracker() {
   const touchEndXRef = useRef<number | null>(null)
   const minSwipeDistance = 50
 
-  useEffect(() => {
-    // Fetch profile data
-    fetch('/api/user/profile')
-      .then(res => res.json())
-      .then(data => {
-        if (data.profile) {
-          setProfile(data.profile)
-          // Calculate daily water goal based on body weight
-          const weight = data.profile.weight
-          if (weight) {
-            // Formula: 30-35ml per kg body weight
-            const calculatedGoal = Math.round(weight * 33) // 33ml per kg average
-            setGoal(calculatedGoal)
-          }
-        }
-      })
-      .catch(error => console.error('Error fetching profile:', error))
+  // Use profile store for water goal
+  const waterGoal = useWaterGoal()
 
+  useEffect(() => {
     // Fetch water entries for today only
     fetch('/api/water/entries?today=true')
       .then(res => res.json())
@@ -71,16 +56,6 @@ export default function WaterTracker() {
         }
       })
       .catch(error => console.error('Error fetching all water entries:', error))
-
-    // Fetch water goal
-    fetch('/api/water/goals')
-      .then(res => res.json())
-      .then(data => {
-        if (data.waterGoal) {
-          setGoal(data.waterGoal)
-        }
-      })
-      .catch(error => console.error('Error fetching water goal:', error))
   }, [])
 
   const handleQuickLog = (amount: number) => {
@@ -129,7 +104,6 @@ export default function WaterTracker() {
         })
 
         if (response.ok) {
-          setGoal(val)
           setShowGoalModal(false)
           setTempGoal('')
         } else {
@@ -186,7 +160,7 @@ export default function WaterTracker() {
 
   // Get today's entries
   const todayTotal = entries.reduce((sum: number, entry: WaterEntry) => sum + entry.amount, 0)
-  const remaining = Math.max(0, goal - todayTotal)
+  const remaining = Math.max(0, waterGoal - todayTotal)
 
   // Prepare chart data for last 365 days
   const getChartData = () => {
@@ -206,16 +180,16 @@ export default function WaterTracker() {
 
       // Determine status based on goal comparison
       let status = 'below'
-      if (dayTotal >= goal) {
+      if (dayTotal >= waterGoal) {
         status = 'above'
-      } else if (dayTotal >= goal * 0.9) { // Within 10% of goal
+      } else if (dayTotal >= waterGoal * 0.9) { // Within 10% of goal
         status = 'close'
       }
 
       data.push({
         date: date.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }),
         amount: dayTotal,
-        goal: goal,
+        goal: waterGoal,
         status: status as 'above' | 'close' | 'below',
       })
     }
@@ -233,7 +207,7 @@ export default function WaterTracker() {
           {/* Header Section */}
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-black tracking-tight">Hydration</h1>
-            <p className="text-sm text-gray-400 mt-1">Track your daily water intake</p>
+            <p className="text-sm text-gray-400 mt-1">Tap the water ring to update your hydration goal.</p>
           </div>
 
           {/* Daily Summary - Carousel */}
@@ -254,15 +228,15 @@ export default function WaterTracker() {
                       <div className="flex items-center justify-center gap-6">
                         <WaterProgress
                           current={todayTotal}
-                          goal={goal}
+                          goal={waterGoal}
                           onClick={() => {
                             setShowGoalModal(true)
-                            setTempGoal(goal.toString())
+                            setTempGoal(waterGoal.toString())
                           }}
                         />
                         <div className="space-y-2">
                           <p className="text-sm font-semibold text-black">
-                            <span className="text-blue-400">{todayTotal}</span> / <span className="text-emerald-400">{goal}</span> ml
+                            <span className="text-blue-400">{todayTotal}</span> / <span className="text-emerald-400">{waterGoal}</span> ml
                           </p>
                           <p className="text-xs text-gray-400">
                             {remaining} ml remaining
@@ -380,7 +354,7 @@ export default function WaterTracker() {
               <div className="flex gap-3 mb-6">
                 <input
                   type="number"
-                  placeholder={goal ? goal.toString() : "e.g. 2000"}
+                  placeholder={waterGoal ? waterGoal.toString() : "e.g. 2000"}
                   className="flex-1 p-2 border-b-2 border-red-500 text-black placeholder-gray-400 outline-none focus:border-blue-400"
                   value={tempGoal}
                   onChange={e => setTempGoal(e.target.value)}

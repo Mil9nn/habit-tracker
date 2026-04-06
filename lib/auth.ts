@@ -6,6 +6,14 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+          scope: 'openid email profile'
+        }
+      }
     }),
   ],
   pages: {
@@ -18,12 +26,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }: any) {
       if (user) {
         token.email = user.email
+        token.name = user.name
+        token.image = user.image
       }
       return token
     },
     async session({ session, token }: any) {
       if (token.email) {
         session.user.email = token.email
+        session.user.name = token.name
+        session.user.image = token.image
       }
       return session
     },

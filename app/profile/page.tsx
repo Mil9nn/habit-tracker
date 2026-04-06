@@ -96,7 +96,7 @@ function ProfilePageContent() {
         <div className="max-w-7xl mx-auto px-6 py-8">
 
           {/* Header Section */}
-          <div className="mb-8">
+          <div className="mb-4">
             <h1 className="text-3xl font-light text-black tracking-tight">Profile</h1>
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-gray-800 mt-1">Manage your personal information and goals</p>

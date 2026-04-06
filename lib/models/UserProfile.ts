@@ -8,6 +8,7 @@ export interface IUserProfile extends Document {
   height: number;
   activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
   dailyCalorieGoal: number;
+  image?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +26,7 @@ export const UserProfileSchema: Schema = new Schema(
       enum: ['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extra_active'] 
     },
     dailyCalorieGoal: { type: Number, required: true, min: 1000, max: 5000 },
+    image: { type: String },
   },
   {
     timestamps: true,

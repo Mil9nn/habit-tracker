@@ -36,6 +36,7 @@ export async function GET(req: Request) {
       ...profile.toObject(),
       name: session.user.name || 'User',
       email: session.user.email,
+      image: session.user.image,
     },
     recommendedCalories
   })
@@ -69,7 +70,8 @@ export async function POST(req: Request) {
       height,
       activityLevel,
       dailyCalorieGoal: dailyCalorieGoal || calculateDailyCalorieNeeds({ age, gender, weight, height, activityLevel }),
-      userId: session.user.email
+      userId: session.user.email,
+      image: session.user.image
     },
     { new: true, upsert: true }
   )

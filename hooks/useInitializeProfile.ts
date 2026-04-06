@@ -38,6 +38,7 @@ export function useInitializeProfile() {
             const profileData = {
               name: data.profile.name,
               email: data.profile.email,
+              image: data.profile.image,
               age: data.profile.age,
               gender: data.profile.gender,
               weight: data.profile.weight,

@@ -33,7 +33,7 @@ export default function SignIn() {
               <span className="text-blue-100">Calo</span><span className="text-red-100">Mind</span>
             </h1>
           </div>
-          <p className="text-gray-600 mb-6">Track your daily nutrition with precision and clarity.</p>
+          <p className="text-gray-600 mb-6"> nutrition with precision and clarity.</p>
           <Button
             onClick={handleSignIn}
             disabled={isSigningIn}

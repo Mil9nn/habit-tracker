@@ -32,10 +32,20 @@ const calculateMacroGoals = (calorieGoal: number, activityLevel: ActivityLevel, 
   const remainingCalories = calorieGoal - proteinCalories - fatCalories
   const carbsGoal = Math.round(remainingCalories / 4) // 4 calories per gram of carbs
   
+  // Water: 35ml per kg body weight + activity-based extra
+const waterGoal = Math.round((35 * weight) + {
+  sedentary: 0,
+  lightly_active: 300,
+  moderately_active: 600,
+  very_active: 900,
+  extra_active: 1200
+}[activityLevel])
+  
   return {
     proteinGoal,
     carbsGoal,
-    fatGoal
+    fatGoal,
+    waterGoal
   }
 }
 
@@ -46,6 +56,7 @@ export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active'
 export interface UserProfile {
   name: string
   email: string
+  image?: string
   age: number
   gender: Gender
   weight: number // kg
@@ -55,6 +66,7 @@ export interface UserProfile {
   proteinGoal: number // grams
   carbsGoal: number // grams
   fatGoal: number // grams
+  waterGoal: number // ml
   bmr: number
   createdAt?: string
 }
@@ -81,6 +93,7 @@ export interface ProfileState {
 const defaultProfile: UserProfile = {
   name: '',
   email: '',
+  image: undefined,
   age: 0,
   gender: 'male',
   weight: 0, // kg
@@ -90,6 +103,7 @@ const defaultProfile: UserProfile = {
   proteinGoal: 0,
   carbsGoal: 0,
   fatGoal: 0,
+  waterGoal: 0,
   bmr: 0,
 }
 
@@ -159,17 +173,18 @@ export const useProfileStore = create<ProfileState>()(
           })
 
           // Calculate macro goals based on activity level and calorie target
-          const { proteinGoal, carbsGoal, fatGoal } = calculateMacroGoals(recommendedCalories, profile.activityLevel, profile.weight)
+          const { proteinGoal, carbsGoal, fatGoal, waterGoal } = calculateMacroGoals(recommendedCalories, profile.activityLevel, profile.weight)
 
           set(
             {
               profile: {
                 ...profile,
-                bmr,
                 calorieGoal: recommendedCalories,
                 proteinGoal,
                 carbsGoal,
                 fatGoal,
+                waterGoal,
+                bmr: bmr
               },
               lastCalculated: new Date(),
             },
@@ -225,7 +240,7 @@ export const useProfileStore = create<ProfileState>()(
           if (!profile || !profile.calorieGoal) return
           
           // Recalculate macro goals based on current profile data
-          const { proteinGoal, carbsGoal, fatGoal } = calculateMacroGoals(profile.calorieGoal, profile.activityLevel, profile.weight)
+          const { proteinGoal, carbsGoal, fatGoal, waterGoal } = calculateMacroGoals(profile.calorieGoal, profile.activityLevel, profile.weight)
           
           set(
             {
@@ -234,6 +249,7 @@ export const useProfileStore = create<ProfileState>()(
                 proteinGoal,
                 carbsGoal,
                 fatGoal,
+                waterGoal
               },
               lastCalculated: new Date(),
             },
@@ -257,6 +273,7 @@ export const useCalorieGoal = () => useProfileStore((state) => state.profile?.ca
 export const useProteinGoal = () => useProfileStore((state) => state.profile?.proteinGoal || 0)
 export const useCarbsGoal = () => useProfileStore((state) => state.profile?.carbsGoal || 0)
 export const useFatGoal = () => useProfileStore((state) => state.profile?.fatGoal || 0)
+export const useWaterGoal = () => useProfileStore((state) => state.profile?.waterGoal || 0)
 export const useActivityLevel = () => useProfileStore((state) => state.profile?.activityLevel || 'moderately_active')
 export const useRecalculateMacroGoals = () => useProfileStore((state) => state.recalculateMacroGoals)
 export const useDailyCalories = () => {

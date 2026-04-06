@@ -29,7 +29,7 @@ export default function WaterInput({ onLog, disabled = false }: WaterInputProps)
           placeholder="Enter amount"
           step="100"
           min="0"
-          className="w-full p-2 border-b-2 max-w-50 border-white shadow-sm text-black/80 placeholder:text-gray-400 outline-none focus:border-blue-400"
+          className="w-full p-2 border-b-2 max-w-50 border-rose-500 text-black/80 placeholder:text-gray-400 outline-none focus:border-blue-400"
           disabled={disabled}
         />
         <span className="absolute text-black right-2 top-1/2 transform -translate-y-1/2">
