@@ -91,14 +91,14 @@ const mineralData = [
 // Memoized component for vitamin item
 const VitaminItem = memo(({ 
   label, 
-  key, 
+  dataKey, 
   val, 
   rda, 
   unit, 
   percentage 
 }: {
   label: string
-  key: string
+  dataKey: string
   val?: number
   rda?: number
   unit: string
@@ -127,13 +127,13 @@ const VitaminItem = memo(({
 // Memoized component for mineral item
 const MineralItem = memo(({ 
   label, 
-  key, 
+  dataKey, 
   val, 
   rda, 
   percentage 
 }: {
   label: string
-  key: string
+  dataKey: string
   val?: number
   rda?: number
   percentage?: number
@@ -218,8 +218,8 @@ export function Carousel({
   }, [])
 
   return (
-    <section className="space-y-6 px-4 mb-10">
-      <div className="relative shadow-sm rounded-2xl border border-zinc-200 overflow-hidden">
+    <section className="space-y-4 mb-10">
+      <div className="relative bg-white shadow-sm overflow-hidden">
         <div
           className="flex transition-transform duration-200 ease-out"
           style={{ transform: `translateX(-${carouselSlide * 100}%)` }}
@@ -230,8 +230,8 @@ export function Carousel({
           {/* Slide 1: Calories & Macros */}
           <div className="w-full flex-shrink-0">
             <div className="p-4 space-y-4">
-              <div className="text-center space-y-4">
-                <h3 className="text-lg font-medium text-zinc-500">Daily Calories</h3>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-zinc-500">Daily Nutrition</h3>
                 <div className="flex items-center justify-center gap-4">
                   <CalorieGauge
                     current={summary?.totalCalories || 0}
@@ -283,6 +283,7 @@ export function Carousel({
                   {vitaminData.map(({ label, key, unit }) => (
                     <VitaminItem
                       key={key}
+                      dataKey={key}
                       label={label}
                       val={summary?.totalVitamins?.[key as keyof MicroNutrient]}
                       rda={microRDA?.[key as keyof MicroNutrient]}
@@ -300,6 +301,7 @@ export function Carousel({
                   {mineralData.map(({ label, key }) => (
                     <MineralItem
                       key={key}
+                      dataKey={key}
                       label={label}
                       val={summary?.totalMinerals?.[key as keyof Mineral]}
                       rda={microRDA?.[key as keyof Mineral]}

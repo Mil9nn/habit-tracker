@@ -1,34 +1,14 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import Image from 'next/image'
-import { useProfile, useProfileInitialized } from '@/store/useProfileStore'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import SidePanel from './SidePanel'
-import { Home, UserRound } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 
 interface HeaderProps {
   title?: string
 }
 
 export default function Header({ title = "CaloMind" }: HeaderProps) {
-  const { data: session } = useSession()
-  const profile = useProfile()
-  const isInitialized = useProfileInitialized()
-  const [profileLink, setProfileLink] = useState('/profile')
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
-
-  useEffect(() => {
-    // Wait for initialization to complete before determining the profile link
-    if (isInitialized) {
-      if (!profile) {
-        setProfileLink('/profile/edit')
-      } else {
-        setProfileLink('/profile')
-      }
-    }
-  }, [profile, isInitialized])
 
   const formatTitle = (title: string) => {
     if (title === "CaloMind") {
@@ -36,8 +16,6 @@ export default function Header({ title = "CaloMind" }: HeaderProps) {
     }
     return title
   }
-
-  const router = useRouter();
 
   return (
     <>
@@ -67,42 +45,10 @@ export default function Header({ title = "CaloMind" }: HeaderProps) {
               </div>
               <h1 className="flex items-center text-lg font-semibold tracking-tight mt-1">{formatTitle(title)}</h1>
             </div>
-
-            <div className='flex items-center gap-4'>
-              <button
-                onClick={() => router.push('/')}
-                className="
-                        group
-                        p-2
-                        rounded-full
-                        bg-blue-600/70
-                        backdrop-blur-md
-                        border border-blue-500/50
-                        text-white
-            
-                        hover:bg-blue-500/80
-                        hover:text-white
-                        hover:scale-110
-            
-                        active:scale-95
-            
-                        transition-all duration-200 ease-out
-                        shadow-md hover:shadow-lg
-            
-                        cursor-pointer
-                      "
-              >
-                <Home
-                  size={18}
-                  className="transition-transform duration-200 group-hover:rotate-6"
-                />
-              </button>
-            </div>
           </div>
         </div>
       </header>
 
-      {/* Side Panel */}
       <SidePanel isOpen={isSidePanelOpen} onClose={() => setIsSidePanelOpen(false)} />
     </>
   )

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isValid } from 'date-fns'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface HorizontalCalendarProps {
   selectedDate: string
@@ -36,13 +35,7 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
     }
   }, [currentWeekStart])
 
-  // Memoize navigation function
-  const navigateWeek = useCallback((direction: 'prev' | 'next') => {
-    setCurrentWeekStart(prev => 
-      direction === 'prev' ? subDays(prev, 7) : addDays(prev, 7)
-    )
-  }, [])
-
+  
   // Memoize date selection handler
   const handleDateSelect = useCallback((dateStr: string) => {
     try {
@@ -75,17 +68,17 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
 
   // Memoize button styles to prevent recreation
   const getButtonStyles = useCallback((isSelected: boolean, isCurrentDay: boolean) => {
-    const baseStyles = 'flex flex-col items-center justify-center min-w-[40px] sm:min-w-[48px] sm:p-3 transition-all flex-shrink-0'
+    const baseStyles = 'flex flex-col items-center justify-center min-w-[50px] sm:min-w-[58px] sm:p-3 transition-all flex-shrink-0'
     
     if (isSelected) {
-      return `${baseStyles} bg-violet-500 text-white shadow-md scale-105 border-violet-500`
+      return `${baseStyles} bg-violet-500 text-white shadow-md`
     }
     
     if (isCurrentDay) {
-      return `${baseStyles} bg-zinc-100 text-black hover:bg-zinc-200 border-zinc-200`
+      return `${baseStyles} bg-zinc-200 text-black hover:bg-zinc-200`
     }
     
-    return `${baseStyles} text-zinc-600 hover:bg-zinc-50 border-zinc-100`
+    return `${baseStyles} text-zinc-600 hover:bg-zinc-50`
   }, [])
 
   const getDayLabelStyles = useCallback((isSelected: boolean) => {
@@ -98,20 +91,11 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
 
   return (
     <div className="w-full bg-white border-b border-zinc-200">
-      <div className="flex items-center justify-center px-4">
-        {/* Previous Week Button */}
-        <button
-          onClick={() => navigateWeek('prev')}
-          className="hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-          aria-label="Previous week"
-        >
-          <ChevronLeft className="w-5 h-5 text-zinc-600" />
-        </button>
-
+      <div className="px-4">
         {/* Week Days Container */}
-        <div className="flex-1 overflow-hidden">
+        <div className="overflow-hidden">
           <div className="overflow-x-auto scrollbar-none scrollbar-thin scrollbar-track-zinc-100 scrollbar-thumb-zinc-300 hover:scrollbar-thumb-zinc-400">
-            <div className="flex justify-center min-w-max py-1">
+            <div className="flex justify-center min-w-max">
               {weekDays.map((day) => {
                 const dayStr = format(day, 'yyyy-MM-dd')
                 const isSelected = isSameDay(day, parsedSelectedDate)
@@ -138,15 +122,6 @@ export function HorizontalCalendar({ selectedDate, onDateSelect }: HorizontalCal
             </div>
           </div>
         </div>
-
-        {/* Next Week Button */}
-        <button
-          onClick={() => navigateWeek('next')}
-          className="hover:bg-zinc-100 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-          aria-label="Next week"
-        >
-          <ChevronRight className="w-5 h-5 text-zinc-600" />
-        </button>
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, memo } from 'react'
-import { X, Home, ChartBar, Droplets, UserRound, Activity } from 'lucide-react'
+import { X, Home, ChartBar, GlassWater, UserRound, Activity } from 'lucide-react'
 import Link from 'next/link'
 
 interface SidePanelProps {
@@ -11,10 +11,10 @@ interface SidePanelProps {
 
 // Navigation items configuration
 const navigationItems = [
-  { href: '/profile', label: 'Profile', icon: UserRound },
-  { href: '/calorie', label: 'Nutrition', icon: Activity },
+  { href: '/calorie', label: 'Home', icon: Activity },
   { href: '/weight', label: 'Weight', icon: ChartBar },
-  { href: '/water', label: 'Water', icon: Droplets }
+  { href: '/water', label: 'Water', icon: GlassWater },
+  { href: '/profile', label: 'Profile', icon: UserRound }
 ] as const
 
 // Memoized navigation link component

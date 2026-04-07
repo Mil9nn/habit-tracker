@@ -6,14 +6,10 @@ import { useRouter } from 'next/navigation'
 import MainLayout from '../layout/MainLayout'
 import ProfileDisplay from '@/components/ProfileDisplay'
 import { Edit, LogOut } from 'lucide-react'
-import { useProfile, useCalorieGoal, useProteinGoal, useCarbsGoal, useFatGoal, useProfileInitialized } from '@/store/useProfileStore'
-import dynamic from 'next/dynamic'
+import { useProfile, useProfileInitialized } from '@/store/useProfileStore'
 import Loader from '@/components/Loader'
 import Link from 'next/link'
-
-const ProfileForm = dynamic(() => import('@/components/ProfileForm'), {
-  ssr: false,
-})
+import { axiosInstance } from '@/lib/axios'
 
 function ProfilePageContent() {
   const { data: session, status } = useSession()
@@ -24,14 +20,9 @@ function ProfilePageContent() {
   // Use Zustand store for profile and macro goals
   const profile = useProfile()
   const isInitialized = useProfileInitialized()
-  const calorieGoal = useCalorieGoal()
-  const proteinGoal = useProteinGoal()
-  const carbsGoal = useCarbsGoal()
-  const fatGoal = useFatGoal()
 
   useEffect(() => {
     if (status === 'authenticated') {
-      // Fetch today's calories
       fetchTodayCalories()
       setLoading(false)
     } else if (status === 'unauthenticated') {
@@ -40,22 +31,18 @@ function ProfilePageContent() {
   }, [status])
 
   useEffect(() => {
-    // Only redirect to edit if initialization is complete AND no profile exists
     if (status === 'authenticated' && isInitialized && !profile) {
-      router.push('/profile/edit')
+      router.push('/profile/completion')
     }
   }, [status, profile, isInitialized, router])
 
   const fetchTodayCalories = async () => {
     try {
-      const response = await fetch('/api/calories/summary')
-      if (response.ok) {
-        const data = await response.json()
-        setCalories({
-          consumed: data.consumed || 0,
-          goal: data.goal || profile?.calorieGoal || 0
-        })
-      }
+      const response = await axiosInstance.get('/api/calories/summary')
+      setCalories({
+        consumed: response.data.consumed || 0,
+        goal: response.data.goal || profile?.calorieGoal || 0
+      })
     } catch (error) {
       console.error('Error fetching calories:', error)
       setCalories({ consumed: 0, goal: profile?.calorieGoal || 0 })
