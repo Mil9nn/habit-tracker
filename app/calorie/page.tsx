@@ -216,11 +216,11 @@ export default function CalorieTracker() {
     }
   }, [])
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    }
-  }, [status, router])
+  // useEffect(() => {
+  //   if (status === 'unauthenticated') {
+  //     router.push('/auth/signin')
+  //   }
+  // }, [status, router])
 
   const fetchData = useCallback(async () => {
     try {
@@ -296,6 +296,11 @@ export default function CalorieTracker() {
           protein: template.totalProtein,
           carbs: template.totalCarbs,
           fat: template.totalFat,
+          fiber: template.totalFiber,
+          cholesterol: template.totalCholesterol,
+          sugar: template.totalSugar,
+          vitamins: template.totalVitamins,
+          minerals: template.totalMinerals,
           mealType: template.mealType,
           quantity: 1,
           isMeal: template.mealItems.length > 1,
@@ -310,6 +315,7 @@ export default function CalorieTracker() {
         })
 
         fetchData() // Refresh data
+        fetchTrendsData(trendsPeriod) // Refresh trends data
       }
     } catch (error) {
       console.error('Error adding template:', error)
@@ -330,6 +336,7 @@ export default function CalorieTracker() {
 
       if (response.ok) {
         await fetchData()
+        fetchTrendsData(trendsPeriod) // Refresh trends data
         return true
       }
 
@@ -406,14 +413,14 @@ export default function CalorieTracker() {
         {/* Left Column */}
         <div className="space-y-10">
 
-          <AIFoodAnalysis onDataAdded={fetchData} />
+          <AIFoodAnalysis onDataAdded={() => { fetchData(); fetchTrendsData(trendsPeriod); }} />
 
           <MealTemplatesMinimal
             onTemplateSelect={handleTemplateSelect}
             onDataUpdated={fetchData}
           />
 
-          <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={fetchData} />
+          <FoodLog logs={logs} selectedDate={selectedDate} onDataUpdated={() => { fetchData(); fetchTrendsData(trendsPeriod); }} />
         </div>
 
         {/* Right Column */}

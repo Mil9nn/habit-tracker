@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, memo } from 'react'
-import { X, Home, ChartBar, GlassWater, UserRound, Activity } from 'lucide-react'
+import { X, Home, ChartBar, GlassWater, UserRound, Activity, Camera } from 'lucide-react'
 import Link from 'next/link'
 
 interface SidePanelProps {
@@ -12,6 +12,7 @@ interface SidePanelProps {
 // Navigation items configuration
 const navigationItems = [
   { href: '/calorie', label: 'Home', icon: Activity },
+  { href: '/progress', label: 'Progress', icon: Camera },
   { href: '/weight', label: 'Weight', icon: ChartBar },
   { href: '/water', label: 'Water', icon: GlassWater },
   { href: '/profile', label: 'Profile', icon: UserRound }

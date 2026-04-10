@@ -16,11 +16,69 @@ interface MealTemplate {
     protein?: number
     carbs?: number
     fat?: number
+    fiber?: number
+    cholesterol?: number
+    sugar?: number
+    vitamins?: {
+      vitaminA?: number
+      vitaminC?: number
+      vitaminD?: number
+      vitaminE?: number
+      vitaminK?: number
+      thiamin?: number
+      riboflavin?: number
+      niacin?: number
+      vitaminB6?: number
+      folate?: number
+      vitaminB12?: number
+      vitaminB7?: number
+    }
+    minerals?: {
+      calcium?: number
+      iron?: number
+      magnesium?: number
+      phosphorus?: number
+      potassium?: number
+      sodium?: number
+      zinc?: number
+      copper?: number
+      manganese?: number
+      selenium?: number
+    }
   }>
   totalCalories: number
   totalProtein: number
   totalCarbs: number
   totalFat: number
+  totalFiber?: number
+  totalCholesterol?: number
+  totalSugar?: number
+  totalVitamins?: {
+    vitaminA?: number
+    vitaminC?: number
+    vitaminD?: number
+    vitaminE?: number
+    vitaminK?: number
+    thiamin?: number
+    riboflavin?: number
+    niacin?: number
+    vitaminB6?: number
+    folate?: number
+    vitaminB12?: number
+    vitaminB7?: number
+  }
+  totalMinerals?: {
+    calcium?: number
+    iron?: number
+    magnesium?: number
+    phosphorus?: number
+    potassium?: number
+    sodium?: number
+    zinc?: number
+    copper?: number
+    manganese?: number
+    selenium?: number
+  }
   useCount: number
   lastUsed: string
 }
@@ -86,7 +144,7 @@ export function MealTemplatesMinimal({ onTemplateSelect, onDataUpdated }: MealTe
     .slice(0, showAll ? undefined : 6)
 
   return (
-    <div className="px-4" onClick={() => setActiveMenu(null)}>
+    <div className="px-4 bg-red-500" onClick={() => setActiveMenu(null)}>
       {/* Dropdown Trigger */}
       <button
         onClick={() => setIsOpen(prev => !prev)}

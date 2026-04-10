@@ -31,8 +31,8 @@ interface Summary {
   totalFat?: number
   totalVitamins?: MicroNutrient
   totalMinerals?: Mineral
-  cholesterol?: number
-  sugar?: number
+  totalCholesterol?: number
+  totalSugar?: number
 }
 
 interface CarouselProps {
@@ -318,24 +318,24 @@ export function Carousel({
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] text-zinc-600">Cholesterol</span>
-                      <span className="text-[10px] text-black font-mono">{formatNumber(summary?.cholesterol)} mg</span>
+                      <span className="text-[10px] text-black font-mono">{formatNumber(summary?.totalCholesterol)} mg</span>
                     </div>
                     <div className="w-full bg-zinc-200 rounded-full h-1">
                       <div
-                        className={`h-1 rounded-full ${(summary?.cholesterol || 0) >= 300 ? 'bg-red-500' : (summary?.cholesterol || 0) >= 200 ? 'bg-amber-500' : 'bg-green-500'}`}
-                        style={{ width: `${Math.min((summary?.cholesterol || 0) / 3, 100)}%` }}
+                        className={`h-1 rounded-full ${(summary?.totalCholesterol || 0) >= 300 ? 'bg-red-500' : (summary?.totalCholesterol || 0) >= 200 ? 'bg-amber-500' : 'bg-green-500'}`}
+                        style={{ width: `${Math.min((summary?.totalCholesterol || 0) / 3, 100)}%` }}
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] text-zinc-600">Sugar</span>
-                      <span className="text-[10px] text-black font-mono">{formatNumber(summary?.sugar)} g</span>
+                      <span className="text-[10px] text-black font-mono">{formatNumber(summary?.totalSugar)} g</span>
                     </div>
                     <div className="w-full bg-zinc-200 rounded-full h-1">
                       <div
-                        className={`h-1 rounded-full ${(summary?.sugar || 0) >= 50 ? 'bg-red-500' : (summary?.sugar || 0) >= 25 ? 'bg-amber-500' : 'bg-green-500'}`}
-                        style={{ width: `${Math.min((summary?.sugar || 0) * 2, 100)}%` }}
+                        className={`h-1 rounded-full ${(summary?.totalSugar || 0) >= 50 ? 'bg-red-500' : (summary?.totalSugar || 0) >= 25 ? 'bg-amber-500' : 'bg-green-500'}`}
+                        style={{ width: `${Math.min((summary?.totalSugar || 0) * 2, 100)}%` }}
                       />
                     </div>
                   </div>

@@ -100,7 +100,14 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ foodDescription: aiFoodDescription, mealType: currentMealType })
       })
-      if (response.ok) setAiAnalysis(await response.json())
+      if (response.ok) {
+        const analysis = await response.json()
+        
+        // Auto-adds analyzed foods without showing confirmation interface
+        await addAnalyzedFoodsDirectly(analysis)
+        setAiAnalysis(null) // Clear analysis to hide interface
+        setAiFoodDescription('') // Clear input
+      }
     } catch (error) {
       console.error('Error analyzing food:', error)
     } finally {
@@ -129,6 +136,57 @@ export function AIFoodAnalysis({ onDataAdded }: AIFoodAnalysisProps) {
         cholesterol: micros.other.cholesterol,
         sugar: micros.other.sugar,
         mealItems: aiAnalysis.foods.map((food) => ({
+          name: food.name,
+          quantity: food.quantity,
+          calories: food.calories,
+          protein: food.macros.protein,
+          carbs: food.macros.carbs,
+          fat: food.macros.fat,
+          fiber: food.macros.fiber,
+          vitamins: food.micros.vitamins,
+          minerals: food.micros.minerals,
+          cholesterol: food.micros.other.cholesterol,
+          sugar: food.micros.other.sugar
+        }))
+      }
+      const res = await fetch('/api/calories/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mealData)
+      })
+      if (res.ok) {
+        setAiAnalysis(null)
+        setAiFoodDescription('')
+        onDataAdded?.()
+      }
+    } catch (error) {
+      console.error('Error adding analyzed foods:', error)
+    } finally {
+      setIsAddingFoods(false)
+    }
+  }
+
+  const addAnalyzedFoodsDirectly = async (analysis: any) => {
+    if (!analysis?.foods) return
+    setIsAddingFoods(true)
+    try {
+      const { macros, micros } = analysis.totals
+      // Use smart time-based meal categorization for the logged meal
+      const currentMealType = categorizeMeal(new Date())
+      const mealData = {
+        foodName: analysis.foods.map((f: any) => `${f.quantity}× ${f.name}`).join(', '),
+        calories: analysis.totals.calories,
+        protein: macros.protein,
+        carbs: macros.carbs,
+        fat: macros.fat,
+        fiber: macros.fiber,
+        mealType: currentMealType, // Use time-based categorization
+        quantity: 1,
+        vitamins: micros.vitamins,
+        minerals: micros.minerals,
+        cholesterol: micros.other.cholesterol,
+        sugar: micros.other.sugar,
+        mealItems: analysis.foods.map((food: any) => ({
           name: food.name,
           quantity: food.quantity,
           calories: food.calories,
