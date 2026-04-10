@@ -57,11 +57,30 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
         setError('Maximum 3 images allowed')
         return
       }
+
+      // Check file sizes (max 5MB per file, max 10MB total)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+      const MAX_TOTAL_SIZE = 10 * 1024 * 1024 // 10MB
+      
+      const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE)
+      if (oversizedFiles.length > 0) {
+        setError(`Files larger than 5MB not allowed. ${oversizedFiles.map(f => f.name).join(', ')}`)
+        return
+      }
+      
+      const currentTotalSize = images.reduce((sum, img) => sum + img.size, 0)
+      const newFilesTotalSize = files.reduce((sum, file) => sum + file.size, 0)
+      const totalSize = currentTotalSize + newFilesTotalSize
+      
+      if (totalSize > MAX_TOTAL_SIZE) {
+        setError(`Total upload size cannot exceed 10MB. Current: ${(currentTotalSize / 1024 / 1024).toFixed(1)}MB`)
+        return
+      }
       
       setImages(prev => [...prev, ...files].slice(0, 3))
       setError(null)
     }
-  }, [])
+  }, [images])
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,11 +91,72 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
         setError('Maximum 3 images allowed')
         return
       }
+
+      // Check file sizes (max 5MB per file, max 10MB total)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+      const MAX_TOTAL_SIZE = 10 * 1024 * 1024 // 10MB
+      
+      const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE)
+      if (oversizedFiles.length > 0) {
+        setError(`Files larger than 5MB not allowed. ${oversizedFiles.map(f => f.name).join(', ')}`)
+        return
+      }
+      
+      const currentTotalSize = images.reduce((sum, img) => sum + img.size, 0)
+      const newFilesTotalSize = files.reduce((sum, file) => sum + file.size, 0)
+      const totalSize = currentTotalSize + newFilesTotalSize
+      
+      if (totalSize > MAX_TOTAL_SIZE) {
+        setError(`Total upload size cannot exceed 10MB. Current: ${(currentTotalSize / 1024 / 1024).toFixed(1)}MB`)
+        return
+      }
       
       setImages(prev => [...prev, ...files].slice(0, 3))
       setError(null)
     }
   }, [images])
+
+  const compressImage = async (file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      
+      img.onload = () => {
+        // Calculate new dimensions
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width
+          width = maxWidth
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height)
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              })
+              resolve(compressedFile)
+            } else {
+              resolve(file) // Return original if compression fails
+            }
+          },
+          'image/jpeg',
+          quality
+        )
+      }
+      
+      img.onerror = () => resolve(file) // Return original if loading fails
+      img.src = URL.createObjectURL(file)
+    })
+  }
 
   const removeImage = useCallback((index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index))
@@ -95,10 +175,22 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
     setError(null)
 
     try {
+      // Compress images before upload
+      const compressedImages = await Promise.all(
+        images.map(async (image) => {
+          // Compress if image is larger than 1MB
+          if (image.size > 1024 * 1024) {
+            setError('Compressing images...')
+            return await compressImage(image, 1200, 0.8)
+          }
+          return image
+        })
+      )
+
       const formData = new FormData()
       
-      // Add images
-      images.forEach((image, index) => {
+      // Add compressed images
+      compressedImages.forEach((image, index) => {
         formData.append(`images`, image)
       })
       
@@ -214,7 +306,7 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
                 Drag & drop your photos here
               </p>
               <p className="text-xs text-zinc-500">
-                or click to browse (max 3 images)
+                or click to browse (max 3 images, 5MB each, 10MB total)
               </p>
             </div>
           )}

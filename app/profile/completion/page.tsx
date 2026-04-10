@@ -129,7 +129,8 @@ export default function ProfileForm({ onSave, onSuccess }: ProfileFormProps) {
           onSuccess()
         }
 
-        // Don't redirect here - let the parent component handle navigation
+        // Redirect to home page after successful profile completion
+        router.push('/calorie')
       } else {
         toast.error('Failed to save profile', {
           description: 'Please try again later.',

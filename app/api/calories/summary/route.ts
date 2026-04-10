@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getCalorieLogModel, getUserProfileModel } from '@/lib/models'
+import { getMealLogModel, getUserProfileModel } from '@/lib/models'
 import { calculateDailyCalorieNeeds, getCalorieGoalInfo } from '@/lib/calorieCalculator'
 
 // Helper function to round numbers to avoid floating point precision issues
@@ -60,60 +60,54 @@ export async function GET(req: Request) {
     }
   }
 
-  const CalorieLog = getCalorieLogModel()
+  const MealLog = getMealLogModel()
   const UserProfile = getUserProfileModel()
   
   const [logs, profile] = await Promise.all([
-    CalorieLog.find({
+    MealLog.find({
       userId: session.user.email,
-      timestamp: { $gte: startDate, $lte: endDate }
-    }).sort({ timestamp: -1 }),
+      date: { $gte: startDate, $lte: endDate }
+    }).sort({ date: -1 }),
     UserProfile.findOne({ userId: session.user.email })
   ])
 
-  const totalCalories = logs.reduce((sum: number, log: any) => sum + log.calories, 0)
-  const totalProtein = logs.reduce((sum: number, log: any) => sum + (log.protein || 0), 0)    // ✅ Calculate macros
-  const totalCarbs = logs.reduce((sum: number, log: any) => sum + (log.carbs || 0), 0)        // ✅ Calculate macros
-  const totalFat = logs.reduce((sum: number, log: any) => sum + (log.fat || 0), 0)            // ✅ Calculate macros
-  const totalFiber = logs.reduce((sum: number, log: any) => sum + (log.fiber || 0), 0)          // ✅ Calculate fiber
+  const totalCalories = logs.reduce((sum: number, log: any) => sum + log.totals.calories, 0)
+  const totalProtein = logs.reduce((sum: number, log: any) => sum + (log.totals.macros.protein || 0), 0)    // ✅ Calculate macros
+  const totalCarbs = logs.reduce((sum: number, log: any) => sum + (log.totals.macros.carbs || 0), 0)        // ✅ Calculate macros
+  const totalFat = logs.reduce((sum: number, log: any) => sum + (log.totals.macros.fat || 0), 0)            // ✅ Calculate macros
+  const totalFiber = logs.reduce((sum: number, log: any) => sum + (log.totals.macros.fiber || 0), 0)          // ✅ Calculate fiber
   
+  
+  
+    
   // Calculate other nutrients
-  const totalCholesterol = logs.reduce((sum: number, log: any) => sum + (log.cholesterol || 0), 0)
-  const totalSugar = logs.reduce((sum: number, log: any) => sum + (log.sugar || 0), 0)
+  const totalCholesterol = logs.reduce((sum: number, log: any) => sum + (log.totals.micros.other.cholesterol || 0), 0)
+  const totalSugar = logs.reduce((sum: number, log: any) => sum + (log.totals.micros.other.sugar || 0), 0)
   
   // Calculate micro-nutrients
   const totalVitamins = logs.reduce((totals: any, log: any) => {
-    if (log.vitamins) {
+    if (log.totals.micros.vitamins) {
       return {
-        vitaminA: roundNumber((totals.vitaminA || 0) + (log.vitamins.vitaminA || 0)),
-        vitaminC: roundNumber((totals.vitaminC || 0) + (log.vitamins.vitaminC || 0)),
-        vitaminD: roundNumber((totals.vitaminD || 0) + (log.vitamins.vitaminD || 0)),
-        vitaminE: roundNumber((totals.vitaminE || 0) + (log.vitamins.vitaminE || 0)),
-        vitaminK: roundNumber((totals.vitaminK || 0) + (log.vitamins.vitaminK || 0)),
-        thiamin: roundNumber((totals.thiamin || 0) + (log.vitamins.thiamin || 0)),
-        riboflavin: roundNumber((totals.riboflavin || 0) + (log.vitamins.riboflavin || 0)),
-        niacin: roundNumber((totals.niacin || 0) + (log.vitamins.niacin || 0)),
-        vitaminB6: roundNumber((totals.vitaminB6 || 0) + (log.vitamins.vitaminB6 || 0)),
-        folate: roundNumber((totals.folate || 0) + (log.vitamins.folate || 0)),
-        vitaminB12: roundNumber((totals.vitaminB12 || 0) + (log.vitamins.vitaminB12 || 0))
+        vitaminA: roundNumber((totals.vitaminA || 0) + (log.totals.micros.vitamins.vitaminA || 0)),
+        vitaminC: roundNumber((totals.vitaminC || 0) + (log.totals.micros.vitamins.vitaminC || 0)),
+        vitaminD: roundNumber((totals.vitaminD || 0) + (log.totals.micros.vitamins.vitaminD || 0)),
+        vitaminB6: roundNumber((totals.vitaminB6 || 0) + (log.totals.micros.vitamins.vitaminB6 || 0)),
+        vitaminB7: roundNumber((totals.vitaminB7 || 0) + (log.totals.micros.vitamins.vitaminB7 || 0)),
+        vitaminB12: roundNumber((totals.vitaminB12 || 0) + (log.totals.micros.vitamins.vitaminB12 || 0))
       }
     }
     return totals
   }, {})
 
   const totalMinerals = logs.reduce((totals: any, log: any) => {
-    if (log.minerals) {
+    if (log.totals.micros.minerals) {
       return {
-        calcium: roundNumber((totals.calcium || 0) + (log.minerals.calcium || 0)),
-        iron: roundNumber((totals.iron || 0) + (log.minerals.iron || 0)),
-        magnesium: roundNumber((totals.magnesium || 0) + (log.minerals.magnesium || 0)),
-        phosphorus: roundNumber((totals.phosphorus || 0) + (log.minerals.phosphorus || 0)),
-        potassium: roundNumber((totals.potassium || 0) + (log.minerals.potassium || 0)),
-        sodium: roundNumber((totals.sodium || 0) + (log.minerals.sodium || 0)),
-        zinc: roundNumber((totals.zinc || 0) + (log.minerals.zinc || 0)),
-        copper: roundNumber((totals.copper || 0) + (log.minerals.copper || 0)),
-        manganese: roundNumber((totals.manganese || 0) + (log.minerals.manganese || 0)),
-        selenium: roundNumber((totals.selenium || 0) + (log.minerals.selenium || 0))
+        iron: roundNumber((totals.iron || 0) + (log.totals.micros.minerals.iron || 0)),
+        magnesium: roundNumber((totals.magnesium || 0) + (log.totals.micros.minerals.magnesium || 0)),
+        zinc: roundNumber((totals.zinc || 0) + (log.totals.micros.minerals.zinc || 0)),
+        calcium: roundNumber((totals.calcium || 0) + (log.totals.micros.minerals.calcium || 0)),
+        potassium: roundNumber((totals.potassium || 0) + (log.totals.micros.minerals.potassium || 0)),
+        sodium: roundNumber((totals.sodium || 0) + (log.totals.micros.minerals.sodium || 0))
       }
     }
     return totals

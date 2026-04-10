@@ -8,7 +8,7 @@ import { format } from 'date-fns'
 import { HorizontalCalendar } from './components/HorizontalCalendar'
 import { Carousel } from './components/Carousel'
 import CalorieHeatmap from './components/CalorieHeatmap'
-import { AIFoodAnalysis } from './components/AIFoodAnalysis'
+import AIFoodAnalysis from './components/AIFoodAnalysis'
 import { useProteinGoal, useCarbsGoal, useFatGoal, useProfile } from '@/store/useProfileStore'
 import MainLayout from '../layout/MainLayout'
 import { FoodLog } from './components/FoodLog'
@@ -16,48 +16,87 @@ import { MealTemplatesMinimal } from './components/MealTemplates'
 import { CalorieTrendsChart } from './components/CalorieTrendsChart'
 import { calculateMicroRDA, calculateRDAPercentage } from '@/lib/microRDA'
 import Loader from '@/components/Loader'
+import { IMealLog } from '@/lib/models/MealLog'
 
 // Define CalorieLogForm interface locally since we removed ManualEntryForm
 export interface CalorieLogForm {
-  foodName: string
-  calories: number
-  protein?: number
-  carbs?: number
-  fat?: number
+  inputText: string
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  quantity?: number
+  foods: FoodItem[]
+  totals: {
+    calories: number
+    macros: {
+      protein: number
+      carbs: number
+      fat: number
+      fiber: number
+    }
+    micros: {
+      vitamins: {
+        vitaminA: number
+        vitaminC: number
+        vitaminD: number
+        vitaminB6: number
+        vitaminB7: number
+        vitaminB12: number
+      }
+      minerals: {
+        iron: number
+        magnesium: number
+        zinc: number
+        calcium: number
+        potassium: number
+        sodium: number
+      }
+      other: {
+        cholesterol: number
+        sugar: number
+      }
+    }
+  }
+  method: 'ai' | 'manual'
 }
 
 export interface FoodItem {
   name: string
   quantity: number
+  unit: string
   calories: number
-  protein?: number
-  carbs?: number
-  fat?: number
-  fiber?: number
-  vitamins?: {
-    vitaminA?: number
-    vitaminC?: number
-    vitaminD?: number
-    vitaminB6?: number
-    vitaminB7?: number
-    vitaminB12?: number
+  macros: {
+    protein: number
+    carbs: number
+    fat: number
+    fiber: number
   }
-  minerals?: {
-    iron?: number
-    magnesium?: number
-    zinc?: number
-    calcium?: number
-    potassium?: number
-    sodium?: number
+  micros: {
+    vitamins: {
+      vitaminA: number
+      vitaminC: number
+      vitaminD: number
+      vitaminB6: number
+      vitaminB7: number
+      vitaminB12: number
+    }
+    minerals: {
+      iron: number
+      magnesium: number
+      zinc: number
+      calcium: number
+      potassium: number
+      sodium: number
+    }
+    other: {
+      cholesterol: number
+      sugar: number
+    }
   }
-  cholesterol?: number
-  sugar?: number
+  mealType?: string
+  confidence?: number
 }
 
 export interface CalorieLog {
   _id: string
+  inputText: string
   foodName: string
   calories: number
   protein?: number
@@ -158,21 +197,11 @@ export default function CalorieTracker() {
   const [trendsData, setTrendsData] = useState<any>([])
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState<CalorieSummary | null>(null)
-  const [logs, setLogs] = useState<CalorieLog[]>([])
+  const [logs, setLogs] = useState<IMealLog[]>([])
   const [heatmapData, setHeatmapData] = useState<any[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [quickAddForm, setQuickAddForm] = useState<CalorieLogForm>({
-    foodName: '',
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-    mealType: 'breakfast',
-    quantity: 1
-  })
-  const [isQuickAddActive, setIsQuickAddActive] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'))
+    const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [trendsPeriod, setTrendsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
 
   const profile = useProfile()
@@ -216,11 +245,11 @@ export default function CalorieTracker() {
     }
   }, [])
 
-  // useEffect(() => {
-  //   if (status === 'unauthenticated') {
-  //     router.push('/auth/signin')
-  //   }
-  // }, [status, router])
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
 
   const fetchData = useCallback(async () => {
     try {
@@ -251,9 +280,9 @@ export default function CalorieTracker() {
 
           // Process logs for heatmap
           const dailyTotals: { [key: string]: number } = {}
-          allLogsData.forEach((log: CalorieLog) => {
-            const dateKey = new Date(log.timestamp).toISOString().split('T')[0]
-            dailyTotals[dateKey] = (dailyTotals[dateKey] || 0) + log.calories
+          allLogsData.forEach((log: IMealLog) => {
+            const dateKey = new Date(log.date).toISOString().split('T')[0]
+            dailyTotals[dateKey] = (dailyTotals[dateKey] || 0) + log.totals.calories
           })
 
           const heatmap = Object.entries(dailyTotals).map(([date, count]) => ({
@@ -287,25 +316,173 @@ export default function CalorieTracker() {
   const handleTemplateSelect = async (template: any) => {
     setIsSubmitting(true)
     try {
+      // Handle both old and new template structures
+      let transformedFoods
+      let calculatedTotals
+
+      // Check for new nested structure OR old flat structure with totals
+      const hasNewNestedStructure = template.totals && template.totals.macros
+      const hasOldFlatStructure = template.totalProtein !== undefined || template.totalCarbs !== undefined || template.totalFat !== undefined
+      
+      if (hasNewNestedStructure || hasOldFlatStructure) {
+        // Template has calculated totals - use them directly without recalculation
+        transformedFoods = template.mealItems.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit || 'serving',
+          calories: item.calories,
+          macros: item.macros || { protein: 0, carbs: 0, fat: 0, fiber: 0 },
+          micros: item.micros || { vitamins: {}, minerals: {}, other: { cholesterol: 0, sugar: 0 } }
+        }))
+        
+        // Use existing totals from template
+        if (hasNewNestedStructure) {
+          calculatedTotals = template.totals
+        } else {
+          // Convert old flat structure to nested
+          calculatedTotals = {
+            calories: template.totalCalories || 0,
+            macros: {
+              protein: template.totalProtein || 0,
+              carbs: template.totalCarbs || 0,
+              fat: template.totalFat || 0,
+              fiber: template.totalFiber || 0
+            },
+            micros: {
+              vitamins: template.totalVitamins || {},
+              minerals: template.totalMinerals || {},
+              other: {
+                cholesterol: template.totalCholesterol || 0,
+                sugar: template.totalSugar || 0
+              }
+            }
+          }
+        }
+      } else {
+        // Old flat structure - transform to nested
+        transformedFoods = template.mealItems.map((item: any) => {
+          // Check if macros are zero and calculate fallback
+          const hasZeroMacros = (!item.protein || item.protein === 0) && 
+                                (!item.carbs || item.carbs === 0) && 
+                                (!item.fat || item.fat === 0)
+          
+          let fallbackMacros = { protein: 0, carbs: 0, fat: 0, fiber: 0 }
+          
+          if (hasZeroMacros && item.calories > 0) {
+            // Simple macro estimation based on food type
+            const foodName = item.name.toLowerCase()
+            
+            if (foodName.includes('egg')) {
+              // Eggs: ~6g protein, 0.5g carbs, 5g fat per 70 calories
+              const proteinPerCal = 6 / 70
+              const carbsPerCal = 0.5 / 70
+              const fatPerCal = 5 / 70
+              fallbackMacros = {
+                protein: Math.round(item.calories * proteinPerCal),
+                carbs: Math.round(item.calories * carbsPerCal),
+                fat: Math.round(item.calories * fatPerCal),
+                fiber: 0
+              }
+            } else if (foodName.includes('rice') || foodName.includes('bread') || foodName.includes('pasta')) {
+              // Carbs-heavy foods: 10% protein, 80% carbs, 10% fat
+              fallbackMacros = {
+                protein: Math.round(item.calories * 0.10 / 4),
+                carbs: Math.round(item.calories * 0.80 / 4),
+                fat: Math.round(item.calories * 0.10 / 9),
+                fiber: Math.round(item.calories * 0.05 / 4)
+              }
+            } else if (foodName.includes('chicken') || foodName.includes('meat') || foodName.includes('fish')) {
+              // Protein-heavy foods: 70% protein, 20% fat, 10% carbs
+              fallbackMacros = {
+                protein: Math.round(item.calories * 0.70 / 4),
+                carbs: Math.round(item.calories * 0.10 / 4),
+                fat: Math.round(item.calories * 0.20 / 9),
+                fiber: 0
+              }
+            } else {
+              // Default balanced estimation: 30% protein, 50% carbs, 20% fat
+              fallbackMacros = {
+                protein: Math.round(item.calories * 0.30 / 4),
+                carbs: Math.round(item.calories * 0.50 / 4),
+                fat: Math.round(item.calories * 0.20 / 9),
+                fiber: Math.round(item.calories * 0.05 / 4)
+              }
+            }
+          }
+          
+          return {
+            name: item.name,
+            quantity: item.quantity,
+            unit: item.unit || 'serving',
+            calories: item.calories,
+            macros: {
+              protein: item.protein || fallbackMacros.protein,
+              carbs: item.carbs || fallbackMacros.carbs,
+              fat: item.fat || fallbackMacros.fat,
+              fiber: item.fiber || fallbackMacros.fiber
+            },
+            micros: {
+              vitamins: item.vitamins || {},
+              minerals: item.minerals || {},
+              other: {
+                cholesterol: item.cholesterol || 0,
+                sugar: item.sugar || 0
+              }
+            }
+          }
+        })
+
+        // Calculate totals from individual food items
+        calculatedTotals = transformedFoods.reduce((acc: any, food: any) => {
+          acc.calories += food.calories
+          acc.macros.protein += food.macros.protein
+          acc.macros.carbs += food.macros.carbs
+          acc.macros.fat += food.macros.fat
+          acc.macros.fiber += food.macros.fiber
+          acc.micros.other.cholesterol += food.micros.other.cholesterol
+          acc.micros.other.sugar += food.micros.other.sugar
+          
+          // Sum up vitamins and minerals
+          Object.keys(food.micros.vitamins).forEach(vitamin => {
+            acc.micros.vitamins[vitamin] = (acc.micros.vitamins[vitamin] || 0) + (food.micros.vitamins[vitamin] || 0)
+          })
+          
+          Object.keys(food.micros.minerals).forEach(mineral => {
+            acc.micros.minerals[mineral] = (acc.micros.minerals[mineral] || 0) + (food.micros.minerals[mineral] || 0)
+          })
+          
+          return acc
+        }, {
+          calories: template.totalCalories || 0,
+          macros: { 
+            protein: template.totalProtein || 0, 
+            carbs: template.totalCarbs || 0, 
+            fat: template.totalFat || 0, 
+            fiber: template.totalFiber || 0 
+          },
+          micros: { 
+            vitamins: template.totalVitamins || {}, 
+            minerals: template.totalMinerals || {}, 
+            other: { 
+              cholesterol: template.totalCholesterol || 0, 
+              sugar: template.totalSugar || 0 
+            } 
+          }
+        })
+      }
+
+      const requestData = {
+          inputText: template.name,
+          mealType: template.mealType,
+          foods: transformedFoods,
+          totals: calculatedTotals,
+          method: 'manual'
+        }
+
       const response = await fetch('/api/calories/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          foodName: template.name,
-          calories: template.totalCalories,
-          protein: template.totalProtein,
-          carbs: template.totalCarbs,
-          fat: template.totalFat,
-          fiber: template.totalFiber,
-          cholesterol: template.totalCholesterol,
-          sugar: template.totalSugar,
-          vitamins: template.totalVitamins,
-          minerals: template.totalMinerals,
-          mealType: template.mealType,
-          quantity: 1,
-          isMeal: template.mealItems.length > 1,
-          mealItems: template.mealItems
-        })
+        body: JSON.stringify(requestData)
       })
 
       if (response.ok) {
@@ -324,61 +501,8 @@ export default function CalorieTracker() {
     }
   }
 
-  const addCalorie = async (data: CalorieLogForm) => {
-    setIsSubmitting(true)
-    setErrorMessage(null)
-    try {
-      const response = await fetch('/api/calories/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-
-      if (response.ok) {
-        await fetchData()
-        fetchTrendsData(trendsPeriod) // Refresh trends data
-        return true
-      }
-
-      const json = await response.json()
-      setErrorMessage(json?.error || 'Failed to save entry')
-      return false
-    } catch (error) {
-      console.error('Error adding calorie:', error)
-      setErrorMessage('Network error, please retry.')
-      return false
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleQuickAdd = useCallback(async () => {
-    if (!quickAddForm.foodName.trim()) {
-      setErrorMessage('Enter a food name.')
-      return
-    }
-
-    if (!quickAddForm.calories || quickAddForm.calories <= 0) {
-      setErrorMessage('Calories must be greater than zero.')
-      return
-    }
-
-    const success = await addCalorie(quickAddForm)
-    if (success) {
-      setQuickAddForm({
-        foodName: '',
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        mealType: 'breakfast',
-        quantity: 1
-      })
-      setErrorMessage(null)
-      setIsQuickAddActive(false)
-    }
-  }, [quickAddForm, addCalorie])
-
+  
+  
 
   if (status === 'loading') {
     return (
@@ -392,7 +516,7 @@ export default function CalorieTracker() {
 
   return (
     <MainLayout>
-      <div className="space-y-4">
+      <div>
         <HorizontalCalendar 
           selectedDate={selectedDate}
           onDateSelect={(date) => setSelectedDate(date)}
@@ -413,7 +537,10 @@ export default function CalorieTracker() {
         {/* Left Column */}
         <div className="space-y-10">
 
-          <AIFoodAnalysis onDataAdded={() => { fetchData(); fetchTrendsData(trendsPeriod); }} />
+          <AIFoodAnalysis onDataAdded={() => { 
+            fetchData(); 
+            fetchTrendsData(trendsPeriod); 
+          }} />
 
           <MealTemplatesMinimal
             onTemplateSelect={handleTemplateSelect}

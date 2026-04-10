@@ -145,7 +145,7 @@ export default function ProgressPage() {
             <h2 className="text-2xl font-semibold text-zinc-700 mb-2">
               Start tracking your transformation
             </h2>
-            <p className="text-zinc-500 text-lg max-w-md mx-auto">
+            <p className="text-zinc-500 text-sm max-w-md mx-auto">
               Upload your first progress photo to begin your journey. Track your weight, add notes, and watch your transformation over time.
             </p>
           </div>

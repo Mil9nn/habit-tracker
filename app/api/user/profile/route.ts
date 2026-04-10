@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getUserProfileModel, getCalorieLogModel } from '@/lib/models'
+import { getUserProfileModel, getMealLogModel } from '@/lib/models'
 import { calculateDailyCalorieNeeds } from '@/lib/calorieCalculator'
 
 export async function GET(req: Request) {

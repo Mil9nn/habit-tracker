@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CalorieLog } from '../page'
+import { IMealLog } from '../../../lib/models/MealLog'
 import { Trash2, Bookmark, ChevronDown, Salad } from 'lucide-react'
 import { TemplateExistsDialog } from '../../../components/TemplateExistsDialog'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
@@ -9,7 +9,7 @@ import { format } from 'date-fns'
 import { toast } from 'sonner'
 
 interface FoodLogProps {
-  logs: CalorieLog[]
+  logs: IMealLog[]
   selectedDate: string
   onDataUpdated?: () => void
 }
@@ -52,59 +52,20 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
     })
   }
 
-  const saveAsTemplate = async (log: CalorieLog) => {
-    console.log('saveAsTemplate called with log:', log)
-    console.log('log.foodName:', log.foodName)
-    console.log('log.mealType:', log.mealType)
-    console.log('log.mealItems:', log.mealItems)
-    console.log('log.quantity:', log.quantity)
-    console.log('log.calories:', log.calories)
-    console.log('log.protein:', log.protein)
-    console.log('log.carbs:', log.carbs)
-    console.log('log.fat:', log.fat)
-    
+  const saveAsTemplate = async (log: IMealLog) => {
     try {
       const templateData = {
-        name: log.foodName,
+        name: log.inputText,
         mealType: log.mealType,
-        mealItems: log.mealItems && log.mealItems.length > 0 ? log.mealItems : [{
-          name: log.foodName, 
-          quantity: log.quantity || 1,
-          calories: log.calories, 
-          protein: log.protein || 0,
-          carbs: log.carbs || 0, 
-          fat: log.fat || 0,
-          fiber: log.fiber || 0,
-          vitamins: {
-            vitaminA: log.vitamins?.vitaminA || 0,
-            vitaminC: log.vitamins?.vitaminC || 0,
-            vitaminD: log.vitamins?.vitaminD || 0,
-            vitaminE: log.vitamins?.vitaminE || 0,
-            vitaminK: log.vitamins?.vitaminK || 0,
-            thiamin: log.vitamins?.thiamin || 0,
-            riboflavin: log.vitamins?.riboflavin || 0,
-            niacin: log.vitamins?.niacin || 0,
-            vitaminB6: log.vitamins?.vitaminB6 || 0,
-            folate: log.vitamins?.folate || 0,
-            vitaminB12: log.vitamins?.vitaminB12 || 0
-          },
-          minerals: {
-            calcium: log.minerals?.calcium || 0,
-            iron: log.minerals?.iron || 0,
-            magnesium: log.minerals?.magnesium || 0,
-            phosphorus: log.minerals?.phosphorus || 0,
-            potassium: log.minerals?.potassium || 0,
-            sodium: log.minerals?.sodium || 0,
-            zinc: log.minerals?.zinc || 0,
-            copper: log.minerals?.copper || 0,
-            manganese: log.minerals?.manganese || 0,
-            selenium: log.minerals?.selenium || 0
-          },
-          cholesterol: log.cholesterol || 0,
-          sugar: log.sugar || 0
+        mealItems: log.foods && log.foods.length > 0 ? log.foods : [{
+          name: log.inputText, 
+          quantity: 1,
+          unit: 'serving',
+          calories: log.totals.calories, 
+          macros: log.totals.macros,
+          micros: log.totals.micros
         }]
       }
-      console.log('Sending template data:', templateData)
       
       const res = await fetch('/api/calories/templates', {
         method: 'POST',
@@ -112,14 +73,15 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
         body: JSON.stringify(templateData)
       })
       
-      console.log('Response status:', res.status)
-      console.log('Response ok:', res.ok)
-      
       if (res.status === 409) {
-        setDuplicateTemplateName(log.foodName)
+        setDuplicateTemplateName(log.inputText)
         setShowDuplicateDialog(true)
       } else if (res.ok) {
-        toast.success(`"${log.foodName}" saved as template`)
+        toast.success(`"${log.inputText}" saved as template`)
+        // Refresh templates list
+        if ((window as any).refreshTemplates) {
+          (window as any).refreshTemplates()
+        }
       } else {
         const errorData = await res.json()
         console.error('Error response:', errorData)
@@ -139,7 +101,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
   }
 
 
-  const totalCalories = logs.reduce((sum, l) => sum + l.calories, 0)
+  const totalCalories = logs.reduce((sum, l) => sum + l.totals.calories, 0)
 
   return (
     <>
@@ -166,11 +128,11 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
           <div className="divide-y divide-zinc-50">
             {logs.map(log => {
               const config = MEAL_TYPE_CONFIG[log.mealType?.toLowerCase()] || DEFAULT_CONFIG
-              const hasItems = log.mealItems && log.mealItems.length > 1
-              const isExpanded = expandedItems.has(log._id)
+              const hasItems = log.foods && log.foods.length > 1
+              const isExpanded = expandedItems.has(log._id.toString())
 
               return (
-                <div key={log._id} className="group">
+                <div key={log._id.toString()} className="group">
                   <div className="flex items-center gap-3 px-5 py-3.5 hover:bg-zinc-50/80 transition-colors duration-150">
 
                     {/* Meal type indicator */}
@@ -184,7 +146,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <span className="text-sm font-semibold text-zinc-800 leading-snug block truncate">
-                            {log.foodName}
+                            {log.inputText}
                           </span>
                           <span
                             className="text-[10px] font-medium px-1.5 py-0.5 rounded-md inline-block mt-0.5"
@@ -193,25 +155,26 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                             {config.label}
                           </span>
                           <span className="text-[10px] text-zinc-400 ml-2">
-                            {format(new Date(log.timestamp), 'h:mm a')}
+                            {format(new Date(log.date), 'h:mm a')}
                           </span>
                         </div>
 
                         {/* Calories — hero number */}
                         <div className="flex-shrink-0 text-right">
                           <span className="text-base font-bold" style={{ color: config.color }}>
-                            {log.calories}
+                            {log.totals.calories}
                           </span>
                           <span className="text-xs text-zinc-400 ml-1">kcal</span>
                         </div>
                       </div>
 
                       {/* Macros */}
-                      {(log.protein || log.carbs || log.fat) && (
+                      {log.totals && (
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          <MacroPill label="P" value={log.protein} color="#10b981" />
-                          <MacroPill label="C" value={log.carbs}   color="#3b82f6" />
-                          <MacroPill label="F" value={log.fat}     color="#f59e0b" />
+                          <MacroPill label="P" value={log.totals.macros.protein} color="#10b981" />
+                          <MacroPill label="C" value={log.totals.macros.carbs}   color="#3b82f6" />
+                          <MacroPill label="F" value={log.totals.macros.fat}     color="#f59e0b" />
+                          <MacroPill label="Fiber" value={log.totals.macros.fiber} color="#8b5cf6" />
                         </div>
                       )}
                     </div>
@@ -226,7 +189,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                         <Bookmark className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => setDeleteConfirm({ open: true, logId: log._id, itemName: log.foodName })}
+                        onClick={() => setDeleteConfirm({ open: true, logId: log._id.toString(), itemName: log.inputText })}
                         className="p-1.5 text-zinc-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
                         title="Delete"
                       >
@@ -234,7 +197,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                       </button>
                       {hasItems && (
                         <button
-                          onClick={() => toggleExpand(log._id)}
+                          onClick={() => toggleExpand(log._id.toString())}
                           className="p-1.5 text-zinc-300 hover:text-zinc-600 rounded-lg hover:bg-zinc-100 transition-colors ml-0.5"
                         >
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -250,7 +213,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                         className="rounded-xl overflow-hidden border"
                         style={{ borderColor: `${config.color}25`, background: config.bg }}
                       >
-                        {log.mealItems!.map((item, i) => (
+                        {log.foods!.map((item, i) => (
                           <div
                             key={i}
                             className="flex items-center justify-between px-3 py-2 text-xs border-b last:border-b-0"
@@ -261,7 +224,7 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                                 style={{ background: config.color }}
                               />
-                              <span className="text-zinc-500">{item.quantity}×</span>
+                              <span className="text-zinc-500">{item.quantity} {item.unit || 'serving'}×</span>
                               <span className="font-medium text-zinc-700">{item.name}</span>
                             </div>
                             <span className="font-semibold" style={{ color: config.color }}>

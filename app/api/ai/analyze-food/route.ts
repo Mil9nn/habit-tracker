@@ -118,16 +118,19 @@ export async function POST(req: Request) {
       })
     })
 
-    // log the returned data for debugging
-    const debugData = await response.clone().json()
-    console.log('AI Response Debug:', JSON.stringify(debugData, null, 2));
-
     if (!response.ok) {
       return NextResponse.json({ error: 'Failed to analyze food with AI' }, { status: 500 })
     }
 
     const data = await response.json()
-    const aiResponse = JSON.parse(data.choices[0].message.content)
+    
+    // Clean JSON response by removing trailing commas
+    const cleanedJson = data.choices[0].message.content
+      .replace(/,\s*}/g, '}')  // Remove trailing commas before }
+      .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
+      .replace(/,(\s*[\]}])/g, '$1')  // Remove any comma before closing brackets
+    
+    const aiResponse = JSON.parse(cleanedJson)
 
     // Add meal type to each food
     aiResponse.foods = aiResponse.foods.map((food: any) => ({

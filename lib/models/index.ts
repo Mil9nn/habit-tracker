@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { WaterLogSchema } from './WaterLog'
 import { WaterGoalSchema } from './WaterGoals'
 import { UserProfileSchema } from './UserProfile'
-import { CalorieLogSchema } from './CalorieLog'
+import { MealLogSchema } from './MealLog'
 
 // Cache models to prevent multiple compilation
 const models: any = {}
@@ -43,14 +43,15 @@ export const getUserProfileModel = () => {
   return models.UserProfile
 }
 
-export const getCalorieLogModel = () => {
-  if (!models.CalorieLog) {
+export const getMealLogModel = () => {
+  if (!models.MealLog) {
     try {
-      models.CalorieLog = mongoose.model('CalorieLog', CalorieLogSchema)
+      const modelName = 'MealLog'
+      models.MealLog = mongoose.model(modelName, MealLogSchema)
     } catch (error) {
       // Model already compiled, return existing model
-      return mongoose.model('CalorieLog')
+      return mongoose.model('MealLog')
     }
   }
-  return models.CalorieLog
+  return models.MealLog
 }

@@ -29,18 +29,55 @@ export function MealEditForm({ meal, onSave, onCancel }: MealEditFormProps) {
     setMealItems([...mealItems, {
       name: '',
       quantity: 1,
+      unit: 'serving',
       calories: 0,
-      protein: 0,
-      carbs: 0,
-      fat: 0
+      macros: {
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0
+      },
+      micros: {
+        vitamins: {
+          vitaminA: 0,
+          vitaminC: 0,
+          vitaminD: 0,
+          vitaminB6: 0,
+          vitaminB7: 0,
+          vitaminB12: 0
+        },
+        minerals: {
+          iron: 0,
+          magnesium: 0,
+          zinc: 0,
+          calcium: 0,
+          potassium: 0,
+          sodium: 0
+        },
+        other: {
+          cholesterol: 0,
+          sugar: 0
+        }
+      }
     }])
   }
 
-  const updateMealItem = (index: number, field: keyof FoodItem, value: string | number) => {
+  const updateMealItem = (index: number, field: string, value: string | number) => {
     const updatedItems = [...mealItems]
-    updatedItems[index] = {
-      ...updatedItems[index],
-      [field]: field === 'name' ? value : Number(value) || 0
+    if (field === 'name' || field === 'quantity' || field === 'unit' || field === 'calories') {
+      updatedItems[index] = {
+        ...updatedItems[index],
+        [field]: field === 'name' || field === 'unit' ? value : Number(value) || 0
+      }
+    } else if (field.startsWith('macros.')) {
+      const macroField = field.replace('macros.', '') as 'protein' | 'carbs' | 'fat' | 'fiber'
+      updatedItems[index] = {
+        ...updatedItems[index],
+        macros: {
+          ...updatedItems[index].macros,
+          [macroField]: Number(value) || 0
+        }
+      }
     }
     setMealItems(updatedItems)
   }
@@ -52,9 +89,9 @@ export function MealEditForm({ meal, onSave, onCancel }: MealEditFormProps) {
   const calculateTotals = () => {
     return mealItems.reduce((totals, item) => ({
       calories: totals.calories + (item.calories * item.quantity),
-      protein: totals.protein + ((item.protein || 0) * item.quantity),
-      carbs: totals.carbs + ((item.carbs || 0) * item.quantity),
-      fat: totals.fat + ((item.fat || 0) * item.quantity)
+      protein: totals.protein + ((item.macros?.protein || 0) * item.quantity),
+      carbs: totals.carbs + ((item.macros?.carbs || 0) * item.quantity),
+      fat: totals.fat + ((item.macros?.fat || 0) * item.quantity)
     }), { calories: 0, protein: 0, carbs: 0, fat: 0 })
   }
 
@@ -164,22 +201,22 @@ export function MealEditForm({ meal, onSave, onCancel }: MealEditFormProps) {
                     <Input
                       type="number"
                       placeholder="Protein (g)"
-                      value={item.protein || 0}
-                      onChange={(e) => updateMealItem(index, 'protein', e.target.value)}
+                      value={item.macros?.protein || 0}
+                      onChange={(e) => updateMealItem(index, 'macros.protein', e.target.value)}
                       className="text-xs"
                     />
                     <Input
                       type="number"
                       placeholder="Carbs (g)"
-                      value={item.carbs || 0}
-                      onChange={(e) => updateMealItem(index, 'carbs', e.target.value)}
+                      value={item.macros?.carbs || 0}
+                      onChange={(e) => updateMealItem(index, 'macros.carbs', e.target.value)}
                       className="text-xs"
                     />
                     <Input
                       type="number"
                       placeholder="Fat (g)"
-                      value={item.fat || 0}
-                      onChange={(e) => updateMealItem(index, 'fat', e.target.value)}
+                      value={item.macros?.fat || 0}
+                      onChange={(e) => updateMealItem(index, 'macros.fat', e.target.value)}
                       className="text-xs"
                     />
                   </div>

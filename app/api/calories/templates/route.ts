@@ -38,54 +38,82 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Calculate totals
-    const totalCalories = mealItems.reduce((sum: number, item: any) => sum + item.calories, 0)
-    const totalProtein = mealItems.reduce((sum: number, item: any) => sum + (item.protein || 0), 0)
-    const totalCarbs = mealItems.reduce((sum: number, item: any) => sum + (item.carbs || 0), 0)
-    const totalFat = mealItems.reduce((sum: number, item: any) => sum + (item.fat || 0), 0)
-    const totalFiber = mealItems.reduce((sum: number, item: any) => sum + (item.fiber || 0), 0)
-    const totalCholesterol = mealItems.reduce((sum: number, item: any) => sum + (item.cholesterol || 0), 0)
-    const totalSugar = mealItems.reduce((sum: number, item: any) => sum + (item.sugar || 0), 0)
-    
-    // Calculate vitamin totals
-    const totalVitamins = mealItems.reduce((totals: any, item: any) => {
-      if (item.vitamins) {
-        return {
-          vitaminA: (totals.vitaminA || 0) + (item.vitamins.vitaminA || 0),
-          vitaminC: (totals.vitaminC || 0) + (item.vitamins.vitaminC || 0),
-          vitaminD: (totals.vitaminD || 0) + (item.vitamins.vitaminD || 0),
-          vitaminE: (totals.vitaminE || 0) + (item.vitamins.vitaminE || 0),
-          vitaminK: (totals.vitaminK || 0) + (item.vitamins.vitaminK || 0),
-          thiamin: (totals.thiamin || 0) + (item.vitamins.thiamin || 0),
-          riboflavin: (totals.riboflavin || 0) + (item.vitamins.riboflavin || 0),
-          niacin: (totals.niacin || 0) + (item.vitamins.niacin || 0),
-          vitaminB6: (totals.vitaminB6 || 0) + (item.vitamins.vitaminB6 || 0),
-          folate: (totals.folate || 0) + (item.vitamins.folate || 0),
-          vitaminB12: (totals.vitaminB12 || 0) + (item.vitamins.vitaminB12 || 0),
-          vitaminB7: (totals.vitaminB7 || 0) + (item.vitamins.vitaminB7 || 0)
+    // Handle both old and new structures
+    let processedMealItems = mealItems
+    let totals
+
+    // Check if mealItems have nested structure or flat structure
+    const hasNestedStructure = mealItems.some((item: any) => item.macros)
+
+    if (!hasNestedStructure) {
+      // Convert old flat structure to new nested structure
+      processedMealItems = mealItems.map((item: any) => ({
+        name: item.name,
+        quantity: item.quantity || 1,
+        unit: item.unit || 'serving',
+        calories: item.calories,
+        macros: {
+          protein: item.protein || 0,
+          carbs: item.carbs || 0,
+          fat: item.fat || 0,
+          fiber: item.fiber || 0
+        },
+        micros: {
+          vitamins: item.vitamins || {},
+          minerals: item.minerals || {},
+          other: {
+            cholesterol: item.cholesterol || 0,
+            sugar: item.sugar || 0
+          }
+        }
+      }))
+    }
+
+    // Calculate totals using nested structure
+    totals = processedMealItems.reduce((acc: any, item: any) => {
+      acc.calories += item.calories || 0
+      
+      // Sum macros
+      if (item.macros) {
+        acc.macros.protein += item.macros.protein || 0
+        acc.macros.carbs += item.macros.carbs || 0
+        acc.macros.fat += item.macros.fat || 0
+        acc.macros.fiber += item.macros.fiber || 0
+      }
+      
+      // Sum micros
+      if (item.micros) {
+        // Sum vitamins
+        if (item.micros.vitamins) {
+          Object.keys(item.micros.vitamins).forEach(vitamin => {
+            acc.micros.vitamins[vitamin] = (acc.micros.vitamins[vitamin] || 0) + (item.micros.vitamins[vitamin] || 0)
+          })
+        }
+        
+        // Sum minerals
+        if (item.micros.minerals) {
+          Object.keys(item.micros.minerals).forEach(mineral => {
+            acc.micros.minerals[mineral] = (acc.micros.minerals[mineral] || 0) + (item.micros.minerals[mineral] || 0)
+          })
+        }
+        
+        // Sum other
+        if (item.micros.other) {
+          acc.micros.other.cholesterol += item.micros.other.cholesterol || 0
+          acc.micros.other.sugar += item.micros.other.sugar || 0
         }
       }
-      return totals
-    }, {})
-    
-    // Calculate mineral totals
-    const totalMinerals = mealItems.reduce((totals: any, item: any) => {
-      if (item.minerals) {
-        return {
-          calcium: (totals.calcium || 0) + (item.minerals.calcium || 0),
-          iron: (totals.iron || 0) + (item.minerals.iron || 0),
-          magnesium: (totals.magnesium || 0) + (item.minerals.magnesium || 0),
-          phosphorus: (totals.phosphorus || 0) + (item.minerals.phosphorus || 0),
-          potassium: (totals.potassium || 0) + (item.minerals.potassium || 0),
-          sodium: (totals.sodium || 0) + (item.minerals.sodium || 0),
-          zinc: (totals.zinc || 0) + (item.minerals.zinc || 0),
-          copper: (totals.copper || 0) + (item.minerals.copper || 0),
-          manganese: (totals.manganese || 0) + (item.minerals.manganese || 0),
-          selenium: (totals.selenium || 0) + (item.minerals.selenium || 0)
-        }
+      
+      return acc
+    }, {
+      calories: 0,
+      macros: { protein: 0, carbs: 0, fat: 0, fiber: 0 },
+      micros: { 
+        vitamins: {}, 
+        minerals: {}, 
+        other: { cholesterol: 0, sugar: 0 } 
       }
-      return totals
-    }, {})
+    })
 
     await connectDB()
     
@@ -102,23 +130,39 @@ export async function POST(request: Request) {
       }, { status: 409 })
     }
     
-    const template = await MealTemplate.create({
-      userId: session.user.email,
-      name: name.trim(),
-      mealType,
-      mealItems,
-      totalCalories,
-      totalProtein,
-      totalCarbs,
-      totalFat,
-      totalFiber,
-      totalCholesterol,
-      totalSugar,
-      totalVitamins,
-      totalMinerals
-    })
-
-    return NextResponse.json({ template })
+    try {
+      // Create template data with both old and new field names for compatibility
+      const templateData: any = {
+        userId: session.user.email,
+        name: name.trim(),
+        mealType,
+        mealItems: processedMealItems,
+        totals
+      }
+      
+      // Add backward compatibility fields in case old schema is still cached
+      templateData.totalCalories = totals.calories
+      templateData.totalProtein = totals.macros.protein
+      templateData.totalCarbs = totals.macros.carbs
+      templateData.totalFat = totals.macros.fat
+      templateData.totalFiber = totals.macros.fiber
+      templateData.totalCholesterol = totals.micros.other.cholesterol
+      templateData.totalSugar = totals.micros.other.sugar
+      templateData.totalVitamins = totals.micros.vitamins
+      templateData.totalMinerals = totals.micros.minerals
+      
+      const template = await MealTemplate.create(templateData)
+      
+      return NextResponse.json({ template })
+    } catch (dbError: any) {
+      console.error('Database error creating template:', dbError)
+      console.error('Error details:', dbError.message)
+      console.error('Error stack:', dbError.stack)
+      return NextResponse.json({ 
+        error: 'Database error: ' + dbError.message,
+        details: dbError.stack
+      }, { status: 500 })
+    }
   } catch (error) {
     console.error('Error creating meal template:', error)
     return NextResponse.json({ error: 'Failed to create template' }, { status: 500 })

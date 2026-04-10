@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getCalorieLogModel } from '@/lib/models'
+import { getMealLogModel } from '@/lib/models'
 import { calculateDailyCalorieNeeds } from '@/lib/calorieCalculator'
 
 export async function GET(req: Request) {
@@ -19,16 +19,16 @@ export async function GET(req: Request) {
 
   await connectDB()
   
-  const CalorieLog = getCalorieLogModel()
+  const MealLog = getMealLogModel()
   const query: any = { userId: session.user.email }
   
   if (startDate || endDate) {
-    query.timestamp = {}
-    if (startDate) query.timestamp.$gte = new Date(startDate)
-    if (endDate) query.timestamp.$lte = new Date(endDate)
+    query.date = {}
+    if (startDate) query.date.$gte = new Date(startDate)
+    if (endDate) query.date.$lte = new Date(endDate)
   }
 
-  const logs = await CalorieLog.find(query).sort({ timestamp: -1 })
+  const logs = await MealLog.find(query).sort({ date: -1 })
   
   return NextResponse.json(logs)
 }
@@ -38,53 +38,32 @@ export async function POST(req: Request) {
   if (!session?.user?.email)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { foodName, calories, mealType, quantity, protein, carbs, fat, fiber, isMeal, mealItems, vitamins, minerals, cholesterol, sugar } = await req.json()
+  const { inputText, mealType, foods, totals } = await req.json()
 
-  if (!foodName || !calories || !mealType) {
+  if (!inputText || !mealType || !foods || !totals) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  if (calories < 0 || calories > 5000) {
+  if (totals.calories < 0 || totals.calories > 5000) {
     return NextResponse.json({ error: 'Invalid calorie amount' }, { status: 400 })
   }
 
   await connectDB()
   
-  const CalorieLog = getCalorieLogModel()
+  const MealLog = getMealLogModel()
   const logData: any = {
     userId: session.user.email,
-    foodName,
-    calories,
-    protein: protein || 0,
-    carbs: carbs || 0,
-    fat: fat || 0,
-    fiber: fiber || 0,
+    date: new Date(),
     mealType,
-    quantity,
-    timestamp: new Date(),
-    isMeal: isMeal || false
+    inputText,
+    foods,
+    totals,
+    method: 'manual'
   }
+  
 
-  // Add meal items if it's a meal
-  if (isMeal && mealItems) {
-    logData.mealItems = mealItems
-  }
-
-  // Add micro-nutrients if provided
-  if (vitamins) {
-    logData.vitamins = vitamins
-  }
-  if (minerals) {
-    logData.minerals = minerals
-  }
-  if (cholesterol !== undefined) {
-    logData.cholesterol = cholesterol
-  }
-  if (sugar !== undefined) {
-    logData.sugar = sugar
-  }
-
-  const log = await CalorieLog.create(logData)
+  const log = await MealLog.create(logData)
+  
 
   return NextResponse.json(log, { status: 201 })
 }

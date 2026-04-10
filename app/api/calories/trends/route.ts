@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getCalorieLogModel, getUserProfileModel } from '@/lib/models'
+import { getMealLogModel, getUserProfileModel } from '@/lib/models'
 import { format, subDays, startOfDay, endOfDay } from 'date-fns'
 
 export async function GET(req: Request) {
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
 
     await connectDB()
     
-    const CalorieLog = getCalorieLogModel()
+    const MealLog = getMealLogModel()
     const UserProfile = getUserProfileModel()
     
     // Get user's current goal
@@ -45,21 +45,21 @@ export async function GET(req: Request) {
     startDate = subDays(today, days - 1)
 
     // Fetch logs for the period
-    const logs = await CalorieLog.find({
+    const logs = await MealLog.find({
       userId: session.user.email,
-      timestamp: {
+      date: {
         $gte: startOfDay(startDate),
         $lte: endOfDay(today)
       }
-    }).sort({ timestamp: 1 })
+    }).sort({ date: 1 })
 
     // Aggregate daily totals
     const dailyMap = new Map<string, number>()
     
     logs.forEach((log: any) => {
-      const dateKey = format(new Date(log.timestamp), 'yyyy-MM-dd')
+      const dateKey = format(new Date(log.date), 'yyyy-MM-dd')
       const currentTotal = dailyMap.get(dateKey) || 0
-      dailyMap.set(dateKey, currentTotal + log.calories)
+      dailyMap.set(dateKey, currentTotal + log.totals.calories)
     })
 
     // Generate trend data

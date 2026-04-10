@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { connectDB } from '@/lib/mongoose'
-import { getCalorieLogModel } from '@/lib/models'
+import { getMealLogModel } from '@/lib/models'
 
 export async function PUT(req: Request, context: { params: Promise<{ id: string }>}) {
   const session = await getServerSession()
@@ -13,36 +13,28 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await context.params
-  const { foodName, calories, mealType, quantity, protein, carbs, fat, isMeal, mealItems } = await req.json()
+  const { inputText, mealType, foods, totals } = await req.json()
 
-  if (!foodName || !calories || !mealType) {
+  if (!inputText || !mealType || !foods || !totals) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  if (calories < 0 || calories > 5000) {
+  if (totals.calories < 0 || totals.calories > 5000) {
     return NextResponse.json({ error: 'Invalid calorie amount' }, { status: 400 })
   }
 
   await connectDB()
   
-  const CalorieLog = getCalorieLogModel()
+  const MealLog = getMealLogModel()
   const logData: any = {
-    foodName,
-    calories,
-    protein: protein || 0,
-    carbs: carbs || 0,
-    fat: fat || 0,
+    inputText,
     mealType,
-    quantity,
-    isMeal: isMeal || false
+    foods,
+    totals,
+    method: 'manual'
   }
 
-  // Add meal items if it's a meal
-  if (isMeal && mealItems) {
-    logData.mealItems = mealItems
-  }
-
-  const log = await CalorieLog.findOneAndUpdate(
+  const log = await MealLog.findOneAndUpdate(
     { _id: id, userId: session.user.email },
     logData,
     { new: true }
@@ -64,8 +56,8 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
 
   await connectDB()
   
-  const CalorieLog = getCalorieLogModel()
-  const log = await CalorieLog.findOneAndDelete({
+  const MealLog = getMealLogModel()
+  const log = await MealLog.findOneAndDelete({
     _id: id,
     userId: session.user.email
   })
