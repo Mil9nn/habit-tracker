@@ -34,7 +34,7 @@ interface ProgressResponse {
 export default function ProgressPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   const [entries, setEntries] = useState<ProgressEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -46,12 +46,12 @@ export default function ProgressPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch('/api/progress?limit=20')
       if (!response.ok) {
         throw new Error('Failed to fetch progress entries')
       }
-      
+
       const data: ProgressResponse = await response.json()
       setEntries(data.entries)
     } catch (err) {
@@ -108,7 +108,7 @@ export default function ProgressPage() {
           </div>
           <Button
             onClick={() => setIsUploadDialogOpen(true)}
-            className="bg-blue-500 rounded-full text-white hover:from-blue-600 flex items-center gap-2"
+            className="bg-blue-500 h-12 rounded-full text-white hover:from-blue-600 flex items-center gap-2"
           >
             <CirclePlus className="w-4 h-4" />
             Add
@@ -126,7 +126,7 @@ export default function ProgressPage() {
         {/* Comparison Section */}
         {entries.length >= 2 && (
           <div className="mb-12">
-            <ProgressComparison 
+            <ProgressComparison
               entries={entries}
               selectedEntries={selectedEntries}
               onSelectionChange={setSelectedEntries}
@@ -150,7 +150,7 @@ export default function ProgressPage() {
             </p>
           </div>
         ) : (
-          <ProgressTimeline 
+          <ProgressTimeline
             entries={entries}
             loading={loading}
             onEntryDeleted={handleEntryDeleted}

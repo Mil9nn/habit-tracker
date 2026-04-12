@@ -13,7 +13,7 @@ interface GoalModalProps {
   setShowGoalModal: (show: boolean) => void
   goal?: Goal
   unit: string
-  setGoal: (goal: Goal | null) => void
+  saveGoal: (goal: Goal) => Promise<void>
 }
 
 export default function GoalModal({
@@ -21,7 +21,7 @@ export default function GoalModal({
   setShowGoalModal,
   goal,
   unit,
-  setGoal
+  saveGoal
 }: GoalModalProps) {
   return (
     <AnimatePresence>
@@ -65,12 +65,12 @@ export default function GoalModal({
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   const input = document.getElementById('goal-weight') as HTMLInputElement
                   const val = parseFloat(input.value)
                   if (val && !isNaN(val)) {
                     const newGoal = { targetWeight: val, startDate: new Date().toISOString().split('T')[0], unit: unit as 'kg' | 'lbs' }
-                    setGoal(newGoal)
+                    await saveGoal(newGoal)
                     setShowGoalModal(false)
                   }
                 }}

@@ -107,7 +107,8 @@ export default function WeightTracker() {
 
       // Fetch weight data if not initialized
       if (!initialized) {
-        fetchWeightData()
+        weightActions.fetchEntries()
+        weightActions.fetchGoal()
       }
     }
   }, [status, session, profileInitialized, initialized])
@@ -137,28 +138,16 @@ export default function WeightTracker() {
     const today = new Date().toISOString().split('T')[0]
 
     try {
-      const response = await fetch('/api/weight/entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          weight: val,
-          unit: unitValue,
-          date: today
-        })
+      await weightActions.addEntry({
+        date: today,
+        weight: val,
+        unit: unitValue as 'kg' | 'lbs'
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        const updated = [...entries.filter(e => e.date !== today), { date: today, weight: val, unit: unitValue as 'kg' | 'lbs' }]
-          .sort((a, b) => a.date.localeCompare(b.date))
-        weightActions.setEntries(updated)
-        // Pre-fill for next time with today's weight
-        setWeight(val.toString())
-        setLogged(true)
-        setTimeout(() => setLogged(false), 2000)
-      } else {
-        console.error('Failed to save weight entry')
-      }
+      
+      // Pre-fill for next time with today's weight
+      setWeight(val.toString())
+      setLogged(true)
+      setTimeout(() => setLogged(false), 2000)
     } catch (error) {
       console.error('Error saving weight entry:', error)
     }
@@ -173,30 +162,19 @@ export default function WeightTracker() {
   }
 
   const handleSaveEdit = async () => {
-    const val = parseFloat(editWeight)
-    if (!val || isNaN(val) || !editingEntry) return
-
     try {
-      const response = await fetch('/api/weight/entries', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          weight: val,
-          unit,
-          date: editingEntry
-        })
-      })
-
-      if (response.ok) {
-        const updated = entries.map((e) =>
-          e.date === editingEntry ? { ...e, weight: val, unit: unit as 'kg' | 'lbs' } : e
-        ) as WeightEntry[]
-        weightActions.setEntries(updated)
-        setEditingEntry(null)
-        setEditWeight('')
-      } else {
-        console.error('Failed to update weight entry')
+      const val = parseFloat(editWeight)
+      if (isNaN(val) || val <= 0 || !editingEntry) {
+        console.error('Invalid weight value or no entry selected')
+        return
       }
+
+      await weightActions.updateEntry(editingEntry, { weight: val, unit: unit as 'kg' | 'lbs' })
+      
+      // Refresh entries from database to get updated data
+      await weightActions.fetchEntries()
+      setEditingEntry(null)
+      setEditWeight('')
     } catch (error) {
       console.error('Error updating weight entry:', error)
     }
@@ -209,16 +187,10 @@ export default function WeightTracker() {
 
   const handleDelete = async (date: string) => {
     try {
-      const response = await fetch(`/api/weight/entries?date=${date}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
-        const updated = entries.filter((e: WeightEntry) => e.date !== date)
-        weightActions.setEntries(updated)
-      } else {
-        console.error('Failed to delete weight entry')
-      }
+      await weightActions.deleteEntry(date)
+      
+      // Refresh entries from database to get updated data
+      await weightActions.fetchEntries()
     } catch (error) {
       console.error('Error deleting weight entry:', error)
     }
@@ -322,20 +294,6 @@ export default function WeightTracker() {
         .catch(console.error)
 
       setShowSetupModal(false)
-    }
-  }
-
-  const fetchWeightData = async () => {
-    try {
-      const response = await fetch('/api/weight/entries')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.entries) {
-          weightActions.setEntries(data.entries)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching weight data:', error)
     }
   }
 
@@ -451,7 +409,7 @@ export default function WeightTracker() {
         setShowGoalModal={setShowGoalModal}
         goal={goal || undefined}
         unit={unit}
-        setGoal={setGoal}
+        saveGoal={weightActions.saveGoal}
       />
     </MainLayout>
   )

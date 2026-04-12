@@ -2,6 +2,79 @@ import { create } from 'zustand'
 import { persist, devtools } from 'zustand/middleware'
 import { calculateBMR, calculateDailyCalorieNeeds } from '@/lib/calorieCalculator'
 
+const calculateHealthMetrics = (age: number, gender: Gender, height: number, weight: number, activityLevel: ActivityLevel) => {
+  // Calculate BMI
+  const heightInMeters = height / 100
+  const bmi = weight / (heightInMeters * heightInMeters)
+  
+  // Healthy BMI range (18.5 - 24.9)
+  const healthyBMI = { min: 18.5, max: 24.9 }
+  
+  // Calculate healthy weight range based on height and healthy BMI
+  const healthyWeightRange = {
+    min: Math.round(healthyBMI.min * heightInMeters * heightInMeters),
+    max: Math.round(healthyBMI.max * heightInMeters * heightInMeters)
+  }
+  
+  // Calculate ideal weight (midpoint of healthy range)
+  const idealWeight = Math.round((healthyWeightRange.min + healthyWeightRange.max) / 2)
+  
+  // BMR calculation using Mifflin-St Jeor equation
+  let bmr: number
+  if (gender === 'male') {
+    bmr = 10 * weight + 6.25 * height - 5 * age + 5
+  } else {
+    bmr = 10 * weight + 6.25 * height - 5 * age - 161
+  }
+  
+  // Activity multipliers for BMR to get TDEE
+  const activityMultipliers = {
+    sedentary: 1.2,
+    lightly_active: 1.375,
+    moderately_active: 1.55,
+    very_active: 1.725,
+    extra_active: 1.9
+  }
+  
+  const tdee = Math.round(bmr * activityMultipliers[activityLevel])
+  
+  // Healthy BMR range (±10% of calculated BMR)
+  const healthyBMRRange = {
+    min: Math.round(bmr * 0.9),
+    max: Math.round(bmr * 1.1)
+  }
+  
+  // Healthy calorie range (±15% of TDEE for weight maintenance)
+  const healthyCalorieRange = {
+    min: Math.round(tdee * 0.85),
+    max: Math.round(tdee * 1.15)
+  }
+  
+  // Weight status based on BMI
+  let weightStatus: string
+  if (bmi < 18.5) weightStatus = 'Underweight'
+  else if (bmi < 25) weightStatus = 'Normal weight'
+  else if (bmi < 30) weightStatus = 'Overweight'
+  else weightStatus = 'Obese'
+  
+  // Calculate weight difference from ideal
+  const weightDifference = weight - idealWeight
+  const weightToGoal = weightDifference > 0 ? weightDifference : -weightDifference
+  
+  return {
+    bmi: Math.round(bmi * 10) / 10,
+    weightStatus,
+    healthyWeightRange,
+    idealWeight,
+    weightDifference,
+    weightToGoal,
+    bmr: Math.round(bmr),
+    healthyBMRRange,
+    tdee,
+    healthyCalorieRange
+  }
+}
+
 const calculateMacroGoals = (calorieGoal: number, activityLevel: ActivityLevel, weight: number) => {
   // Protein: 1.6-2.2g per kg body weight for active individuals
   // Higher for very active, lower for sedentary
@@ -68,6 +141,16 @@ export interface UserProfile {
   fatGoal: number // grams
   waterGoal: number // ml
   bmr: number
+  // Health metrics
+  bmi: number
+  weightStatus: string
+  healthyWeightRange: { min: number; max: number }
+  idealWeight: number
+  weightDifference: number
+  weightToGoal: number
+  healthyBMRRange: { min: number; max: number }
+  tdee: number
+  healthyCalorieRange: { min: number; max: number }
   createdAt?: string
 }
 
@@ -105,6 +188,16 @@ const defaultProfile: UserProfile = {
   fatGoal: 0,
   waterGoal: 0,
   bmr: 0,
+  // Health metrics
+  bmi: 0,
+  weightStatus: '',
+  healthyWeightRange: { min: 0, max: 0 },
+  idealWeight: 0,
+  weightDifference: 0,
+  weightToGoal: 0,
+  healthyBMRRange: { min: 0, max: 0 },
+  tdee: 0,
+  healthyCalorieRange: { min: 0, max: 0 },
 }
 
 // Create the store
@@ -154,14 +247,14 @@ export const useProfileStore = create<ProfileState>()(
             return
           }
           
-          // Calculate BMR using Mifflin-St Jeor equation
-          const bmr = calculateBMR({
-            age: profile.age,
-            gender: profile.gender,
-            weight: profile.weight,
-            height: profile.height,
-            activityLevel: profile.activityLevel,
-          })
+          // Calculate health metrics
+          const healthMetrics = calculateHealthMetrics(
+            profile.age,
+            profile.gender,
+            profile.height,
+            profile.weight,
+            profile.activityLevel
+          )
 
           // Calculate recommended daily calorie needs
           const recommendedCalories = calculateDailyCalorieNeeds({
@@ -179,12 +272,12 @@ export const useProfileStore = create<ProfileState>()(
             {
               profile: {
                 ...profile,
+                ...healthMetrics,
                 calorieGoal: recommendedCalories,
                 proteinGoal,
                 carbsGoal,
                 fatGoal,
-                waterGoal,
-                bmr: bmr
+                waterGoal
               },
               lastCalculated: new Date(),
             },
@@ -268,7 +361,44 @@ export const useProfileStore = create<ProfileState>()(
 export const useProfile = () => useProfileStore((state) => state.profile)
 export const useProfileLoading = () => useProfileStore((state) => state.isLoading)
 export const useProfileInitialized = () => useProfileStore((state) => state.isInitialized)
+// Individual health metrics selectors to avoid caching issues
+export const useBMI = () => useProfileStore((state) => state.profile?.bmi || 0)
+export const useWeightStatus = () => useProfileStore((state) => state.profile?.weightStatus || '')
+export const useHealthyWeightRange = () => useProfileStore((state) => state.profile?.healthyWeightRange || { min: 0, max: 0 })
+export const useIdealWeight = () => useProfileStore((state) => state.profile?.idealWeight || 0)
+export const useWeightDifference = () => useProfileStore((state) => state.profile?.weightDifference || 0)
+export const useWeightToGoal = () => useProfileStore((state) => state.profile?.weightToGoal || 0)
 export const useBMR = () => useProfileStore((state) => state.profile?.bmr || 0)
+export const useHealthyBMRRange = () => useProfileStore((state) => state.profile?.healthyBMRRange || { min: 0, max: 0 })
+export const useTDEE = () => useProfileStore((state) => state.profile?.tdee || 0)
+export const useHealthyCalorieRange = () => useProfileStore((state) => state.profile?.healthyCalorieRange || { min: 0, max: 0 })
+
+// Combined health metrics selector (use sparingly)
+export const useHealthMetrics = () => {
+  const bmi = useBMI()
+  const weightStatus = useWeightStatus()
+  const healthyWeightRange = useHealthyWeightRange()
+  const idealWeight = useIdealWeight()
+  const weightDifference = useWeightDifference()
+  const weightToGoal = useWeightToGoal()
+  const bmr = useBMR()
+  const healthyBMRRange = useHealthyBMRRange()
+  const tdee = useTDEE()
+  const healthyCalorieRange = useHealthyCalorieRange()
+  
+  return bmi || weightStatus || healthyWeightRange.min || idealWeight ? {
+    bmi,
+    weightStatus,
+    healthyWeightRange,
+    idealWeight,
+    weightDifference,
+    weightToGoal,
+    bmr,
+    healthyBMRRange,
+    tdee,
+    healthyCalorieRange
+  } : null
+}
 export const useCalorieGoal = () => useProfileStore((state) => state.profile?.calorieGoal || 0)
 export const useProteinGoal = () => useProfileStore((state) => state.profile?.proteinGoal || 0)
 export const useCarbsGoal = () => useProfileStore((state) => state.profile?.carbsGoal || 0)
@@ -291,13 +421,6 @@ export const useProfileActions = () => useProfileStore((state) => ({
   setInitialized: state.setInitialized,
 }))
 
-// Computed selectors
-export const useBMI = () => {
-  const profile = useProfile()
-  // Return 0 if weight or height is 0 or profile is null
-  if (!profile?.weight || !profile?.height) return 0
-  return profile.weight / Math.pow(profile.height / 100, 2)
-}
 
 export const useProfileCompletion = () => {
   const profile = useProfile()

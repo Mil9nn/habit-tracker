@@ -245,11 +245,11 @@ export default function CalorieTracker() {
     }
   }, [])
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    }
-  }, [status, router])
+  // useEffect(() => {
+  //   if (status === 'unauthenticated') {
+  //     router.push('/auth/signin')
+  //   }
+  // }, [status, router])
 
   const fetchData = useCallback(async () => {
     try {
@@ -296,6 +296,30 @@ export default function CalorieTracker() {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
+    }
+  }, [selectedDate])
+
+  useEffect(() => {
+    // Create notebook page turn effect
+    const mainContent = document.querySelector('main')
+    if (mainContent) {
+      // Page turn animation sequence
+      mainContent.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      mainContent.style.transform = 'rotateY(-15deg) scale(0.95)'
+      mainContent.style.opacity = '0.3'
+      mainContent.style.filter = 'blur(2px)'
+      
+      setTimeout(() => {
+        mainContent.style.transform = 'rotateY(15deg) scale(0.95)'
+        mainContent.style.opacity = '0.3'
+        mainContent.style.filter = 'blur(2px)'
+      }, 300)
+      
+      setTimeout(() => {
+        mainContent.style.transform = 'rotateY(0deg) scale(1)'
+        mainContent.style.opacity = '1'
+        mainContent.style.filter = 'blur(0px)'
+      }, 600)
     }
   }, [selectedDate])
 

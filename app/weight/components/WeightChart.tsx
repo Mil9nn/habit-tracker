@@ -29,9 +29,17 @@ export default function WeightChart({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-md font-medium text-gray-600">Weight Trend</h3>
-        <div className="flex gap-2">
+      <div className="px-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-zinc-800">Weight Trend</h3>
+          <p className="text-[11px] text-zinc-400 mt-0.5">
+            {filteredData.length} day{filteredData.length !== 1 ? 's' : ''} tracked
+          </p>
+        </div>
+        <div
+          className="flex items-center p-0.5 rounded-lg gap-0.5"
+          style={{ background: '#f4f4f5' }}
+        >
           {["weekly", "monthly"].map((period) => (
             <button
               key={period}
@@ -39,13 +47,14 @@ export default function WeightChart({
                 setTimePeriod(period as "weekly" | "monthly")
                 setTrendView(period === "weekly" ? 7 : 30)
               }}
-              className={`text-xs px-2 py-1 rounded-md transition-colors ${
-                timePeriod === period
-                  ? "bg-blue-100 text-blue-600"
-                  : "text-gray-500 hover:text-gray-600"
-              }`}
+              className="px-3 py-1 rounded-md text-xs font-medium transition-all duration-200"
+              style={{
+                background: timePeriod === period ? '#fff' : 'transparent',
+                color: timePeriod === period ? '#18181b' : '#a1a1aa',
+                boxShadow: timePeriod === period ? '0 1px 4px rgba(0,0,0,0.08)' : 'none'
+              }}
             >
-              {period}
+              {period.charAt(0).toUpperCase() + period.slice(1)}
             </button>
           ))}
         </div>

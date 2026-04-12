@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Upload, X, Camera, Scale, FileText } from 'lucide-react'
 import axios from 'axios'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -91,6 +92,7 @@ export function ProgressUploadDialog({
       
       setImages(prev => [...prev, ...files].slice(0, 3))
       setError(null)
+      toast.success(`${files.length} photo(s) added to upload queue`, { duration: 2000 })
     }
   }, [images])
 
@@ -111,6 +113,8 @@ export function ProgressUploadDialog({
     setError(null)
 
     try {
+      toast.info('Uploading progress photos...', { duration: 2000 })
+      
       const formData = new FormData()
       
       // Add images
@@ -135,6 +139,7 @@ export function ProgressUploadDialog({
       }
 
       onEntryAdded(response.data.entry)
+      toast.success('Progress photos uploaded successfully!', { duration: 3000 })
       
       // Reset form and close dialog
       setImages([])
@@ -144,7 +149,9 @@ export function ProgressUploadDialog({
       
     } catch (err) {
       console.error('Upload error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to upload progress entry')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload progress entry'
+      setError(errorMessage)
+      toast.error(errorMessage, { duration: 5000 })
     } finally {
       setIsSubmitting(false)
       setUploading(false)
@@ -164,10 +171,10 @@ export function ProgressUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="p-6 overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <DialogTitle className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
               <Camera className="w-5 h-5 text-white" />
             </div>
             <div className="text-left">
@@ -289,24 +296,17 @@ export function ProgressUploadDialog({
             </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
           {/* Dialog Footer */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <DialogClose asChild>
-              <Button variant="outline" type="button">
+              <Button className='h-12' variant="outline" type="button">
                 Cancel
               </Button>
             </DialogClose>
             <Button
               type="submit"
               disabled={images.length === 0 || isSubmitting}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+              className="bg-blue-500 h-12 text-white hover:bg-blue-600"
             >
               {isSubmitting ? (
                 <>
@@ -318,8 +318,8 @@ export function ProgressUploadDialog({
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-2" />
                   Upload
+                  <Upload className="w-4 h-4" />
                 </>
               )}
             </Button>
