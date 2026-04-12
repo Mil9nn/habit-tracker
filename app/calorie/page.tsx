@@ -539,7 +539,7 @@ export default function CalorieTracker() {
         <div className="space-y-10">
 
           <AIFoodAnalysis 
-            selectedDate={selectedDate}
+            selectedDate={new Date(selectedDate)}
             onDataAdded={() => { 
               fetchData(); 
               fetchTrendsData(trendsPeriod); 
