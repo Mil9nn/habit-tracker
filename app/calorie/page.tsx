@@ -474,6 +474,7 @@ export default function CalorieTracker() {
       const requestData = {
           inputText: template.name,
           mealType: template.mealType,
+          date: new Date(selectedDate).toISOString().split('T')[0], // Format as YYYY-MM-DD
           foods: transformedFoods,
           totals: calculatedTotals,
           method: 'manual'
@@ -537,10 +538,13 @@ export default function CalorieTracker() {
         {/* Left Column */}
         <div className="space-y-10">
 
-          <AIFoodAnalysis onDataAdded={() => { 
-            fetchData(); 
-            fetchTrendsData(trendsPeriod); 
-          }} />
+          <AIFoodAnalysis 
+            selectedDate={selectedDate}
+            onDataAdded={() => { 
+              fetchData(); 
+              fetchTrendsData(trendsPeriod); 
+            }} 
+          />
 
           <MealTemplatesMinimal
             onTemplateSelect={handleTemplateSelect}

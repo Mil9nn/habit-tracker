@@ -204,17 +204,9 @@ export function Carousel({
     touchEndXRef.current = null
   }, [])
 
-  // Memoize navigation handlers
+  // Memoize navigation handler for indicators
   const goToSlide = useCallback((slideIndex: number) => {
     setCarouselSlide(slideIndex % SLIDES_COUNT)
-  }, [])
-
-  const goToNextSlide = useCallback(() => {
-    setCarouselSlide(prev => (prev + 1) % SLIDES_COUNT)
-  }, [])
-
-  const goToPrevSlide = useCallback(() => {
-    setCarouselSlide(prev => (prev - 1 + SLIDES_COUNT) % SLIDES_COUNT)
   }, [])
 
   return (
@@ -345,17 +337,8 @@ export function Carousel({
           </div>
         </div>
 
-        {/* Navigation Controls */}
+        {/* Navigation Controls - Indicators Only */}
         <div className="flex items-center justify-center px-6 py-4">
-          <button
-            onClick={goToPrevSlide}
-            className="hidden md:block p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-black focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-            aria-label="Previous slide"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
           <div className="flex gap-2">
             {Array.from({ length: SLIDES_COUNT }, (_, index) => (
               <button
@@ -367,15 +350,6 @@ export function Carousel({
               />
             ))}
           </div>
-          <button
-            onClick={goToNextSlide}
-            className="hidden md:block p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-black focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-            aria-label="Next slide"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
         </div>
       </div>
     </section>

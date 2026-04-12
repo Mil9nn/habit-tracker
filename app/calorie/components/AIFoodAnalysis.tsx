@@ -74,7 +74,7 @@ interface AIFoodAnalysisProps {
   onDataAdded?: () => void
 }
 
-export default function AIFoodAnalysis({ onDataAdded }: { onDataAdded?: () => void }) {
+export default function AIFoodAnalysis({ selectedDate, onDataAdded }: { selectedDate: Date; onDataAdded?: () => void }) {
   const [aiFoodDescription, setAiFoodDescription] = useState('')
   const [aiAnalysis, setAiAnalysis] = useState<any>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -125,10 +125,20 @@ export default function AIFoodAnalysis({ onDataAdded }: { onDataAdded?: () => vo
     try {
       const { macros, micros } = analysis.totals
       // Use smart time-based meal categorization for the logged meal
-      const currentMealType = categorizeMeal(new Date())
+      const currentMealType = categorizeMeal(new Date(selectedDate))
       const mealData = {
-        inputText: analysis.foods.map((f: any) => `${f.quantity}× ${f.name}`).join(', '),
+        inputText: analysis.foods.map((f: any) => {
+          // Smart formatting: use "×" for countable items, unit for measured items
+          if (f.unit === 'serving' || f.unit === 'piece' || f.unit === 'whole') {
+            return `${f.quantity}× ${f.name}`
+          } else {
+            // For units like gm, ml, etc., show as "100g paneer"
+            const shortUnit = f.unit.replace('gram', 'g').replace('milliliter', 'ml').replace('liter', 'l')
+            return `${f.quantity}${shortUnit} ${f.name}`
+          }
+        }).join(', '),
         mealType: currentMealType,
+        date: new Date(selectedDate).toISOString().split('T')[0], // Format as YYYY-MM-DD
         foods: analysis.foods.map((food: any) => ({
           name: food.name,
           quantity: food.quantity,

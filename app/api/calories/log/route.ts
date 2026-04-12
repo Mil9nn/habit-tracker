@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (!session?.user?.email)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { inputText, mealType, foods, totals } = await req.json()
+  const { inputText, mealType, foods, totals, date } = await req.json()
 
   if (!inputText || !mealType || !foods || !totals) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   const MealLog = getMealLogModel()
   const logData: any = {
     userId: session.user.email,
-    date: new Date(),
+    date: date ? new Date(date) : new Date(),
     mealType,
     inputText,
     foods,

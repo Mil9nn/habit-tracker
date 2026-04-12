@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Upload, X, Camera, Scale, FileText } from 'lucide-react'
 import axios from 'axios'
+import { toast } from 'sonner'
 
 interface ProgressEntry {
   _id: string
@@ -176,22 +177,23 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
 
     try {
       // Compress images before upload
+      toast.info('Compressing images...', { duration: 2000 })
       const compressedImages = await Promise.all(
         images.map(async (image) => {
           // Compress if image is larger than 1MB
           if (image.size > 1024 * 1024) {
-            setError('Compressing images...')
             return await compressImage(image, 1200, 0.8)
           }
           return image
         })
       )
+      toast.success('Images compressed successfully', { duration: 2000 })
 
       const formData = new FormData()
       
       // Add compressed images
       compressedImages.forEach((image, index) => {
-        formData.append(`images`, image)
+        formData.append(`images[${index}]`, image)
       })
       
       // Add weight if provided
@@ -204,6 +206,7 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
         formData.append('note', note.trim())
       }
 
+      toast.info('Uploading progress photos...', { duration: 2000 })
       const response = await axios.post('/api/progress', formData)
 
       if (!response.data.success) {
@@ -211,6 +214,7 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
       }
 
       onEntryAdded(response.data.entry)
+      toast.success('Progress photos uploaded successfully!', { duration: 3000 })
       
       // Reset form
       setImages([])
@@ -219,7 +223,9 @@ export function ProgressUpload({ onEntryAdded, setUploading }: ProgressUploadPro
       
     } catch (err) {
       console.error('Upload error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to upload progress entry')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload progress entry'
+      setError(errorMessage)
+      toast.error(errorMessage, { duration: 5000 })
     } finally {
       setIsSubmitting(false)
       setUploading(false)

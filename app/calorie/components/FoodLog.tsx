@@ -224,7 +224,18 @@ export function FoodLog({ logs, selectedDate, onDataUpdated }: FoodLogProps) {
                                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                                 style={{ background: config.color }}
                               />
-                              <span className="text-zinc-500">{item.quantity} {item.unit || 'serving'}×</span>
+                              <span className="text-zinc-500">
+                              {(() => {
+                                // Smart formatting: use "×" for countable items, unit for measured items
+                                if (item.unit === 'serving' || item.unit === 'piece' || item.unit === 'whole') {
+                                  return `${item.quantity}×`
+                                } else {
+                                  // For units like gm, ml, etc., show as "100g"
+                                  const shortUnit = item.unit.replace('gram', 'g').replace('milliliter', 'ml').replace('liter', 'l')
+                                  return `${item.quantity}${shortUnit}`
+                                }
+                              })()}
+                            </span>
                               <span className="font-medium text-zinc-700">{item.name}</span>
                             </div>
                             <span className="font-semibold" style={{ color: config.color }}>
